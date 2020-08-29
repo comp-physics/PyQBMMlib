@@ -51,7 +51,7 @@ I think it is best to start with the easiest things and work up from there.
 
 ### Step 1: Moment inversion
 
-0. Determine what moments (<img src="/tex/77a3b857d53fb44e33b53e4c8b68351a.svg?invert_in_darkmode&sanitize=true" align=middle width=5.663225699999989pt height=21.68300969999999pt/>) are required for your moment inversion algorithm 
+0. Determine what moments ($i$) are required for your moment inversion algorithm 
 1. Generate example moment set via a 1D distribution (e.g. Gaussian)
 2. Invert this moment set to a set of quadrature weights and nodes using the 1D methods (Wheeler, etc.)
 3. Confirm they agree with Mathematica code
@@ -63,8 +63,8 @@ I think it is best to start with the easiest things and work up from there.
 
 ### Step 2: Quadrature
 
-<p align="center"><img src="/tex/b6cf4416fca943426378729115a50fad.svg?invert_in_darkmode&sanitize=true" align=middle width=202.56219719999999pt height=39.26959575pt/></p>
-where <img src="/tex/c74e0e0132868de0526f6d00a9ca9224.svg?invert_in_darkmode&sanitize=true" align=middle width=26.967327749999992pt height=22.831056599999986pt/> are indices of the quadrature weights <img src="/tex/0f82cfd07512cb7de03c80f16501401e.svg?invert_in_darkmode&sanitize=true" align=middle width=12.210846449999991pt height=14.15524440000002pt/> and abscissas <img src="/tex/45fdb75d8eca86b22f33528f347d113c.svg?invert_in_darkmode&sanitize=true" align=middle width=88.59581609999998pt height=24.65753399999998pt/>
+$$ M_{i,j} = \sum_{l,m} w_{l,m} x_1(l)^i x_{2}(m)^j $$
+where $l,m$ are indices of the quadrature weights $\bm{w}$ and abscissas $\bm{x} = \{ x_1, x_2 \}$
 
 - Use above quadrature to show that you can 
     1. Reproduce in-moment-set moments down to round-off
