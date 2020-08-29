@@ -1,0 +1,25 @@
+dump_options:
+    database_dir:  "../H5-actii-2D/"
+    database_name: "MeanFlow"
+    geometry_name: "geom3d-mf"
+    domain_name:   "actii"
+    grid_name:     "Block"
+
+advancer_options:
+    verbosity:       1
+    num_particles:   3
+    num_steps:       10000
+    time_step:       1.0e-6
+    num_steps_save:  10
+    num_steps_print: 1
+    residence_time:  yes
+    break_steps:     yes
+    write_to:        "txt"
+    file_id:         ["actii-2D","noinj"]
+    out_dir:         "../outputs_2D/"
+
+initial_conditions_options:
+    geometry:  line
+    origin:    [0.65163,-0.0077254]    
+    extent:    0.001
+    direction: y

@@ -1,0 +1,24 @@
+dump_options:
+    database_dir:  "../H5-actii-3D/"
+    database_name: "MeanFlow"
+    geometry_name: "geom3d-mf"
+    domain_name:   "downstreamY5"
+    grid_name:     "Block"
+
+advancer_options:
+    verbosity:       1
+    num_particles:   1
+    num_steps:       100000
+    time_step:       1.0e-7
+    num_steps_save:  10
+    num_steps_print: 100
+    residence_time:  yes
+    break_steps:     yes
+    write_to:        "txt"
+    file_id:         ["actii-3D","inert-halfx","jet"]
+    out_dir:         "../outputs/"
+
+initial_conditions_options:
+    geometry:  point
+    origin:    [0.70563,-0.0243245,0.0]
+
