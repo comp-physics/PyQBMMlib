@@ -54,7 +54,8 @@ I think it is best to start with the easiest things and work up from there.
 0. Determine what moments ($i$) are required for your moment inversion algorithm 
 1. Generate example moment set via a 1D distribution (e.g. Gaussian)
 2. Invert this moment set to a set of quadrature weights and nodes using the 1D methods (Wheeler, etc.)
-3. Confirm they agree with Mathematica code
+3. Confirm they agree with Mathematica code  
+**Use testing.nb for this!**
 4. Repeat this process with a 2D distribution 
     - Determine required moment pairs $(i,j)$
     - Initializing moment set using, e.g., bivariate Gaussian
@@ -105,7 +106,4 @@ Each hierarchy would represent a new folder or file.
         - SSP-RK3
     - Adaptive
         - SSP-RK2/3
-
-
-
 
