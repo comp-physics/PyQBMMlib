@@ -81,3 +81,31 @@ where $l,m$ are indices of the quadrature weights $\bm{w}$ and abscissas $\bm{x}
 
 1. Obvious...
 
+## Layout
+
+Something like this might make sense.
+Each hierarchy would represent a new folder or file.
+
+- Moment equations
+    - Getting appropriate moment set `MomentIndex`
+    - Computation of exponents/indices and coefficients `TransportTerms`
+- Inversion algorithms `MomentInvert`
+    - 1D
+        - Wheeler
+        - Adaptive wheeler
+        - HyQMOM
+    - 2+D
+        - CQMOM
+        - CHyQMOM
+- Quadrature `ComputeRHS` and `Project`
+- Time steppers
+    - Fixed-step
+        - Euler
+        - SSP-RK2
+        - SSP-RK3
+    - Adaptive
+        - SSP-RK2/3
+
+
+
+
