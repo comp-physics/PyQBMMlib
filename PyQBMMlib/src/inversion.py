@@ -14,9 +14,10 @@ def classic_wheeler(moments):
     abscissas = np.array([])
     return weights, abscissas
 
-def wheeler(moments,adaptive):
+def wheeler(mom,adaptive):
 
-    print('inversion: Warning: Adaptive Wheeler not implemented. Returning empty arrays')
+    adaptive = False
+    # print('inversion: Warning: Adaptive Wheeler not implemented. Returning empty arrays')
 
     # From Bo Kong code in old_python_qmom
     # def adaptive_Wheeler(mom):
@@ -26,22 +27,21 @@ def wheeler(moments,adaptive):
 
     # SHB: need to convert all this stuff to numpy?
 
-    # SHB: Can infer n from length of mom, don't need it as an input
-    # n = (length(mom)-1)/2
+    n = len(mom)/2
 
     # SHB let's make adaptive and non-adaptive wheeler one routine with if statemtns
-    if adaptive:
-        # Adaptivity parameters
-        rmax = 1e-8
-        eabs = 1e-8
-        cutoff = 0
+    # if adaptive:
+    # Adaptivity parameters
+    rmax = 1e-8
+    eabs = 1e-8
+    cutoff = 0
     
     # Check if moments are unrealizable.
     if mom[0] <= 0:
         print("Moments are NOT realizable, moment[0] <= 0.0. Program exits.")
         exit()
 
-    if n == 1 or (mom[0] < rmax and adaptive):
+    if n == 1 or (adaptive and mom[0] < rmax):
         w = mom[0]
         x = mom[1]/mom[0]
         return w, x

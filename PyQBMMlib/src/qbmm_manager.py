@@ -10,6 +10,7 @@ class qbmm_manager:
         self.num_internal_coords  = config['num_internal_coords'] 
         self.num_quadrature_nodes = config['num_quadrature_nodes']
         self.method               = config['method']
+        self.adaptive             = config['adaptive']
 
         iret = self.set_inversion( config )
         if iret == 1:
@@ -35,11 +36,11 @@ class qbmm_manager:
             #
             if self.method == 'qmom':
                 #
-                self.moment_invert = classic_wheeler
-                #
-            elif self.method == 'aqmom':
-                #
-                self.moment_invert = adaptive_wheeler
+                # self.moment_invert = classic_wheeler
+                self.moment_invert = wheeler
+                self.adaptive      = False
+                if config.has_key( 'adaptive' ):
+                    self.adaptive = config['adaptive']
                 #
             elif self.method == 'hyqmom':
                 #
