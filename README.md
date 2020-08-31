@@ -39,7 +39,7 @@ Thus, this parameter choice needs to be made up front.
 
 - Their are several different inversion algorithms.
 They can be ported directly from QBMMlib.
-They have restrictions: some are only for 1D problems (Wheeler, adaptive wheeler, HYQMOM) and others are for 2+D problems (CQMOM, CHYQMOM).
+They have restrictions: some are only for 1D problems ((adaptive) Wheeler, HYQMOM) and others are for 2+D problems (CQMOM, CHYQMOM).
 There are other algorithms that can also be implemented, but these are the ones already in QBMMlib.
 Some of the 2+D algorithms will call the 1D algorithms themselves, so they need to be able to communicate.
 
@@ -92,9 +92,8 @@ Each hierarchy would represent a new folder or file.
     - Computation of exponents/indices and coefficients `TransportTerms`
 - Inversion algorithms `MomentInvert`
     - 1D
-        - Wheeler
-        - Adaptive wheeler
-        - HyQMOM
+        - Wheeler (with flag for adaptive)
+        - HyQMOM (with flag for max skewness)
     - 2+D
         - CQMOM
         - CHyQMOM
