@@ -67,13 +67,12 @@ def wheeler(moments, adaptive = False):
                     return x, w
 
     # Use maximum n to re-calculate recurrence matrix
-    a = zeros(n)
-    b = zeros(n)
-    w = zeros(n)
-    x = zeros(n)
-    sigma = zeros((2*n+1,2*n+1))
-    for i in range(1,2*n+1):
-        sigma[1,i] = nu[i-1]
+    a = np.zeros( n )
+    b = np.zeros( n )
+    w = np.zeros( n ) 
+    x = np.zeros( n )
+    sigma = np.zeros( [ 2*n+1, 2*n+1 ] )
+    sigma[1,1:] = nu
 
     a[0] = nu[1] / nu[0]
     b[0] = 0
@@ -94,15 +93,13 @@ def wheeler(moments, adaptive = False):
             w = moments[0]
             x = moments[1]/moments[0]
             return x, w
-        z = np.zeros( [n1, n1] )
-        for i in range(n1-1):
-            z[i, i] = a[i]
-            z[i, i+1] = sqrt(b[i+1])
-            z[i+1, i] = z[i, i+1]
-        z[n1-1, n1-1] = a[n1-1]
 
+        # Jacobi matrix
+        sqrt_b = np.sqrt( b[1:] ) 
+        jacobi = np.diag( a ) + np.diag( sqrt_b, -1 ) + np.diag( sqrt_b, 1 )
+        
         # Compute weights and abscissas
-        eigenvalues, eigenvectors = np.linalg.eig(z)
+        eigenvalues, eigenvectors = np.linalg.eig( jacobi )
         idx = eigenvalues.argsort()
         x   = eigenvalues[idx].real
         eigenvectors = eigenvectors[:, idx].real
