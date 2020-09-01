@@ -105,4 +105,25 @@ Each hierarchy would represent a new folder or file.
         - SSP-RK3
     - Adaptive
         - SSP-RK2/3
-
+    - Ideally, time-stepping implemented in two files (analogous to qbmm):
+        - time_steppers.py: contains one-step implementation of each method
+          (analogous to inversion.py)
+        - advancer.py: class that advances moments equation from t_init to t_final
+          (analogous to qbmm_manager.py, so maybe named advancer_manager.py for consistency)
+    - Advancer receives specific method from config, e.g.,
+      self.method = config[time_stepper]
+    - Advancer has a generic function that advances for one step,
+      points to selected method implementation:
+      In __init__(self):
+          ...
+          if self.method == Euler:
+              self.advance = self.advance_euler
+          ...
+      Then, in run() (see pcstreamlines), 
+      take one step with self.advance():
+          ...
+          self.advance()
+          self.time += self.time_step
+          ...
+    - To compute moments-equation rhs, advancer (stepper)
+      will own a qbmm_manager object

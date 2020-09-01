@@ -6,46 +6,43 @@ from scipy.linalg import eig
 ###
 ### Invesion methods for 1D problems
 ###
-def wheeler(mom,adaptive):
-
-    adaptive = False
-    # print('inversion: Warning: Adaptive Wheeler not implemented. Returning empty arrays')
-
+def wheeler(moments, adaptive = False):
+    
     # From Bo Kong code in old_python_qmom
     # def adaptive_Wheeler(mom):
     """ Return weights,  nodes, and number of nodes using adaptive Wheeler
     algorithm.
     """
-
+    
     # SHB: need to convert all this stuff to numpy?
 
-    n = len(mom)/2
+    num_nodes = len( moments ) // 2
 
     # SHB let's make adaptive and non-adaptive wheeler one routine with if statemtns
     # if adaptive:
     # Adaptivity parameters
-    rmax = 1e-8
-    eabs = 1e-8
+    rmax   = 1e-8
+    eabs   = 1e-8
     cutoff = 0
     
     # Check if moments are unrealizable.
-    if mom[0] <= 0:
-        print("Moments are NOT realizable, moment[0] <= 0.0. Program exits.")
+    if moments[0] <= 0:
+        print("Wheeler: Moments are NOT realizable (moment[0] <= 0.0). Run failed.")
         exit()
 
-    if n == 1 or (adaptive and mom[0] < rmax):
-        w = mom[0]
-        x = mom[1]/mom[0]
-        return w, x
+    if num_nodes == 1 or ( adaptive and moment[0] < rmax ):
+        w = moments[0]
+        x = moments[1] / moments[0]
+        return x, w
 
     # Set modified moments equal to input moments.
     nu = mom
 
     # Construct recurrence matrix
     ind = n
-    a = zeros(ind)
-    b = zeros(ind)
-    sig = zeros((2*ind+1, 2*ind+1))
+    a   = np.zeros( num_nodes )
+    b   = np.zeros( num_nodes )    
+    sigma = np.zeros( [ 2*ind+1, 2*ind+1 ] )
 
     for i in range(1, 2*ind+1):
         sig[1,i] = nu[i-1]
@@ -67,7 +64,7 @@ def wheeler(mom,adaptive):
                 if n == 1:
                     w = mom[0]
                     x = mom[1]/mom[0]
-                    return w, x
+                    return x, w
 
     # Use maximum n to re-calculate recurrence matrix
     a = zeros(n)
@@ -96,7 +93,7 @@ def wheeler(mom,adaptive):
         if n1 == 1:
             w = mom[0]
             x = mom[1]/mom[0]
-            return w, x
+            return x, w
         z = zeros((n1, n1))
         for i in range(n1-1):
             z[i, i] = a[i]
@@ -128,9 +125,9 @@ def wheeler(mom,adaptive):
                 maxmab = 1
 
             if min(w)/max(w) > rmax and mindab/maxmab > eabs:
-                return w, x
+                return x, w
         else:
-            return w, x
+            return x, w
 
     # weights   = np.array([])
     # abscissas = np.array([])
@@ -142,7 +139,7 @@ def hyperbolic(moms, max_skewness = 30):
 
     n = len(moms)/2
 
-    if n=2:
+    if n == 2:
         w = zeros(n)
         x = w
         bx = moms[2]/moms[1]
@@ -154,11 +151,11 @@ def hyperbolic(moms, max_skewness = 30):
             c2 = 10**(-12)
         x[1] = bx - math.sqrt(c2)
         x[2] = bx + math.sqrt(c2)
-        return w, x
+        return x, w
    
     # needs to be ported to python
     # refer to HYQMOM3 in QBMMlib Mathematica
-    if n=3:
+    if n == 3:
         etasmall = 10**(-10) 
         verysmall = 10**(-14) 
         realsmall = 10**(-14) 
@@ -194,7 +191,7 @@ def hyperbolic(moms, max_skewness = 30):
                         det = 8 + slope**2
                         qp = 0.5 (slope + math.sqrt(det)) 
                         qm = 0.5 (slope - math.sqrt(det)) 
-                        if sign(q) = 1: 
+                        if sign(q) == 1: 
                             q = qp
                         else:
                             q = qm
@@ -231,7 +228,7 @@ def hyperbolic(moms, max_skewness = 30):
         xps[2] = 0 
         xps[3] = (q + math.sqrt(4*eta - 3*q**2))/2 
 
-        dem = 1/math.sqrt(4*eta - 3 q**2)
+        dem = 1/math.sqrt(4*eta - 3*q**2)
         prod = -xps[1]*xps[3] 
         prod = max(prod, 1 + realsmall)
 
@@ -239,13 +236,13 @@ def hyperbolic(moms, max_skewness = 30):
         rho[2] = 1 - 1/prod 
         rho[3] = dem/xps[3] 
 
-        srho = Sum[rho[i], {i, 3}] 
-        Do[rho[i] = rho[i]/srho, {i, 3}] 
-        scales = Sum[rho[i]*xps[i]**2, {i, 3}]/Sum[rho[i], {i, 3}] 
-        Do[xp[i] = xps[i]*scale/math.sqrt[scales], {i, 3}] 
-        if min[Table[rho[i], {i, 3}] < 0 :
-            print("Error: Negative weight in HYQMOM")
-            exit
+        # srho = Sum[rho[i], {i, 3}] 
+        # Do[rho[i] = rho[i]/srho, {i, 3}] 
+        # scales = Sum[rho[i]*xps[i]**2, {i, 3}]/Sum[rho[i], {i, 3}] 
+        # Do[xp[i] = xps[i]*scale/math.sqrt[scales], {i, 3}] 
+        # if min[Table[rho[i], {i, 3}] < 0 :
+        #     print("Error: Negative weight in HYQMOM")
+        #     exit
 
         w[1] = rho[1] 
         w[2] = rho[2] 
