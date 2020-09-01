@@ -79,17 +79,6 @@ if __name__ == '__main__':
     print('test_wheeler: Testing Wheeler algorithm for moment inversion')
     
     ###
-    ### Reference solution (from numpy)
-    print('test_wheeler: Computing reference solution (from numpy)')
-
-    num_nodes = 4
-    sqrt_pi   = sqrt( np.pi )
-    sqrt_two  = sqrt( 2.0 )
-    g_abs, g_wts = gauss_hermite( num_nodes )
-    g_abs *= sqrt_two
-    g_wts /= sqrt_pi
-    
-    ###
     ### QBMM Configuration
     print('test_wheeler: Configuring and initializing qbmm')
     
