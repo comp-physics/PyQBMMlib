@@ -16,7 +16,7 @@ def wheeler(moments, adaptive = False):
     
     # SHB: need to convert all this stuff to numpy?
 
-    num_nodes = len( moments ) // 2
+    n = len( moments ) // 2
 
     # SHB let's make adaptive and non-adaptive wheeler one routine with if statemtns
     # if adaptive:
@@ -30,40 +30,40 @@ def wheeler(moments, adaptive = False):
         print("Wheeler: Moments are NOT realizable (moment[0] <= 0.0). Run failed.")
         exit()
 
-    if num_nodes == 1 or ( adaptive and moment[0] < rmax ):
+    if n == 1 or ( adaptive and moment[0] < rmax ):
         w = moments[0]
         x = moments[1] / moments[0]
         return x, w
 
     # Set modified moments equal to input moments.
-    nu = mom
+    nu = moments
 
     # Construct recurrence matrix
     ind = n
-    a   = np.zeros( num_nodes )
-    b   = np.zeros( num_nodes )    
+    a   = np.zeros( n )
+    b   = np.zeros( n )    
     sigma = np.zeros( [ 2*ind+1, 2*ind+1 ] )
 
     for i in range(1, 2*ind+1):
-        sig[1,i] = nu[i-1]
+        sigma[1,i] = nu[i-1]
 
     a[0] = nu[1]/nu[0]
     b[0] = 0
 
     for k in range(2, ind+1):
         for l in range(k, 2*ind-k+2):
-            sig[k, l] = sig[k-1, l+1]-a[k-2]*sig[k-1, l]-b[k-2]*sig[k-2, l]
-        a[k-1] = sig[k, k+1]/sig[k, k]-sig[k-1, k]/sig[k-1, k-1]
-        b[k-1] = sig[k, k]/sig[k-1, k-1]
+            sigma[k, l] = sigma[k-1, l+1]-a[k-2]*sigma[k-1, l]-b[k-2]*sigma[k-2, l]
+        a[k-1] = sigma[k, k+1]/sigma[k, k]-sigma[k-1, k]/sigma[k-1, k-1]
+        b[k-1] = sigma[k, k]/sigma[k-1, k-1]
 
-    # Find maximum n using diagonal element of sig
+    # Find maximum n using diagonal element of sigma
     if adaptive:
         for k in range(ind,1,-1):
-            if sig[k,k] <= cutoff:
+            if sigma[k,k] <= cutoff:
                 n = k-1
                 if n == 1:
-                    w = mom[0]
-                    x = mom[1]/mom[0]
+                    w = moments[0]
+                    x = moments[1]/moments[0]
                     return x, w
 
     # Use maximum n to re-calculate recurrence matrix
@@ -71,17 +71,17 @@ def wheeler(moments, adaptive = False):
     b = zeros(n)
     w = zeros(n)
     x = zeros(n)
-    sig = zeros((2*n+1,2*n+1))
+    sigma = zeros((2*n+1,2*n+1))
     for i in range(1,2*n+1):
-        sig[1,i] = nu[i-1]
+        sigma[1,i] = nu[i-1]
 
     a[0] = nu[1] / nu[0]
     b[0] = 0
     for k in range(2, n+1):
         for l in range(k, 2*n-k+2):
-            sig[k, l] = sig[k-1, l+1]-a[k-2]*sig[k-1, l]-b[k-2]*sig[k-2, l]
-        a[k-1] = sig[k, k+1]/sig[k, k]-sig[k-1, k]/sig[k-1, k-1]
-        b[k-1] = sig[k, k]/sig[k-1, k-1]
+            sigma[k, l] = sigma[k-1, l+1]-a[k-2]*sigma[k-1, l]-b[k-2]*sigma[k-2, l]
+        a[k-1] = sigma[k, k+1]/sigma[k, k]-sigma[k-1, k]/sigma[k-1, k-1]
+        b[k-1] = sigma[k, k]/sigma[k-1, k-1]
 
     # Check if moments are unrealizable
     if b.min() < 0:
@@ -91,10 +91,10 @@ def wheeler(moments, adaptive = False):
     # Setup Jacobi matrix for n-point quadrature, adapt n using rmin and eabs
     for n1 in range(n,0,-1):
         if n1 == 1:
-            w = mom[0]
-            x = mom[1]/mom[0]
+            w = moments[0]
+            x = moments[1]/moments[0]
             return x, w
-        z = zeros((n1, n1))
+        z = np.zeros( [n1, n1] )
         for i in range(n1-1):
             z[i, i] = a[i]
             z[i, i+1] = sqrt(b[i+1])
@@ -102,11 +102,11 @@ def wheeler(moments, adaptive = False):
         z[n1-1, n1-1] = a[n1-1]
 
         # Compute weights and abscissas
-        eigenvalues, eigenvectors = eig(z)
+        eigenvalues, eigenvectors = np.linalg.eig(z)
         idx = eigenvalues.argsort()
-        x = eigenvalues[idx].real
+        x   = eigenvalues[idx].real
         eigenvectors = eigenvectors[:, idx].real
-        w = mom[0]*eigenvectors[0, :]**2
+        w = moments[0]*eigenvectors[0, :]**2
 
         # SHB: Let's combine adaptive and non-adaptive into one routine using an if-statement here
 
@@ -191,7 +191,7 @@ def hyperbolic(moms, max_skewness = 30):
                         det = 8 + slope**2
                         qp = 0.5 (slope + math.sqrt(det)) 
                         qm = 0.5 (slope - math.sqrt(det)) 
-                        if sign(q) == 1: 
+                        if sigman(q) == 1: 
                             q = qp
                         else:
                             q = qm
@@ -218,7 +218,7 @@ def hyperbolic(moms, max_skewness = 30):
 
         if q**2 > qmax**2:
             slope = (eta - 3)/q 
-            q = qmax*sign(q)
+            q = qmax*sigman(q)
             eta = 3 + slope*q 
             realizable = eta - 1 - q**2 
             if realizable < 0:

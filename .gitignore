@@ -10,3 +10,4 @@ misc/
 .DS_store
 SHB/
 *MFC*
+PyQBMMlib/src/*.pyc
