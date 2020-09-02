@@ -11,3 +11,4 @@ misc/
 SHB/
 *MFC*
 PyQBMMlib/src/*.pyc
+notebooks/.ipynb_checkpoints
