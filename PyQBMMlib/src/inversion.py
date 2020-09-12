@@ -65,22 +65,21 @@ def wheeler(moments, adaptive = False):
                     w = moments[0]
                     x = moments[1]/moments[0]
                     return x, w
-
-    # Use maximum n to re-calculate recurrence matrix
-    a = np.zeros( n )
-    b = np.zeros( n )
-    w = np.zeros( n ) 
-    x = np.zeros( n )
-    sigma = np.zeros( [ 2*n+1, 2*n+1 ] )
-    sigma[1,1:] = nu
-
-    a[0] = nu[1] / nu[0]
-    b[0] = 0
-    for k in range(2, n+1):
-        for l in range(k, 2*n-k+2):
-            sigma[k, l] = sigma[k-1, l+1]-a[k-2]*sigma[k-1, l]-b[k-2]*sigma[k-2, l]
-        a[k-1] = sigma[k, k+1]/sigma[k, k]-sigma[k-1, k]/sigma[k-1, k-1]
-        b[k-1] = sigma[k, k]/sigma[k-1, k-1]
+        # Use maximum n to re-calculate recurrence matrix
+        a = np.zeros( n )
+        b = np.zeros( n )
+        w = np.zeros( n ) 
+        x = np.zeros( n )
+        sigma = np.zeros( [ 2*n+1, 2*n+1 ] )
+        sigma[1,1:] = nu
+        
+        a[0] = nu[1] / nu[0]
+        b[0] = 0
+        for k in range(2, n+1):
+            for l in range(k, 2*n-k+2):
+                sigma[k, l] = sigma[k-1, l+1]-a[k-2]*sigma[k-1, l]-b[k-2]*sigma[k-2, l]
+            a[k-1] = sigma[k, k+1]/sigma[k, k]-sigma[k-1, k]/sigma[k-1, k-1]
+            b[k-1] = sigma[k, k]/sigma[k-1, k-1]
 
     # Check if moments are unrealizable
     if b.min() < 0:
@@ -267,13 +266,35 @@ def conditional(moments, indices, permutation = 12):
 
     print('inversion: Warning: Conditional QMOM not implemented. Returning empty arrays')
 
-    weights   = np.array([])
-    abscissas = np.array([])    
+    num_dim = indices.shape[1] #len( indices )
+
+    if permutation == 12:
+        weights, abscissas = conditional_12( moments, indices )
+    elif permutation == 21:
+        weights, abscissas = conditional_21( moments, indices )    
+    
     return weights, abscissas
 
 def conditional_hyperbolic(moments, indices, max_skewness = 30):
 
     print('inversion: Warning: Conditional Hyperbolic QMOM not implemented. Returning empty arrays')
+
+    weights   = np.array([])
+    abscissas = np.array([])    
+    return weights, abscissas
+
+def conditional_12(moments, indices):
+
+    num_nodes_1 = ( moments[:,0].max() + 1 ) // 2
+    num_nodes_2 = ( moments[:,1].max() + 1 ) // 2
+
+    wts_1, xi_1 = wheeler( moments, indices )
+
+    print wts_1
+    
+    return weights, abscissas
+
+def conditional_21(moments, indices):
 
     weights   = np.array([])
     abscissas = np.array([])    
