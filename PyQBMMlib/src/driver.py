@@ -36,12 +36,12 @@ if __name__ == '__main__':
             print('Cannot find moment set for you sorry!, aborting...')
             exit()
     elif config['num_internal_coords'] == 2:
-        indices = [ [0,0], [1,0], [0,2], [2,0], [1,1], [0,2] ]
-        moments = zeros(len(indices))
+        indices = np.array( [ [0,0], [1,0], [0,2], [2,0], [1,1], [0,2] ] )
+        moments = np.zeros(len(indices))
         for i in range(len(indices)):
             # Bivariate Gaussian
             print('i',i)
-            print(indices[i][1],indices[i][2])
+            print(indices[i,0],indices[i,1])
 
     print('moments into inversion:',moments)
     exit()
