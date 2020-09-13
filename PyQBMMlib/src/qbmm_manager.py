@@ -96,6 +96,6 @@ class qbmm_manager:
 
     def moment_invert_2PD(self, moments, indices):
 
-        return self.inversion_agorithm( moments, indices, self.inversion_option )
+        return self.inversion_algorithm( moments, indices, self.inversion_option )
 
     
