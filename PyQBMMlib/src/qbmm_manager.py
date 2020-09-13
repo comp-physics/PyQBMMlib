@@ -42,7 +42,7 @@ class qbmm_manager:
                 #
                 self.inversion_algorithm = wheeler
                 self.adaptive      = False
-                if config.has_key( 'adaptive' ):
+                if 'adaptive' in config:
                     self.adaptive = config['adaptive']
                 self.inversion_option = self.adaptive
                 #
@@ -50,7 +50,7 @@ class qbmm_manager:
                 #
                 self.inversion_algorithm = hyperbolic
                 self.max_skewness  = 30
-                if config.has_key( 'max_skewness' ):
+                if 'max_skewness' in config:
                     self.max_skewness = config['max_skewness']
                 self.inversion_option = self.max_skewness
                 #
@@ -67,7 +67,7 @@ class qbmm_manager:
                 #
                 self.moment_invert = conditional
                 self.permutation   = 12
-                if config.has_key( 'permutation' ):
+                if 'permutation' in config:
                     self.permutation = config['permutation']
                 self.inversion_option = self.permutation
                 #
@@ -75,7 +75,7 @@ class qbmm_manager:
                 #
                 self.moment_invert = conditional_hyperbolic
                 self.max_skewness  = 30
-                if config.has_key( 'max_skewness' ):
+                if 'max_skewness' in config:
                     self.max_skewness = config['max_skewness']
                 self.inversion_option = self.max_skewness
                 #
