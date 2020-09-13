@@ -68,6 +68,9 @@ if __name__ == '__main__':
             exit()
     elif config['num_internal_coords'] == 2:
         # Current test moment setup for CHyQMOM with 2x2 nodes
+
+        # indices = np.array( [ [0,0], [1,0], [0,2], [2,0], [1,1], [0,2] ] )
+        # moments = np.zeros(len(indices))
         indices = [ [0,0], [1,0], [0,1], [2,0], [1,1], [0,2] ]
         moments = zeros(len(indices))
         for i in range(len(indices)):
