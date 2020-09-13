@@ -77,7 +77,10 @@ class qbmm_manager:
                 self.max_skewness  = 30
                 if 'max_skewness' in config:
                     self.max_skewness = config['max_skewness']
+                if 'permutation' in config:
+                    self.permutation = config['permutation']
                 self.inversion_option = self.max_skewness
+                self.inversion_option = self.permutation
                 #
         else:
             message = 'qbmm_mgr: Error: dimensionality %i unsupported'

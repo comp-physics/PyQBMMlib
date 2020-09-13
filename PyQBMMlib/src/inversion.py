@@ -292,11 +292,27 @@ def conditional(moments, indices, permutation = 12):
 
 def conditional_hyperbolic(moments, indices, max_skewness = 30):
 
-    print('inversion: Warning: Conditional Hyperbolic QMOM not implemented. Returning empty arrays')
+    num_dim = indices.shape[1] #len( indices )
+    print('num_dim',num_dim)
+    exit()
+    if num_dim == 3:
+        return chyqmom2( moments, indices )
+    elif num_dim == 5:
+        return chyqmom3( moments, indices )
 
-    weights   = np.array([])
-    abscissas = np.array([])    
-    return weights, abscissas
+    # print('inversion: Warning: Conditional Hyperbolic QMOM not implemented. Returning empty arrays')
+    # weights   = np.array([])
+    # abscissas = np.array([])    
+    # return weights, abscissas
+
+def chyqmom2(moments, indices):
+    
+    return x,w
+
+def chyqmom2(moments, indices):
+
+    return x,w
+
 
 def conditional_12(moments, indices):
 
