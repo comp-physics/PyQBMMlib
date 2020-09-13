@@ -1,5 +1,33 @@
 from qbmm_manager import *
-from scipy.stats import multivariate_normal
+import scipy.special as sc
+
+
+def rawmoments_bivar_uncorr_gaussian(mu1,mu2,sig1,sig2,i,j):
+    return (1./math.pi) * 2**((-4.+i+j)/2.) * \
+        math.exp( -(mu1**2./(2. * sig1**2))-(mu2**2./(2 * sig2**2.)) ) * \
+        sig1**(-1.+i) * sig2**(-1+j) * \
+        ( \
+          -math.sqrt(2.) * \
+          (-1.+(-1.)**i) * \
+          mu1 * \
+          sc.gamma(1.+i/2.) * \
+          sc.hyp1f1(1+i/2.,3./2.,mu1**2./(2. * sig1**2.))  \
+          + (1.+(-1.)**i) * \
+          sig1 * \
+          sc.gamma((1.+i)/2.)  * \
+          sc.hyp1f1((1.+i)/2.,1./2.,mu1**2./(2. * sig1**2.))
+        ) * ( \
+        -math.sqrt(2.) * \
+        (-1+(-1)**j) * \
+        mu2 * \
+        sc.gamma(1.+j/2.) * \
+        sc.hyp1f1(1.+j/2.,3./2.,mu2**2./(2. * sig2**2.)) + \
+        (1.+(-1)**j) * \
+        sig2 * \
+        sc.gamma((1.+j)/2.) * \
+        sc.hyp1f1((1.+j)/2.,1./2.,mu2**2./(2. * sig2**2.)) \
+        )
+
 
 if __name__ == '__main__':
     
@@ -13,6 +41,9 @@ if __name__ == '__main__':
     config['permutation'] = 12
 
     qbmm_mgr = qbmm_manager( config )
+
+    sig1 = 1.1; sig2 = 1.2
+    mu1  = 0.1; mu2  = 0.3
 
     # Initialize moment set
     # SHB comment: the line below was incorrect (though not used)! 
@@ -36,12 +67,14 @@ if __name__ == '__main__':
             print('Cannot find moment set for you sorry!, aborting...')
             exit()
     elif config['num_internal_coords'] == 2:
-        indices = [ [0,0], [1,0], [0,2], [2,0], [1,1], [0,2] ]
+        # Current test moment setup for CHyQMOM with 2x2 nodes
+        indices = [ [0,0], [1,0], [0,1], [2,0], [1,1], [0,2] ]
         moments = zeros(len(indices))
         for i in range(len(indices)):
-            # Bivariate Gaussian
-            print('i',i)
-            print(indices[i][1],indices[i][2])
+            moments[i] = \
+                rawmoments_bivar_uncorr_gaussian( \
+                        mu1,mu2,sig1,sig2,indices[i][0],indices[i][1] \
+                        )
 
     print('moments into inversion:',moments)
     exit()
@@ -65,3 +98,5 @@ if __name__ == '__main__':
                     x:   -1.732, 0, 1.732")
 
     exit()
+
+
