@@ -11,6 +11,7 @@ class qbmm_manager:
         self.num_quadrature_nodes = config['num_quadrature_nodes']
         self.method               = config['method']
         self.adaptive             = config['adaptive']
+        self.indices              = config['indices']
 
         iret = self.set_inversion( config )
         if iret == 1:
@@ -66,6 +67,8 @@ class qbmm_manager:
             if self.method == 'cqmom':
                 #
                 self.moment_invert = conditional
+                self.inversion_algorithm = conditional
+                self.indices = config['indices']
                 self.permutation   = 12
                 if 'permutation' in config:
                     self.permutation = config['permutation']
@@ -74,6 +77,8 @@ class qbmm_manager:
             elif self.method == 'chyqmom':
                 #
                 self.moment_invert = conditional_hyperbolic
+                self.inversion_algorithm = conditional_hyperbolic
+                self.indices = config['indices']
                 self.max_skewness  = 30
                 if 'max_skewness' in config:
                     self.max_skewness = config['max_skewness']

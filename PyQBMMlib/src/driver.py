@@ -34,16 +34,11 @@ if __name__ == '__main__':
     config = {}
     config['governing_dynamics']   = ' dx + x = 1'
     config['num_internal_coords']  = 2
-    config['num_quadrature_nodes'] = 4
+    config['num_quadrature_nodes'] = 2
     config['method']       = 'chyqmom'
     config['adaptive']     = False
     config['max_skewness'] = 30
     config['permutation'] = 12
-
-    qbmm_mgr = qbmm_manager( config )
-
-    sig1 = 1.1; sig2 = 1.2
-    mu1  = 0.1; mu2  = 0.3
 
     # Initialize moment set
     # SHB comment: the line below was incorrect (though not used)! 
@@ -51,6 +46,10 @@ if __name__ == '__main__':
     #  depends upon the inversion algorithm. also, it's usually 0:2n+1 where
     #  n is the number of quadrature nodes.
     # moments = np.zeros( config['num_quadrature_nodes'] )
+
+
+    sig1 = 1.1; sig2 = 1.2
+    mu1  = 0.1; mu2  = 0.3
 
     if config['num_internal_coords'] == 1:
         # test from p55 Marchisio + Fox 2013 exercise 3.2
@@ -72,6 +71,7 @@ if __name__ == '__main__':
         # indices = np.array( [ [0,0], [1,0], [0,2], [2,0], [1,1], [0,2] ] )
         # moments = np.zeros(len(indices))
         indices = [ [0,0], [1,0], [0,1], [2,0], [1,1], [0,2] ]
+        config['indices'] = indices
         moments = zeros(len(indices))
         for i in range(len(indices)):
             moments[i] = \
@@ -79,9 +79,9 @@ if __name__ == '__main__':
                         mu1,mu2,sig1,sig2,indices[i][0],indices[i][1] \
                         )
 
-    print('moments into inversion:',moments)
-    exit()
+    qbmm_mgr = qbmm_manager( config )
 
+    print('moments in:',moments)
     abscissas, weights = qbmm_mgr.inversion_algorithm( moments, config )
 
     print('w: ',weights)
@@ -101,5 +101,3 @@ if __name__ == '__main__':
                     x:   -1.732, 0, 1.732")
 
     exit()
-
-

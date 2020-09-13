@@ -290,26 +290,80 @@ def conditional(moments, indices, permutation = 12):
     
     return weights, abscissas
 
-def conditional_hyperbolic(moments, indices, max_skewness = 30):
+def conditional_hyperbolic(moments, config, max_skewness = 30):
 
-    num_dim = indices.shape[1] #len( indices )
-    print('num_dim',num_dim)
-    exit()
-    if num_dim == 3:
-        return chyqmom2( moments, indices )
-    elif num_dim == 5:
-        return chyqmom3( moments, indices )
+    idx = config['indices']
+    num_dim = len(idx)
+
+    if num_dim == 6:
+        return chyqmom4( moments, idx )
+    elif num_dim == 10:
+        return chyqmom9( moments, idx )
 
     # print('inversion: Warning: Conditional Hyperbolic QMOM not implemented. Returning empty arrays')
     # weights   = np.array([])
     # abscissas = np.array([])    
     # return weights, abscissas
 
-def chyqmom2(moments, indices):
+def chyqmom4(moments, idx):
+
+    mom00 = moments[idx.index([0,0])]
+    mom10 = moments[idx.index([1,0])]
+    mom01 = moments[idx.index([0,1])]
+    mom20 = moments[idx.index([2,0])]
+    mom11 = moments[idx.index([1,1])]
+    mom02 = moments[idx.index([0,2])]
+
+    n = 4
+    w = zeros(n)
+    x = zeros(n)
+    y = zeros(n)
+
+    bx  = mom10/mom00
+    by  = mom01/mom00
+    d20 = mom20/mom00
+    d11 = mom11/mom00
+    d02 = mom02/mom00
+
+    c20 = d20 - bx**2.
+    c11 = d11 - bx*by
+    c02 = d02 - by**2.
+
+    M1 = [1, 0, c20]
+    xp, rho = hyperbolic2(M1) 
+    yf = c11*xp/c20 
+    mu2avg = c02 - sum(rho*yf**2)
+    mu2avg = max(mu2avg, 0)
+    mu2 = mu2avg 
+    M3 = [ 1, 0, mu2 ] 
+    xp3, rh3 = hyperbolic2(M3)
+    yp21  = xp3[0] 
+    yp22  = xp3[1] 
+    rho21 = rh3[0] 
+    rho22 = rh3[1] 
+
+    w[0] = rho[0]*rho21 
+    w[1] = rho[0]*rho22 
+    w[2] = rho[1]*rho21 
+    w[3] = rho[1]*rho22 
+    w = mom00*w 
+
+    x[0] = xp[0] 
+    x[1] = xp[0] 
+    x[2] = xp[1] 
+    x[3] = xp[1] 
+    x = bx + x 
+
+    y[0] = yf[0] + yp21 
+    y[1] = yf[0] + yp22 
+    y[2] = yf[1] + yp21 
+    y[3] = yf[1] + yp22 
+    y = by + y 
     
+    x = [ x, y ]
     return x,w
 
-def chyqmom2(moments, indices):
+def chyqmom9(moments, indices):
 
     return x,w
 
