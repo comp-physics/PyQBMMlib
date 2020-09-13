@@ -375,7 +375,7 @@ def conditional_12(moments, indices):
 
     wts_1, xi_1 = wheeler( moments, indices )
 
-    print wts_1
+    print(wts_1)
     
     return weights, abscissas
 

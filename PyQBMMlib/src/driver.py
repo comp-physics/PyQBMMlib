@@ -1,6 +1,12 @@
 from qbmm_manager import *
 import scipy.special as sc
 
+import collections
+
+try:
+    collectionsAbc = collections.abc
+except AttributeError:
+    collectionsAbc = collections
 
 def rawmoments_bivar_uncorr_gaussian(mu1,mu2,sig1,sig2,i,j):
     return (1./math.pi) * 2**((-4.+i+j)/2.) * \
@@ -28,6 +34,28 @@ def rawmoments_bivar_uncorr_gaussian(mu1,mu2,sig1,sig2,i,j):
         sc.hyp1f1((1.+j)/2.,1./2.,mu2**2./(2. * sig2**2.)) \
         )
 
+def power(my_list,exp):
+    print(my_list)
+    print(exp)
+    return [ math.pow(x,exp) for x in my_list ]
+
+def quadrature(weights,abscissa,index):
+    if isinstance(index,collectionsAbc.Iterable):
+        if len(index) == 2:
+            return sum(weights[:] * \
+                    abscissa[0][:]**index[0] * \
+                    abscissa[1][:]**index[1]   
+                    )
+        if len(index) == 3:
+            return sum(weights[:] * \
+                    abscissa[0][:]**index[0] * \
+                    abscissa[1][:]**index[1] * \
+                    abscissa[2][:]**index[2]   
+                    )
+    else:
+        return sum(weights[:]*abscissa[:]**index)
+
+
 
 if __name__ == '__main__':
     
@@ -48,8 +76,8 @@ if __name__ == '__main__':
     # moments = np.zeros( config['num_quadrature_nodes'] )
 
 
-    sig1 = 1.1; sig2 = 1.2
-    mu1  = 0.1; mu2  = 0.3
+    sig1 = 0.1; sig2 = 0.2
+    mu1  = 1; mu2  = 2
 
     if config['num_internal_coords'] == 1:
         # test from p55 Marchisio + Fox 2013 exercise 3.2
@@ -86,6 +114,19 @@ if __name__ == '__main__':
 
     print('w: ',weights)
     print('x: ',abscissas)
+
+    if config['num_internal_coords']==1:
+        testidx = 1.1
+    elif config['num_internal_coords']==2:
+        testidx = [1.1,1.4]
+    elif config['num_internal_coords']==3:
+        testidx = [1.1,1.4,3.2]
+
+    quad = quadrature(weights,abscissas,testidx)
+
+    print('Testing quadrature...','Index:',testidx,'Moment:',quad)
+
+
     if config['method'] == 'qmom' and config['num_quadrature_nodes']==4:
         print("Expected result (order irrelevant):  \n  \
                 w:  0.0459,  0.4541, 0.4541, 0.0459 \n  \
@@ -100,4 +141,3 @@ if __name__ == '__main__':
                     w:  0.166, 0.667, 0.166 \n  \
                     x:   -1.732, 0, 1.732")
 
-    exit()
