@@ -1,5 +1,6 @@
 from qbmm_manager import *
 import scipy.special as sc
+from sympy import *
 
 import collections
 
@@ -81,6 +82,19 @@ def momidx(config):
         print('Cannot find 3D indices for you sorry!')
         exit()
 
+def compute_rhs(coef,exp,indices,w,xs):
+    # example coefs/exps for xdot = 4x - 2x^2
+    # coefs = [ 4*c0, -2*c0 ]
+    # exps  = [   c0,  1+c0 ]
+    rhs = zeros(len(indices))
+    for i in range(len(indices)):
+        # This uses SymPy!
+        myexp   =  exps.subs(c0,indices[i])
+        mycoef  = coefs.subs(c0,indices[i])
+        getexp  = proj(w,xs,myexps)
+        rhs[i]  = sum(mycoef*myexp)
+    return rhs
+
 
 if __name__ == '__main__':
     
@@ -100,9 +114,6 @@ if __name__ == '__main__':
     config['method']       = 'chyqmom'
     config['permutation'] = 12
 
-
-
-
     indices = momidx(config)
     config['indices'] = indices
     print('Indices: ',indices)
@@ -114,7 +125,7 @@ if __name__ == '__main__':
     elif config['num_internal_coords'] == 2:
         # Current test moment setup for CHyQMOM with 2x2 nodes
         sig1 = 0.1; sig2 = 0.2
-        mu1  = 1; mu2  = 2
+        mu1  = 1;   mu2  = 2
 
         moments = zeros(len(indices))
         for i in range(len(indices)):
@@ -144,6 +155,15 @@ if __name__ == '__main__':
     proj = projection(weights,abscissas,indices)
     print('Testing projection...',max(abs(moments-proj)),' ...We expect zero here')
 
+    # For RHS computation
+    if config['num_internal_coords']==1:
+        # Example coefs/exps for xdot = 4x - 2x^2
+        # This uses SymPy!
+        c0 = symbols('c0')
+        coefs = [ 4*c0, -2*c0 ]
+        exps  = [   c0,  1+c0 ]
+        rhs = compute_rhs(exp,coef,indices,weights,abscissas)
+        print('RHS:', rhs)
 
     if config['method'] == 'qmom' and config['num_quadrature_nodes']==4:
         print("Expected result (order irrelevant):  \n  \

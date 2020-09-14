@@ -12,7 +12,7 @@ SHB/
 *MFC*
 PyQBMMlib/src/*.pyc
 notebooks/.ipynb_checkpoints
-__pycache__/
-PyQBMMlib/__pycache__/
-PyQBMMlib/src/__pycache__/
-PyQBMMlib/test/__pycache__/
+__pycache__
+PyQBMMlib/__pycache__
+PyQBMMlib/src/__pycache__
+PyQBMMlib/test/__pycache__
