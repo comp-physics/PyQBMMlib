@@ -1,6 +1,7 @@
 from qbmm_manager import *
 import scipy.special as sc
-from sympy import *
+import scipy.stats as stat
+from sympy import symbols
 
 import collections
 
@@ -88,10 +89,13 @@ def compute_rhs(coef,exp,indices,w,xs):
     # exps  = [   c0,  1+c0 ]
     rhs = zeros(len(indices))
     for i in range(len(indices)):
-        # This uses SymPy!
-        myexp   =  exps.subs(c0,indices[i])
-        mycoef  = coefs.subs(c0,indices[i])
-        getexp  = proj(w,xs,myexps)
+        # Use SymPy!
+        myexp   = [  exp[j].subs(c0,indices[0]) for j in range(len(exp))  ]
+        mycoef  = [ coef[j].subs(c0,indices[0]) for j in range(len(coef)) ]
+        print(type(myexp),type(mycoef),type(w),type(xs))
+        print(myexp)
+        print(mycoef)
+        getexp  = proj(w,xs,myexp)
         rhs[i]  = sum(mycoef*myexp)
     return rhs
 
@@ -104,29 +108,34 @@ if __name__ == '__main__':
     config['max_skewness'] = 30
 
     # 1D
-    # config['num_internal_coords']  = 1
-    # config['num_quadrature_nodes'] = 4
-    # config['method']       = 'qmom'
+    config['num_internal_coords']  = 1
+    config['num_quadrature_nodes'] = 4
+    config['method']       = 'qmom'
 
     # 2D
-    config['num_quadrature_nodes'] = 2
-    config['num_internal_coords']  = 2
-    config['method']       = 'chyqmom'
-    config['permutation'] = 12
+    # config['num_quadrature_nodes'] = 2
+    # config['num_internal_coords']  = 2
+    # config['method']       = 'chyqmom'
+    # config['permutation'] = 12
 
     indices = momidx(config)
     config['indices'] = indices
     print('Indices: ',indices)
 
+
+
     if config['num_internal_coords'] == 1:
-        # test from p55 Marchisio + Fox 2013 exercise 3.2
-        moments = [ 1., 0., 1., 0., 3., 0., 15., 0. ]
-        moments = moments[0:len(indices)]
+        mu1  = 1 
+        sig1 = 0.1
+        moments = zeros(len(indices))
+        for i in range(len(indices)):
+            moments[i] = stat.norm.moment(i,loc=sig1,scale=sig1)
     elif config['num_internal_coords'] == 2:
         # Current test moment setup for CHyQMOM with 2x2 nodes
-        sig1 = 0.1; sig2 = 0.2
-        mu1  = 1;   mu2  = 2
-
+        mu1  = 1
+        mu2  = 2
+        sig1 = 0.1
+        sig2 = 0.2
         moments = zeros(len(indices))
         for i in range(len(indices)):
             moments[i] = \
@@ -134,9 +143,10 @@ if __name__ == '__main__':
                         mu1,mu2,sig1,sig2,indices[i][0],indices[i][1] \
                         )
 
+    print('moments in:',moments)
+
     qbmm_mgr = qbmm_manager( config )
 
-    print('moments in:',moments)
     abscissas, weights = qbmm_mgr.inversion_algorithm( moments, config )
 
     print('w: ',weights)
@@ -158,17 +168,23 @@ if __name__ == '__main__':
     # For RHS computation
     if config['num_internal_coords']==1:
         # Example coefs/exps for xdot = 4x - 2x^2
-        # This uses SymPy!
+        # Use SymPy!
         c0 = symbols('c0')
-        coefs = [ 4*c0, -2*c0 ]
-        exps  = [   c0,  1+c0 ]
+        coef = [ 4*c0, -2*c0 ]
+        exp  = [   c0,  1+c0 ]
         rhs = compute_rhs(exp,coef,indices,weights,abscissas)
         print('RHS:', rhs)
 
-    if config['method'] == 'qmom' and config['num_quadrature_nodes']==4:
-        print("Expected result (order irrelevant):  \n  \
-                w:  0.0459,  0.4541, 0.4541, 0.0459 \n  \
-                x: -2.3344, -0.7420, 0.7420, 2.3344")
+    # 1D test
+    # if config['num_internal_coords'] == 1:
+        # test from p55 Marchisio + Fox 2013 exercise 3.2
+        # moments = [ 1., 0., 1., 0., 3., 0., 15., 0. ]
+        # moments = moments[0:len(indices)]
+    # if config['method'] == 'qmom' and config['num_quadrature_nodes']==4:
+    #     print("Expected result (order irrelevant):  \n  \
+    #             w:  0.0459,  0.4541, 0.4541, 0.0459 \n  \
+    #             x: -2.3344, -0.7420, 0.7420, 2.3344")
+
     if config['method'] == 'hyqmom':
         if config['num_quadrature_nodes']==2:
             print("Expected result (order irrelevant):  \n  \
