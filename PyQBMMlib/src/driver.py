@@ -123,7 +123,6 @@ if __name__ == '__main__':
     print('Indices: ',indices)
 
 
-
     if config['num_internal_coords'] == 1:
         mu1  = 1 
         sig1 = 0.1
@@ -167,13 +166,13 @@ if __name__ == '__main__':
 
     # For RHS computation
     if config['num_internal_coords']==1:
-        # Example coefs/exps for xdot = 4x - 2x^2
+        # Example coef/exp for xdot = 4x - 2x^2
         # Use SymPy!
         c0 = symbols('c0')
         coef = [ 4*c0, -2*c0 ]
         exp  = [   c0,  1+c0 ]
         rhs = compute_rhs(exp,coef,indices,weights,abscissas)
-        print('RHS:', rhs)
+        print('Getting right-hand-side...',rhs)
 
     # 1D test
     # if config['num_internal_coords'] == 1:
@@ -185,13 +184,13 @@ if __name__ == '__main__':
     #             w:  0.0459,  0.4541, 0.4541, 0.0459 \n  \
     #             x: -2.3344, -0.7420, 0.7420, 2.3344")
 
-    if config['method'] == 'hyqmom':
-        if config['num_quadrature_nodes']==2:
-            print("Expected result (order irrelevant):  \n  \
-                    w:  0.5, 0.5 \n  \
-                    x:   -1, 1.")
-        if config['num_quadrature_nodes']==3:
-            print("Expected result (order irrelevant):  \n  \
-                    w:  0.166, 0.667, 0.166 \n  \
-                    x:   -1.732, 0, 1.732")
+    # if config['method'] == 'hyqmom':
+    #     if config['num_quadrature_nodes']==2:
+    #         print("Expected result (order irrelevant):  \n  \
+    #                 w:  0.5, 0.5 \n  \
+    #                 x:   -1, 1.")
+    #     if config['num_quadrature_nodes']==3:
+    #         print("Expected result (order irrelevant):  \n  \
+    #                 w:  0.166, 0.667, 0.166 \n  \
+    #                 x:   -1.732, 0, 1.732")
 
