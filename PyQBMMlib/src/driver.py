@@ -22,16 +22,17 @@ def rawmoments_bivar_uncorr_gaussian(mu1,mu2,sig1,sig2,i,j):
           sig1 * \
           sc.gamma((1.+i)/2.)  * \
           sc.hyp1f1((1.+i)/2.,1./2.,mu1**2./(2. * sig1**2.))
-        ) * ( \
-        -math.sqrt(2.) * \
-        (-1+(-1)**j) * \
-        mu2 * \
-        sc.gamma(1.+j/2.) * \
-        sc.hyp1f1(1.+j/2.,3./2.,mu2**2./(2. * sig2**2.)) + \
-        (1.+(-1)**j) * \
-        sig2 * \
-        sc.gamma((1.+j)/2.) * \
-        sc.hyp1f1((1.+j)/2.,1./2.,mu2**2./(2. * sig2**2.)) \
+        ) * \
+        (   \
+          -math.sqrt(2.) * \
+          (-1+(-1)**j) * \
+          mu2 * \
+          sc.gamma(1.+j/2.) * \
+          sc.hyp1f1(1.+j/2.,3./2.,mu2**2./(2. * sig2**2.)) + \
+          (1.+(-1)**j) * \
+          sig2 * \
+          sc.gamma((1.+j)/2.) * \
+          sc.hyp1f1((1.+j)/2.,1./2.,mu2**2./(2. * sig2**2.)) \
         )
 
 def quadrature(weights,abscissa,index):
@@ -56,52 +57,64 @@ def projection(weights,abscissa,indices):
         proj[i] = quadrature(weights,abscissa,indices[i])
     return proj
 
+def momidx(config):
+    if config['num_internal_coords'] == 1:
+        if config['method'] == 'qmom':
+            return range(config['num_quadrature_nodes']*2)
+        elif config['method'] == 'hyqmom':
+            if config['num_quadrature_nodes'] == 2:
+                return range(3)
+            elif config['num_quadrature_nodes'] == 3:
+                return range(5)
+        else:
+            print('Cannot find indices for you sorry!')
+            exit()
+    elif config['num_internal_coords'] == 2:
+        # Current test moment setup for CHyQMOM with 2x2 nodes
+        if config['method'] == 'chyqmom':
+            if config['num_quadrature_nodes'] == 2:
+                return [ [0,0], [1,0], [0,1], [2,0], [1,1], [0,2] ]
+        else:
+            print('Cannot find 2D indices for you sorry!')
+            exit()
+    elif config['num_internal_coords'] == 3:
+        print('Cannot find 3D indices for you sorry!')
+        exit()
+
+
 if __name__ == '__main__':
     
     config = {}
     config['governing_dynamics']   = ' dx + x = 1'
-    config['num_internal_coords']  = 1
-    config['num_quadrature_nodes'] = 4
-    config['method']       = 'qmom'
     config['adaptive']     = False
     config['max_skewness'] = 30
 
-    # config['num_quadrature_nodes'] = 2
-    # config['num_internal_coords']  = 2
-    # config['method']       = 'chyqmom'
-    # config['permutation'] = 12
+    # 1D
+    # config['num_internal_coords']  = 1
+    # config['num_quadrature_nodes'] = 4
+    # config['method']       = 'qmom'
 
-    # Initialize moment set
-    # SHB comment: the line below was incorrect (though not used)! 
-    #  the required numebr of moments
-    #  depends upon the inversion algorithm. also, it's usually 0:2n+1 where
-    #  n is the number of quadrature nodes.
-    # moments = np.zeros( config['num_quadrature_nodes'] )
+    # 2D
+    config['num_quadrature_nodes'] = 2
+    config['num_internal_coords']  = 2
+    config['method']       = 'chyqmom'
+    config['permutation'] = 12
 
-    sig1 = 0.1; sig2 = 0.2
-    mu1  = 1; mu2  = 2
+
+
+
+    indices = momidx(config)
+    config['indices'] = indices
+    print('Indices: ',indices)
 
     if config['num_internal_coords'] == 1:
         # test from p55 Marchisio + Fox 2013 exercise 3.2
         moments = [ 1., 0., 1., 0., 3., 0., 15., 0. ]
-
-        if config['method'] == 'qmom':
-            moments = moments[0:config['num_quadrature_nodes']*2]
-        elif config['method'] == 'hyqmom':
-            if config['num_quadrature_nodes'] == 2:
-                moments = moments[0:3]
-            elif config['num_quadrature_nodes'] == 3:
-                moments = moments[0:5]
-        else:
-            print('Cannot find moment set for you sorry!, aborting...')
-            exit()
-        indices = range(len(moments))
+        moments = moments[0:len(indices)]
     elif config['num_internal_coords'] == 2:
         # Current test moment setup for CHyQMOM with 2x2 nodes
-
-        # indices = np.array( [ [0,0], [1,0], [0,2], [2,0], [1,1], [0,2] ] )
-        # moments = np.zeros(len(indices))
-        indices = [ [0,0], [1,0], [0,1], [2,0], [1,1], [0,2] ]
+        sig1 = 0.1; sig2 = 0.2
+        mu1  = 1; mu2  = 2
 
         moments = zeros(len(indices))
         for i in range(len(indices)):
@@ -110,7 +123,6 @@ if __name__ == '__main__':
                         mu1,mu2,sig1,sig2,indices[i][0],indices[i][1] \
                         )
 
-    config['indices'] = indices
     qbmm_mgr = qbmm_manager( config )
 
     print('moments in:',moments)
