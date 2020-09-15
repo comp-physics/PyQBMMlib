@@ -1,6 +1,6 @@
 import numpy as np
+from sympy import symbols
 from inversion import *
-
 
 class qbmm_manager:
 
@@ -13,7 +13,6 @@ class qbmm_manager:
         self.num_quadrature_nodes = config['qbmm']['num_quadrature_nodes']
         self.method               = config['qbmm']['method']
         self.adaptive             = config['qbmm']['adaptive']
-        self.indices              = config['qbmm']['indices']
 
         iret = self.set_inversion( config )
         if iret == 1:
@@ -32,9 +31,10 @@ class qbmm_manager:
             print( '\t permutation         = %i' % self.permutation )
         if self.method == 'hyqmom' or self.method == 'chyqmom':
             print( '\t max_skewness        = %i' % self.max_skewness )
-
-        self.moment_indices()
             
+        self.moment_indices()
+        print( '\t num_moments         = %i' % self.num_moments )
+        
         return
 
     def set_inversion(self, config):
@@ -107,12 +107,16 @@ class qbmm_manager:
         This function sets moment indices according to 
         dimensionality (num_coords and num_nodes) and method.
         """
+        self.num_moments = 0
+        #
         if self.num_internal_coords == 1:
             #
             if self.method == 'qmom':
                 self.indices = np.arange( 2 * self.num_quadrature_nodes )
             elif self.method == 'hyqmom':
                 self.indices = np.arange( 2 * ( self.num_quadrature_nodes - 1 ) + 1 ) # Spencer: is this general?
+            #
+            self.num_moments = len( self.indices )
             #
         elif self.num_internal_coords > 1: 
             #
@@ -122,12 +126,15 @@ class qbmm_manager:
                 message += 'and num_nodes(2), requested num_coords(%i) and num_nodes(%i)'
                 print( messgae % ( self.num_internal_coords, self.num_quadrature_nodes ) )
             #
+            self.num_moments = self.indices.shape
+            #
         else:
             #
             print('qbmm_mgr: moment_indices: Error: dimensionality %i unsupported' % self.num_internal_coords )
 
+            
         return 
-
+    
     def moment_invert_1D(self, moments):
         """
         This function inverts moments in 1D
@@ -140,28 +147,39 @@ class qbmm_manager:
         """
         return self.inversion_algorithm( moments, indices, self.inversion_option )
 
-    def quadrature(weights, abscissa, indices):
+    def quadrature(self, weights, abscissas):
         """
         This function performs a general cubature for given weights, abscissas and indices
         """
         # [ecg] I think this line is general enough, but must test
-        xi_to_idx = np.power( abscissas, indices[None,:] )
+        xi_to_idx = np.power( abscissas, self.indices[None,:] )
         # \sum_j w_j xi_j^i_j
         q = np.dot( weights, xi_to_i )
         return q
 
-    def projection(weights, abscissas, indices):
+    def projection(self, weights, abscissas, indices):
         """
         This function reconstructs moments from quadrature weights and abscissas
         """
         num_indices = len( self.indices )
         moments = np.zeros( num_indices )
         for i_index in range( num_indices ):
-            moments[i_index] = self.quadrature( weights, absicssas, indices[i_index] )                
+            moments[i_index] = self.quadrature( weights, abscissas, indices[i_index] )                
         return moments
 
-    def compute_rhs(coefficients, exponents, indices, weights, abscissas):
+    def compute_rhs(self, sym_coefficients, sym_exponents, indices, weights, abscissas):
         """
         Compute moment-transport RHS
         """
-        print('qbmm: compute_rhs: Warning: Hardcoded')
+        num_indices   = len( self.indices )        
+        num_exponents = len( sym_exponents )
+        num_coefficients = len( sym_coefficients )
+        rhs = np.zeros( num_indices )
+        for i_index in range( num_indices ):
+            exponents    = [sym_exponents[j].subs(c0, indices[i]) for j in range(num_exponents)]
+            coefficients = [sym_coefficients[j].subs(c0, indices[i]) for j in range(num_coefficients)]
+            np_exponents    = np.array( exponents )
+            np_coefficients = np.array( coefficients )
+            projected_moments = projection( weights, abscissas, np_exponents )
+            rhs[i_index] = np.dot( np_coefficients, projected_moments )            
+        return rhs
