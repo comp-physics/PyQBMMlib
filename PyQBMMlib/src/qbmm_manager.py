@@ -76,7 +76,6 @@ class qbmm_manager:
                 #
                 self.moment_invert = conditional
                 self.inversion_algorithm = conditional
-                self.indices = qbmm_config['indices']
                 self.permutation   = 12
                 if 'permutation' in qbmm_config:
                     self.permutation = qbmm_config['permutation']
@@ -86,7 +85,6 @@ class qbmm_manager:
                 #
                 self.moment_invert = conditional_hyperbolic
                 self.inversion_algorithm = conditional_hyperbolic
-                self.indices = qbmm_config['indices']
                 self.max_skewness  = 30
                 if 'max_skewness' in qbmm_config:
                     self.max_skewness = qbmm_config['max_skewness']
@@ -107,6 +105,14 @@ class qbmm_manager:
         This function sets moment indices according to 
         dimensionality (num_coords and num_nodes) and method.
         """
+        ###
+        ### [ecg] For 1D problems, this will return a 'flat' array, e.g.,
+        ### [0,1,2,3,...]. However, for generality, this should always
+        ### return an array of shape [num_coords, num_moments]. This is
+        ### easy to implement, but Wheeler is not conditioned to take in
+        ### such arrays as input, so it craps out. If we were to pursue
+        ### this, we would need to modify Wheeler at some point.
+        ###
         self.num_moments = 0
         #
         if self.num_internal_coords == 1:
@@ -114,7 +120,8 @@ class qbmm_manager:
             if self.method == 'qmom':
                 self.indices = np.arange( 2 * self.num_quadrature_nodes )
             elif self.method == 'hyqmom':
-                self.indices = np.arange( 2 * ( self.num_quadrature_nodes - 1 ) + 1 ) # Spencer: is this general?
+                # Spencer: is this general?
+                self.indices = np.arange( 2 * ( self.num_quadrature_nodes - 1 ) + 1 )
             #
             self.num_moments = len( self.indices )
             #
@@ -147,14 +154,24 @@ class qbmm_manager:
         """
         return self.inversion_algorithm( moments, indices, self.inversion_option )
 
-    def quadrature(self, weights, abscissas):
+    def quadrature(self, weights, abscissas, moment_index):
         """
         This function performs a general cubature for given weights, abscissas and indices
         """
-        # [ecg] I think this line is general enough, but must test
-        xi_to_idx = np.power( abscissas, self.indices[None,:] )
+        ###
+        ### [ecg] For indices of shape [num_coords, num_moments],
+        ### this should work (I think):
+        ### (1) xi_to_idx = np.power( abscissas, self.indices[None,:] )
+        ### However, indices in 1D problems are 'flat' arrays
+        ### (see moment_indices, line 103, and the note therein).
+        ### This means that moment_index passed from projection
+        ### is a scalar, so expression (1) does not work. For now,
+        ### this routine only works for 1D problems, and takes in
+        ### a scalar for moment_index (weak).
+        ###
+        xi_to_idx = abscissas ** moment_index
         # \sum_j w_j xi_j^i_j
-        q = np.dot( weights, xi_to_i )
+        q = np.dot( weights, xi_to_idx )
         return q
 
     def projection(self, weights, abscissas, indices):

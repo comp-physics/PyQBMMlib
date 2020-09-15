@@ -54,7 +54,7 @@ def quadrature(weights,abscissa,index):
         return sum(weights[:]*abscissa[:]**index)
 
 def projection(weights,abscissa,indices):
-    proj = zeros(len(indices))
+    proj = np.zeros(len(indices))
     for i in range(len(indices)):
         proj[i] = quadrature(weights,abscissa,indices[i])
     return proj
@@ -87,18 +87,12 @@ def compute_rhs(coef,exp,indices,w,xs):
     # example coefs/exps for xdot = 4x - 2x^2
     # coefs = [ 4*c0, -2*c0 ]
     # exps  = [   c0,  1+c0 ]
-    rhs = zeros(len(indices))
+    rhs = np.zeros(len(indices))
     for i in range(len(indices)):
-        # Use SymPy!
-        myexp   = [  exp[j].subs(c0,indices[0]) for j in range(len(exp))  ]
-        mycoef  = [ coef[j].subs(c0,indices[0]) for j in range(len(coef)) ]
-        print(type(myexp),type(mycoef),type(w),type(xs))
-        print(myexp)
-        print(mycoef)
-        print 'here: about to call proj'
-        getexp  = proj(w,xs,myexp)
-        print 'here: after calling proj'
-        rhs[i]  = sum(mycoef*myexp)
+        myexp   = np.array([  exp[j].subs(c0,indices[i]) for j in range(len(exp))  ])
+        mycoef  = np.array([ coef[j].subs(c0,indices[i]) for j in range(len(coef)) ])
+        getexp  = projection(w,xs,myexp)
+        rhs[i]  = np.dot(mycoef,getexp)
     return rhs
 
 
@@ -129,16 +123,16 @@ if __name__ == '__main__':
     if config['qbmm']['num_internal_coords'] == 1:
         mu1  = 1 
         sig1 = 0.1
-        moments = zeros(len(indices))
+        moments = np.zeros(len(indices))
         for i in range(len(indices)):
-            moments[i] = stat.norm.moment(i,loc=sig1,scale=sig1)
-    elif config['qbmm']['num_internal_coords'] == 2:
+            moments[i] = stat.norm.moment(i,loc=mu1,scale=sig1)
+    elif config['num_internal_coords'] == 2:
         # Current test moment setup for CHyQMOM with 2x2 nodes
         mu1  = 1
         mu2  = 2
         sig1 = 0.1
         sig2 = 0.2
-        moments = zeros(len(indices))
+        moments = np.zeros(len(indices))
         for i in range(len(indices)):
             moments[i] = \
                 rawmoments_bivar_uncorr_gaussian( \
@@ -174,8 +168,21 @@ if __name__ == '__main__':
         c0 = symbols('c0')
         coef = [ 4*c0, -2*c0 ]
         exp  = [   c0,  1+c0 ]
-        rhs = compute_rhs(exp,coef,indices,weights,abscissas)
+        rhs  = compute_rhs(coef,exp,indices,weights,abscissas)
         print('Getting right-hand-side...',rhs)
+
+        dt = 0.1
+        print('mom',moments)
+        for i in range(2):
+            print(i)
+            abscissas, weights = qbmm_mgr.inversion_algorithm( moments, config )
+            print('x,w',abscissas,weights)
+            rhs  = compute_rhs(coef,exp,indices,weights,abscissas)
+            print('rhs',rhs)
+            proj = projection(weights,abscissas,indices)
+            print('proj',proj)
+            moments = proj + dt*rhs
+            print('mom',moments)
 
     # 1D test
     # if config['qbmm']['num_internal_coords'] == 1:

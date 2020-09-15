@@ -2,11 +2,7 @@ from qbmm_manager import *
 import sys
 sys.path.append('../utils/')
 from stats_util import *
-
-def array_pretty_print(message, array_name, array):
-
-    message += array_name + ' = [{:s}]'    
-    print( message.format( ', '.join( [ '{:.4e}'.format(a) for a in array ] ) ) )
+from pretty_print_util import *
 
 if __name__ == '__main__':
 
@@ -31,8 +27,8 @@ if __name__ == '__main__':
     indices = qbmm_mgr.indices
 
     message = 'devel_driver: main: '
-    array_pretty_print( message, 'moments', moments )
-    array_pretty_print( message, 'indices', indices )
+    f_array_pretty_print( message, 'moments', moments )
+    i_array_pretty_print( message, 'indices', indices )
 
     ###
     ### [ecg] The following workflow will be encapsulated in a single
@@ -43,11 +39,13 @@ if __name__ == '__main__':
     ### (duh).
     ###
     
-    weights, abscissas = qbmm_mgr.moment_invert( moments )
-    array_pretty_print( message, 'weights', weights )
-    array_pretty_print( message, 'abscissas', abscissas )
+    abscissas, weights = qbmm_mgr.moment_invert( moments )
+    f_array_pretty_print( message, 'weights', weights )
+    f_array_pretty_print( message, 'abscissas', abscissas )
     
-    quadrature = qbmm_mgr.quadrature( weights, abscissas )
-    print quadrature
-    
+    projected_moments = qbmm_mgr.projection( weights, abscissas, indices )
+    f_array_pretty_print( message, 'projected_moments', projected_moments )
+
+    recons_error = np.abs( moments - projected_moments ).max()
+    f_scalar_pretty_print( message, 'recons_error', recons_error )
     exit
