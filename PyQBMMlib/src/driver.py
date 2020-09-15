@@ -95,7 +95,9 @@ def compute_rhs(coef,exp,indices,w,xs):
         print(type(myexp),type(mycoef),type(w),type(xs))
         print(myexp)
         print(mycoef)
+        print 'here: about to call proj'
         getexp  = proj(w,xs,myexp)
+        print 'here: after calling proj'
         rhs[i]  = sum(mycoef*myexp)
     return rhs
 
@@ -103,33 +105,34 @@ def compute_rhs(coef,exp,indices,w,xs):
 if __name__ == '__main__':
     
     config = {}
-    config['governing_dynamics']   = ' dx + x = 1'
-    config['adaptive']     = False
-    config['max_skewness'] = 30
+    config['qbmm'] = {}
+    config['qbmm']['governing_dynamics']   = ' dx + x = 1'
+    config['qbmm']['adaptive']     = False
+    config['qbmm']['max_skewness'] = 30
 
     # 1D
-    config['num_internal_coords']  = 1
-    config['num_quadrature_nodes'] = 4
-    config['method']       = 'qmom'
+    config['qbmm']['num_internal_coords']  = 1
+    config['qbmm']['num_quadrature_nodes'] = 4
+    config['qbmm']['method']       = 'qmom'
 
     # 2D
-    # config['num_quadrature_nodes'] = 2
-    # config['num_internal_coords']  = 2
-    # config['method']       = 'chyqmom'
-    # config['permutation'] = 12
+    # config['qbmm']['num_quadrature_nodes'] = 2
+    # config['qbmm']['num_internal_coords']  = 2
+    # config['qbmm']['method']       = 'chyqmom'
+    # config['qbmm']['permutation'] = 12
 
-    indices = momidx(config)
-    config['indices'] = indices
+    indices = momidx(config['qbmm'])
+    config['qbmm']['indices'] = indices
     print('Indices: ',indices)
 
 
-    if config['num_internal_coords'] == 1:
+    if config['qbmm']['num_internal_coords'] == 1:
         mu1  = 1 
         sig1 = 0.1
         moments = zeros(len(indices))
         for i in range(len(indices)):
             moments[i] = stat.norm.moment(i,loc=sig1,scale=sig1)
-    elif config['num_internal_coords'] == 2:
+    elif config['qbmm']['num_internal_coords'] == 2:
         # Current test moment setup for CHyQMOM with 2x2 nodes
         mu1  = 1
         mu2  = 2
@@ -146,16 +149,16 @@ if __name__ == '__main__':
 
     qbmm_mgr = qbmm_manager( config )
 
-    abscissas, weights = qbmm_mgr.inversion_algorithm( moments, config )
+    abscissas, weights = qbmm_mgr.inversion_algorithm( moments, config['qbmm'] )
 
     print('w: ',weights)
     print('x: ',abscissas)
 
-    if config['num_internal_coords']==1:
+    if config['qbmm']['num_internal_coords']==1:
         testidx = 3
-    elif config['num_internal_coords']==2:
+    elif config['qbmm']['num_internal_coords']==2:
         testidx = [1.1,1.4]
-    elif config['num_internal_coords']==3:
+    elif config['qbmm']['num_internal_coords']==3:
         testidx = [1.1,1.4,3.2]
 
     quad = quadrature(weights,abscissas,testidx)
@@ -165,7 +168,7 @@ if __name__ == '__main__':
     print('Testing projection...',max(abs(moments-proj)),' ...We expect zero here')
 
     # For RHS computation
-    if config['num_internal_coords']==1:
+    if config['qbmm']['num_internal_coords']==1:
         # Example coef/exp for xdot = 4x - 2x^2
         # Use SymPy!
         c0 = symbols('c0')
@@ -175,21 +178,21 @@ if __name__ == '__main__':
         print('Getting right-hand-side...',rhs)
 
     # 1D test
-    # if config['num_internal_coords'] == 1:
+    # if config['qbmm']['num_internal_coords'] == 1:
         # test from p55 Marchisio + Fox 2013 exercise 3.2
         # moments = [ 1., 0., 1., 0., 3., 0., 15., 0. ]
         # moments = moments[0:len(indices)]
-    # if config['method'] == 'qmom' and config['num_quadrature_nodes']==4:
+    # if config['qbmm']['method'] == 'qmom' and config['qbmm']['num_quadrature_nodes']==4:
     #     print("Expected result (order irrelevant):  \n  \
     #             w:  0.0459,  0.4541, 0.4541, 0.0459 \n  \
     #             x: -2.3344, -0.7420, 0.7420, 2.3344")
 
-    # if config['method'] == 'hyqmom':
-    #     if config['num_quadrature_nodes']==2:
+    # if config['qbmm']['method'] == 'hyqmom':
+    #     if config['qbmm']['num_quadrature_nodes']==2:
     #         print("Expected result (order irrelevant):  \n  \
     #                 w:  0.5, 0.5 \n  \
     #                 x:   -1, 1.")
-    #     if config['num_quadrature_nodes']==3:
+    #     if config['qbmm']['num_quadrature_nodes']==3:
     #         print("Expected result (order irrelevant):  \n  \
     #                 w:  0.166, 0.667, 0.166 \n  \
     #                 x:   -1.732, 0, 1.732")
