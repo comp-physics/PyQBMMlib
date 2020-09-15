@@ -43,7 +43,7 @@ if __name__ == '__main__':
     f_array_pretty_print( message, 'weights', weights )
     f_array_pretty_print( message, 'abscissas', abscissas )
     
-    projected_moments = qbmm_mgr.projection( weights, abscissas, indices )
+    projected_moments = qbmm_mgr.projection( weights, abscissas )
     f_array_pretty_print( message, 'projected_moments', projected_moments )
 
     recons_error = np.abs( moments - projected_moments ).max()

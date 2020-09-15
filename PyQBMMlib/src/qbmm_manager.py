@@ -174,14 +174,14 @@ class qbmm_manager:
         q = np.dot( weights, xi_to_idx )
         return q
 
-    def projection(self, weights, abscissas, indices):
+    def projection(self, weights, abscissas):
         """
         This function reconstructs moments from quadrature weights and abscissas
         """
         num_indices = len( self.indices )
         moments = np.zeros( num_indices )
         for i_index in range( num_indices ):
-            moments[i_index] = self.quadrature( weights, abscissas, indices[i_index] )                
+            moments[i_index] = self.quadrature( weights, abscissas, self.indices[ i_index ] )                
         return moments
 
     def compute_rhs(self, sym_coefficients, sym_exponents, indices, weights, abscissas):
