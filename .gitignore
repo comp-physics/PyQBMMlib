@@ -11,6 +11,7 @@ misc/
 SHB/
 *MFC*
 PyQBMMlib/src/*.pyc
+PyQBMMlib/utils/*.pyc
 notebooks/.ipynb_checkpoints
 __pycache__
 PyQBMMlib/__pycache__
