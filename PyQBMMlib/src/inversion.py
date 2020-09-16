@@ -134,7 +134,7 @@ def wheeler(moments, adaptive = False):
 
 def hyperbolic(moms, config):
     
-    max_skewness = config['max_skewness']
+    # max_skewness = config['qbmm']['max_skewness']
     if len(moms) == 3:
         n = 2
     elif len(moms) == 5:

@@ -174,29 +174,32 @@ class qbmm_manager:
         q = np.dot( weights, xi_to_idx )
         return q
 
-    def projection(self, weights, abscissas):
+    def projection(self, weights, abscissas, indices):
         """
         This function reconstructs moments from quadrature weights and abscissas
         """
-        num_indices = len( self.indices )
+        num_indices = len( indices )
         moments = np.zeros( num_indices )
         for i_index in range( num_indices ):
-            moments[i_index] = self.quadrature( weights, abscissas, self.indices[ i_index ] )                
+            moments[i_index] = self.quadrature( weights, abscissas, indices[ i_index ] )                
         return moments
 
     def compute_rhs(self, sym_coefficients, sym_exponents, indices, weights, abscissas):
         """
         Compute moment-transport RHS
         """
+        c0 = symbols('c0')
         num_indices   = len( self.indices )        
         num_exponents = len( sym_exponents )
         num_coefficients = len( sym_coefficients )
         rhs = np.zeros( num_indices )
         for i_index in range( num_indices ):
-            exponents    = [sym_exponents[j].subs(c0, indices[i]) for j in range(num_exponents)]
-            coefficients = [sym_coefficients[j].subs(c0, indices[i]) for j in range(num_coefficients)]
+            exponents    = [sym_exponents[j].subs(c0, indices[i_index]) \
+                    for j in range(num_exponents)]
+            coefficients = [sym_coefficients[j].subs(c0, indices[i_index]) \
+                    for j in range(num_coefficients)]
             np_exponents    = np.array( exponents )
             np_coefficients = np.array( coefficients )
-            projected_moments = projection( weights, abscissas, np_exponents )
+            projected_moments = self.projection( weights, abscissas, np_exponents )
             rhs[i_index] = np.dot( np_coefficients, projected_moments )            
         return rhs
