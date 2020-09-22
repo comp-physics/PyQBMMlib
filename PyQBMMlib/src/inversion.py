@@ -132,32 +132,27 @@ def wheeler(moments, adaptive = False):
     # abscissas = np.array([])
     # return weights, abscissas
 
-def hyperbolic(moms, config):
+def hyperbolic(moments, max_skewness = 30):
     
-    # max_skewness = config['qbmm']['max_skewness']
-    if len(moms) == 3:
-        n = 2
-    elif len(moms) == 5:
-        n = 3
+    num_moments = len( moments )
+    if num_moments == 3:
+        return hyperbolic_two_nodes( moments )
+    elif num_moments == 5: 
+        return hyperbolic_three_nodes( moments, max_skewness )
     else:
-        print('HyQMOM inversion. Fatal error, n != 2 or 3. Aborting')
-        exit()
+        print('inversion: hyperbolic: incorrect number of moments(%i)' % num_moments)
+        return [],[]
 
-    if n == 2:
-        return hyperbolic2(moms)
-    elif n == 3:
-        return hyperbolic3(moms,max_skewness)
-
-def hyperbolic2(moms):
+def hyperbolic_two_nodes(moments):
     n = 2
     w = zeros(n)
     x = zeros(n)
 
-    w[0] = moms[0]/2.
+    w[0] = moments[0]/2.
     w[1] = w[0]
 
-    bx = moms[1]/moms[0]
-    d2 = moms[2]/moms[0]
+    bx = moments[1]/moments[0]
+    d2 = moments[2]/moments[0]
     c2 = d2 - bx**2.
 
     if c2 < 10**(-12):
@@ -167,7 +162,7 @@ def hyperbolic2(moms):
 
     return x,w
 
-def hyperbolic3(moms,qmax):
+def hyperbolic3(momenst, max_skewness):
     # needs to be ported to python
     # refer to HYQMOM3 in QBMMlib Mathematica
     n = 3
@@ -181,14 +176,14 @@ def hyperbolic3(moms,qmax):
     xps = zeros(n)
     rho = zeros(n)
 
-    if moms[0] <= verysmall:
-        w[1] = moms[0]
+    if moments[0] <= verysmall:
+        w[1] = moments[0]
         return x,w
 
-    bx = moms[1]/moms[0] 
-    d2 = moms[2]/moms[0] 
-    d3 = moms[3]/moms[0] 
-    d4 = moms[4]/moms[0] 
+    bx = moments[1]/moments[0] 
+    d2 = moments[2]/moments[0] 
+    d3 = moments[3]/moments[0] 
+    d4 = moments[4]/moments[0] 
     c2 = d2 - bx**2 
     c3 = d3 - 3*bx*d2 + 2*bx**3 
     c4 = d4 - 4*bx*d3 + 6*(bx**2)*d2 - 3*bx**4
@@ -235,12 +230,12 @@ def hyperbolic3(moms,qmax):
         q = 0 
         eta = 1
 
-    if q**2 > qmax**2:
+    if q**2 > max_skewness**2:
         slope = (eta - 3)/q 
         if q > 0:
-            q = qmax
+            q = max_skewness
         else:
-            q = -qmax
+            q = -max_skewness
         eta = 3 + slope*q 
         realizable = eta - 1 - q**2 
         if realizable < 0:
@@ -267,7 +262,7 @@ def hyperbolic3(moms,qmax):
     for i in range(n):
         xp[i] = xps[i]*scale/math.sqrt(scales)
 
-    w = moms[0]*rho
+    w = moments[0]*rho
     x = xp
     x = bx + x 
 
@@ -290,22 +285,21 @@ def conditional(moments, indices, permutation = 12):
     
     return weights, abscissas
 
-def conditional_hyperbolic(moments, config, max_skewness = 30):
+def conditional_hyperbolic(moments, indices, max_skewness = 30):
 
-    idx = config['indices']
-    num_dim = len(idx)
+    num_dim = len(indices)
 
     if num_dim == 6:
-        return chyqmom4( moments, idx )
+        return chyqmom4( moments, indices, max_skewness )
     elif num_dim == 10:
-        return chyqmom9( moments, idx )
+        return chyqmom9( moments, indices )
 
     # print('inversion: Warning: Conditional Hyperbolic QMOM not implemented. Returning empty arrays')
     # weights   = np.array([])
     # abscissas = np.array([])    
     # return weights, abscissas
 
-def chyqmom4(moments, idx):
+def chyqmom4(moments, idx, max_skewness = 30):
 
     mom00 = moments[idx.index([0,0])]
     mom10 = moments[idx.index([1,0])]
@@ -330,6 +324,7 @@ def chyqmom4(moments, idx):
     c02 = d02 - by**2.
 
     M1 = [1, 0, c20]
+    # if ... hyperbolic_two_nodes(moments) else ... hyperbolic_three_nodes(moments,max_skewness)
     xp, rho = hyperbolic2(M1) 
     yf = c11*xp/c20 
     mu2avg = c02 - sum(rho*yf**2)

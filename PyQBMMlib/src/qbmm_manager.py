@@ -1,6 +1,10 @@
+import sys
+sys.path.append('../utils/')
+
 import numpy as np
-from sympy import symbols
+import sympy as smp
 from inversion import *
+from pretty_print_util import *
 
 class qbmm_manager:
 
@@ -31,9 +35,19 @@ class qbmm_manager:
             print( '\t permutation         = %i' % self.permutation )
         if self.method == 'hyqmom' or self.method == 'chyqmom':
             print( '\t max_skewness        = %i' % self.max_skewness )
-            
+
+        # Determine moment indices
         self.moment_indices()
-        print( '\t num_moments         = %i' % self.num_moments )
+        if self.num_internal_coords == 1:
+            print( '\t num_moments         = %i', self.num_moments )
+        else:
+            i_array_pretty_print( '\t num_moments        ', '', self.num_moments )
+
+        # Determine coefficients & exponents from governing dynamics
+        self.transport_terms() # [ecg] better name for this?
+
+        # RHS buffer
+        self.rhs = np.zeros( self.num_moments )
         
         return
 
@@ -85,7 +99,8 @@ class qbmm_manager:
                 #
                 self.moment_invert = conditional_hyperbolic
                 self.inversion_algorithm = conditional_hyperbolic
-                self.max_skewness  = 30
+                self.max_skewness = 30
+                self.permutation  = 12
                 if 'max_skewness' in qbmm_config:
                     self.max_skewness = qbmm_config['max_skewness']
                 if 'permutation' in qbmm_config:
@@ -129,9 +144,9 @@ class qbmm_manager:
             #
             if self.method == 'chyqmom' :
                 self.indices = np.array( [ [0,0], [1,0], [0,1], [2,0], [1,1], [0,2] ] )
-                message  = 'qbmm_mgr: moment_indices: Warning: Moment indices hardcoded for num_coords(2)'
+                message  = 'qbmm_mgr: moment_indices: Warning: Moment indices hardcoded for num_coords(2) '
                 message += 'and num_nodes(2), requested num_coords(%i) and num_nodes(%i)'
-                print( messgae % ( self.num_internal_coords, self.num_quadrature_nodes ) )
+                print( message % ( self.num_internal_coords, self.num_quadrature_nodes ) )
             #
             self.num_moments = self.indices.shape
             #
@@ -141,6 +156,69 @@ class qbmm_manager:
 
             
         return 
+
+    def transport_terms(self):
+        """
+        This function determines the RHS in the moments equation
+        for a given governing dynamics
+        """
+        print('qbmm_mgr: transport_terms: Warning: works for up to two internal coordinates only')
+
+        if self.num_internal_coords == 1:
+            x = smp.symbols( 'x' )
+            l = smp.symbols( 'l', real = True )
+            xdot = smp.parse_expr( self.governing_dynamics )
+            integrand = xdot * ( x ** ( l - 1 ) )
+        elif self.num_internal_coords == 2:
+            x,xdot = smp.symbols( 'x xdot' )
+            l,m    = smp.symbols( 'l m', real = True )
+            xddot  = smp.parse_expr( self.governing_dynamics )
+            integrand = xddot * ( x ** l ) * ( xdot ** ( m - 1 ) )
+
+        terms     = smp.powsimp( smp.expand( integrand ) ).args
+        num_terms = len( terms )
+
+        # Add constant term for 2+D problems
+        total_num_terms = num_terms
+        if self.num_internal_coords > 1:
+            total_num_terms += 1
+
+        # Initialize exponents and coefficients (weird, but works)
+        self.exponents    = [[smp.symbols('a') for i in range(total_num_terms)]
+                             for j in range(self.num_internal_coords)]
+        self.coefficients = [[smp.symbols('a') for i in range(total_num_terms)]]
+
+        # Everything is simpler if now transferred into numpy arrays
+        self.exponents    = np.array(self.exponents).T
+        self.coefficients = np.array(self.coefficients).T
+
+        # Loop over terms
+        for i in range( num_terms ):
+
+            self.exponents[i,0] = terms[i].as_coeff_exponent(x)[1]
+            if self.num_internal_coords == 1:
+                self.coefficients[i,0] = l * smp.poly( terms[i]).coeffs()[0]
+            else:
+                self.exponents[i,1] = terms[i].as_coeff_exponent(xdot)[1]
+                self.coefficients[i,0] = m * smp.poly( terms[i] ).coeffs()[0]
+
+        # Add extra constant term if in 2+D
+        if self.num_internal_coords > 1:
+            self.exponents[ num_terms, 0 ] = l - 1
+            self.exponents[ num_terms, 1 ] = m + 1
+            self.coefficients[ num_terms ] = l
+
+        message = 'qbmm_mgr: transport_terms: '
+        for i in range( total_num_terms ):
+            sym_array_pretty_print( message, 'exponents', self.exponents[i,:] )
+
+        message = 'qbmm_mgr: transport_terms: '
+        sym_array_pretty_print( message, 'coefficients', self.coefficients )
+        
+        self.num_coefficients = len( self.coefficients )
+        self.num_exponents    = len( self.exponents    )
+        
+        return
     
     def moment_invert_1D(self, moments):
         """
@@ -148,11 +226,11 @@ class qbmm_manager:
         """
         return self.inversion_algorithm( moments, self.inversion_option )
 
-    def moment_invert_2PD(self, moments, indices):
+    def moment_invert_2PD(self, moments):
         """
         This function inverts moments in ND, with N > 1
         """
-        return self.inversion_algorithm( moments, indices, self.inversion_option )
+        return self.inversion_algorithm( moments, self.indices, self.inversion_option )
 
     def quadrature(self, weights, abscissas, moment_index):
         """
@@ -184,22 +262,32 @@ class qbmm_manager:
             moments[i_index] = self.quadrature( weights, abscissas, indices[ i_index ] )                
         return moments
 
-    def compute_rhs(self, sym_coefficients, sym_exponents, indices, weights, abscissas):
+    def compute_rhs(self, moments, rhs):
         """
         Compute moment-transport RHS
         """
-        c0 = symbols('c0')
-        num_indices   = len( self.indices )        
-        num_exponents = len( sym_exponents )
-        num_coefficients = len( sym_coefficients )
-        rhs = np.zeros( num_indices )
-        for i_index in range( num_indices ):
-            exponents    = [sym_exponents[j].subs(c0, indices[i_index]) \
-                    for j in range(num_exponents)]
-            coefficients = [sym_coefficients[j].subs(c0, indices[i_index]) \
-                    for j in range(num_coefficients)]
+        # Compute abscissas and weights from moments
+        abscissas, weights = qbmm_mgr.moment_invert( moments )      
+
+        # Symbols
+        c0 = self.symbolic_indices
+        
+        # Loop over moments
+        for i_moment in range( self.num_moments ):
+            # Evalue RHS terms
+            exponents    = [self.exponents[j].subs( c0, self.indices[i_moment] )
+                            for j in range(self.num_exponents)]
+            coefficients = [self.coefficients[j].subs( c0, self.indices[i_moment] )
+                            for j in range(self.num_coefficients)]
+            # Put them in numpy arrays
             np_exponents    = np.array( exponents )
             np_coefficients = np.array( coefficients )
+            # Project back to moments
             projected_moments = self.projection( weights, abscissas, np_exponents )
-            rhs[i_index] = np.dot( np_coefficients, projected_moments )            
-        return rhs
+            # Compute RHS
+            self.rhs[i_moment] = np.dot( np_coefficients, projected_moments )
+            
+        #
+        moments = projected_moments
+        #
+        return
