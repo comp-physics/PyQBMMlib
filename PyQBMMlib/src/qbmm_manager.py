@@ -135,18 +135,24 @@ class qbmm_manager:
             if self.method == 'qmom':
                 self.indices = np.arange( 2 * self.num_quadrature_nodes )
             elif self.method == 'hyqmom':
-                # Spencer: is this general?
                 self.indices = np.arange( 2 * ( self.num_quadrature_nodes - 1 ) + 1 )
             #
             self.num_moments = len( self.indices )
             #
         elif self.num_internal_coords > 1: 
             #
-            if self.method == 'chyqmom' :
-                self.indices = np.array( [ [0,0], [1,0], [0,1], [2,0], [1,1], [0,2] ] )
-                message  = 'qbmm_mgr: moment_indices: Warning: Moment indices hardcoded for num_coords(2) '
-                message += 'and num_nodes(2), requested num_coords(%i) and num_nodes(%i)'
-                print( message % ( self.num_internal_coords, self.num_quadrature_nodes ) )
+            if self.method == 'chyqmom':
+                if self.num_quadrature_nodes == 4:
+                    self.indices = np.array( [ [0,0], [1,0], [0,1], [2,0], [1,1], [0,2] ] )
+                    message  = 'qbmm_mgr: moment_indices: Warning: CHyQMOM indices hardcoded for num_coords(2) '
+                    message += 'and num_nodes(2), requested num_coords(%i) and num_nodes(%i)'
+                    print( message % ( self.num_internal_coords, self.num_quadrature_nodes ) )
+                if self.num_quadrature_nodes == 9:
+                    self.indices = np.array( [ [0,0], [1,0], [0,1], [2,0], [1,1], [0,2], [3,0], [0,3], [4,0], [0,4] ] )
+                    message  = 'qbmm_mgr: moment_indices: Warning: CHyQMOM indices hardcoded for num_coords(2) '
+                    message += 'and num_nodes(3), requested num_coords(%i) and num_nodes(%i)'
+                    print( message % ( self.num_internal_coords, self.num_quadrature_nodes ) )
+
             #
             self.num_moments = self.indices.shape
             #
