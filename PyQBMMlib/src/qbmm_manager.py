@@ -39,7 +39,7 @@ class qbmm_manager:
         # Determine moment indices
         self.moment_indices()
         if self.num_internal_coords == 1:
-            print( '\t num_moments         = %i', self.num_moments )
+            print( '\t num_moments         = %i' % self.num_moments )
         else:
             i_array_pretty_print( '\t num_moments        ', '', self.num_moments )
 
@@ -140,6 +140,8 @@ class qbmm_manager:
             #
             self.num_moments = len( self.indices )
             #
+            message = 'qbmm_mgr: moment_indices: '
+            f_array_pretty_print( message, 'indices', self.indices )
         elif self.num_internal_coords > 1: 
             #
             if self.method == 'chyqmom' :
@@ -169,11 +171,13 @@ class qbmm_manager:
             l = smp.symbols( 'l', real = True )
             xdot = smp.parse_expr( self.governing_dynamics )
             integrand = xdot * ( x ** ( l - 1 ) )
+            self.symbolic_indices = l
         elif self.num_internal_coords == 2:
             x,xdot = smp.symbols( 'x xdot' )
             l,m    = smp.symbols( 'l m', real = True )
             xddot  = smp.parse_expr( self.governing_dynamics )
             integrand = xddot * ( x ** l ) * ( xdot ** ( m - 1 ) )
+            self.symbolic_indices = [l,m]
 
         terms     = smp.powsimp( smp.expand( integrand ) ).args
         num_terms = len( terms )
@@ -186,7 +190,7 @@ class qbmm_manager:
         # Initialize exponents and coefficients (weird, but works)
         self.exponents    = [[smp.symbols('a') for i in range(total_num_terms)]
                              for j in range(self.num_internal_coords)]
-        self.coefficients = [[smp.symbols('a') for i in range(total_num_terms)]]
+        self.coefficients = [smp.symbols('a') for i in range(total_num_terms)]
 
         # Everything is simpler if now transferred into numpy arrays
         self.exponents    = np.array(self.exponents).T
@@ -197,10 +201,10 @@ class qbmm_manager:
 
             self.exponents[i,0] = terms[i].as_coeff_exponent(x)[1]
             if self.num_internal_coords == 1:
-                self.coefficients[i,0] = l * smp.poly( terms[i]).coeffs()[0]
+                self.coefficients[i] = l * smp.poly( terms[i]).coeffs()[0]
             else:
                 self.exponents[i,1] = terms[i].as_coeff_exponent(xdot)[1]
-                self.coefficients[i,0] = m * smp.poly( terms[i] ).coeffs()[0]
+                self.coefficients[i] = m * smp.poly( terms[i] ).coeffs()[0]
 
         # Add extra constant term if in 2+D
         if self.num_internal_coords > 1:
@@ -267,7 +271,7 @@ class qbmm_manager:
         Compute moment-transport RHS
         """
         # Compute abscissas and weights from moments
-        abscissas, weights = qbmm_mgr.moment_invert( moments )      
+        abscissas, weights = self.moment_invert( moments )      
 
         # Symbols
         c0 = self.symbolic_indices
@@ -275,7 +279,8 @@ class qbmm_manager:
         # Loop over moments
         for i_moment in range( self.num_moments ):
             # Evalue RHS terms
-            exponents    = [self.exponents[j].subs( c0, self.indices[i_moment] )
+            # [ecg] HACK HACK HACK
+            exponents    = [self.exponents[j,0].subs( c0, self.indices[i_moment] )
                             for j in range(self.num_exponents)]
             coefficients = [self.coefficients[j].subs( c0, self.indices[i_moment] )
                             for j in range(self.num_coefficients)]
@@ -283,11 +288,12 @@ class qbmm_manager:
             np_exponents    = np.array( exponents )
             np_coefficients = np.array( coefficients )
             # Project back to moments
-            projected_moments = self.projection( weights, abscissas, np_exponents )
+            rhs_moments = self.projection( weights, abscissas, np_exponents )
             # Compute RHS
-            self.rhs[i_moment] = np.dot( np_coefficients, projected_moments )
-            
+            rhs[i_moment] = np.dot( np_coefficients, rhs_moments )            
         #
-        moments = projected_moments
+        projected_moments = self.projection( weights, abscissas, self.indices )
+        for i_moment in range( self.num_moments ):
+            moments[i_moment] = projected_moments[i_moment]               
         #
         return

@@ -1,25 +1,59 @@
+import sys
+sys.path.append('../utils/')
+from stats_util import *
+from pretty_print_util import *
+from qbmm_manager import *
 import numpy as np
 
-class advancer:
+class time_advancer:
 
     def __init__(self, config):
 
-        self.method    = config['advancer']['method']
-        self.time_step = config['advancer']['time_step']
-        self.num_steps = config['advancer']['num_steps']
+        self.method        = config['advancer']['method']
+        self.time_step     = config['advancer']['time_step']
+        self.final_time    = config['advancer']['final_time']
+        self.error_tol     = config['advancer']['error_tol']
+        self.num_steps     = config['advancer']['num_steps']
+        self.num_steps_print = config['advancer']['num_steps_print']
+        self.num_steps_write = config['advancer']['num_steps_write']
 
         self.qbmm_mgr = qbmm_manager( config )
 
-        self.num_dim  = qbmm_mgr.num_moments
+        self.num_dim  = self.qbmm_mgr.num_moments
         self.state    = np.zeros( self.num_dim )
         self.rhs      = np.zeros( self.num_dim )
+
+        self.stage_state = np.zeros( [3, self.num_dim] )
+        self.stage_k     = np.zeros( [3, self.num_dim] )
+        
+        if self.method == 'Euler':
+            self.advance = self.advance_euler
+        elif self.method == 'RK23':
+            self.advance = self.advance_RK23
+
+        print('advancer: init: Configuration optiosn ready')
+        print('\t method          = %s'   % self.method)
+        print('\t time_step       = %.4E' % self.time_step)
+        print('\t final_time      = %.4E' % self.final_time)
+        print('\t error_tol       = %.4E' % self.error_tol)
+        print('\t num_steps_print = %i'   % self.num_steps_print)
+        print('\t num_steps_write = %i'   % self.num_steps_write)
+
+        self.max_time_step = 1.0
         
         return
-
+    
     def initialize_state(self, init_state):
 
         self.state = init_state
         
+        return
+
+    def initialize_state_gaussian_univar(self, mu, sigma):
+
+        self.state = raw_gaussian_moments_univar( self.num_dim, mu, sigma)
+        message = 'advancer: initialize_gaussian: '
+        f_array_pretty_print( message, 'state', self.state )
         return
     
     def advance_euler(self):
@@ -28,7 +62,7 @@ class advancer:
 
         print('advancer: advance: Euler time advancer')
         
-        self.rhs = qbmm_mgr.compute_rhs( self.state )
+        self.rhs = self.qbmm_mgr.compute_rhs( self.state )
 
         ### state_{n+1} = proj_{n} + rhs_{n}
         self.state += self.time_step * self.rhs
@@ -37,49 +71,76 @@ class advancer:
 
     def advance_RK23(self):
 
-        print('advancer: advance: RK23 time advancer')
-
-        # Stage 1: {y_1, k_1 } = f( t_n, y_0 )
+        #message = 'advancer: advace_RK3: '
+        #f_array_pretty_print( message, 'state', self.state )
+        
+        # Stage 1: { y_1, k_1 } = f( t_n, y_0 )
         self.stage_state[0] = self.state.copy()
-        time = self.t
+        time = self.time
         self.qbmm_mgr.compute_rhs( self.stage_state[0], self.stage_k[0] )
 
         # Stage 2: { y_2, k_2 } = f( t_n, y_1 + dt * k_1 )
-        self.stage_state[1] = self.stage_state[0] + self.dt * self.stage_k[0]
-        time = self.t + self.dt
-        self.qbmm_mgr.compute_rhs( self.stage_state, self.stage_k[1] )
+        self.stage_state[1] = self.stage_state[0] + self.time_step * self.stage_k[0]
+        time = self.time + self.time_step
+        self.qbmm_mgr.compute_rhs( self.stage_state[1], self.stage_k[1] )
 
-        # Stage 3: { y_3, k_3 } = f( t_n + 0.5 * dt, y_ )
-        self.stage_state[2] = 0.75 * self.stage_state[0] + 0.25 * ( self.stage_state[1] + self.dt * self.stage_k[1] )
+        # Stage 3: { y_3, k_3 } = f( t_n + 0.5 * dt, ... )
+        self.stage_state[2] = 0.75 * self.stage_state[0] + 0.25 * ( self.stage_state[1] + self.time_step * self.stage_k[1] )
+        self.qbmm_mgr.compute_rhs( self.stage_state[2], self.stage_k[2] )
 
         # Updates
-        test_state = 0.5 * ( self.stage_state[0] + ( self.stage_state[1] + self.dt * self.stage_k[1] ) )
-        self.state = ( self.stage_state[0] + 2.0 * ( self.stage_state[2] + self.dt * self.stage_k[2] ) ) / 3.0 
+        test_state = 0.5 * ( self.stage_state[0] + ( self.stage_state[1] + self.time_step * self.stage_k[1] ) )
+        self.state = ( self.stage_state[0] + 2.0 * ( self.stage_state[2] + self.time_step * self.stage_k[2] ) ) / 3.0 
+
+        # f_array_pretty_print( message, 'stage_state_0', self.stage_state[0] )
+        # f_array_pretty_print( message, 'stage_state_1', self.stage_state[1] )
+        # f_array_pretty_print( message, 'stage_state_2', self.stage_state[2] )
+        # f_array_pretty_print( message, 'stage_k_0', self.stage_k[0] )
+        # f_array_pretty_print( message, 'stage_k_1', self.stage_k[1] )
+        # f_array_pretty_print( message, 'stage_k_2', self.stage_k[2] )
+        # f_array_pretty_print( message, 'state', self.state )
         
         self.rk_error = np.linalg.norm( self.state - test_state ) / np.linalg.norm( self.state )
-        
+
+    def adapt_time_step(self):
+
+        error_fraction   = np.sqrt( 0.5 * self.error_tol / self.rk_error )
+        time_step_factor = min( max( error_fraction, 0.3 ), 2.0 )
+        new_time_step    = time_step_factor * self.time_step
+        new_time_step    = min( max( 0.9 * new_time_step, self.time_step ), self.max_time_step )
+        self.time_step   = new_time_step        
+        return
         
     def run(self):
 
         print('advancer: run: Preparing to step')
         
         self.time = 0.0
-        
-        for i_step in range( self.num_steps ):
+
+        self.report_step(0)
+
+        i_step = 0
+        step   = True
+        while step == True:
 
             self.advance()
 
-            if i_step % self.num_steps_print:
-                self.report_step()
-
+            i_step    += 1
             self.time += self.time_step
 
+            if i_step % self.num_steps_print == 0:
+                self.report_step(i_step)
+            
+            self.adapt_time_step()
+
+            if self.time > self.final_time or i_step >= self.num_steps:
+                step = False
+                
         print('advancer: run: stepping ends')
             
         return
 
-    def report_step():
+    def report_step(self, i_step):
 
-        message = 'advancer: step = %i ... time = %.4E ... state'
-        f_array_pretty_print( message, self.state )
-        print('advancer: step')
+        message = 'advancer: step = ' + str(i_step) + ' ... time = ' + '{:.16E}'.format(self.time) + ' ... time_step = ' + '{:.16E}'.format(self.time_step) + ' ... '
+        f_array_pretty_print( message, 'state', self.state )

@@ -16,7 +16,7 @@ def i_array_pretty_print(message, array_name, array):
 def f_array_pretty_print(message, array_name, array):
 
     message += array_name + ' = [{:s}]'    
-    print( message.format( ', '.join( [ '{:.4e}'.format(a) for a in array ] ) ) )
+    print( message.format( ', '.join( [ '{:.16e}'.format(a) for a in array ] ) ) )
 
 def sym_array_pretty_print(message, array_name, array):
 

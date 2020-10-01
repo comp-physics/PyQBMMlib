@@ -144,10 +144,11 @@ def hyperbolic(moments, max_skewness = 30):
         return [],[]
 
 def hyperbolic_two_nodes(moments):
+
     n = 2
     w = zeros(n)
     x = zeros(n)
-
+    
     w[0] = moments[0]/2.
     w[1] = w[0]
 
