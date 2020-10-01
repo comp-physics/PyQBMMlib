@@ -295,11 +295,6 @@ def conditional_hyperbolic(moments, indices, max_skewness = 30):
     elif num_dim == 10:
         return chyqmom9( moments, indices )
 
-    # print('inversion: Warning: Conditional Hyperbolic QMOM not implemented. Returning empty arrays')
-    # weights   = np.array([])
-    # abscissas = np.array([])    
-    # return weights, abscissas
-
 def chyqmom4(moments, idx, max_skewness = 30):
 
     mom00 = moments[idx.index([0,0])]
@@ -325,7 +320,6 @@ def chyqmom4(moments, idx, max_skewness = 30):
     c02 = d02 - by**2.
 
     M1 = [1, 0, c20]
-    # if ... hyperbolic_two_nodes(moments) else ... hyperbolic_three_nodes(moments,max_skewness)
     xp, rho = hyperbolic2(M1) 
     yf = c11*xp/c20 
     mu2avg = c02 - sum(rho*yf**2)
@@ -359,8 +353,131 @@ def chyqmom4(moments, idx, max_skewness = 30):
     x = [ x, y ]
     return x,w
 
-def chyqmom9(moments, indices):
+def chyqmom9(moments, indices, max_skewness = 30):
 
+    mom00 = moments[idx.index([0,0])]
+    mom10 = moments[idx.index([1,0])]
+    mom01 = moments[idx.index([0,1])]
+    mom20 = moments[idx.index([2,0])]
+    mom11 = moments[idx.index([1,1])]
+    mom02 = moments[idx.index([0,2])]
+    mom30 = moments[idx.index([3,0])]
+    mom03 = moments[idx.index([0,3])]
+    mom40 = moments[idx.index([4,0])]
+    mom04 = moments[idx.index([0,4])]
+
+    n = 9
+    w = zeros(n)
+    x = zeros(n)
+    y = zeros(n)
+
+    csmall    = 10.**(-10) 
+    verysmall = 10.**(-14) 
+
+    bx  = mom10/mom00 
+    by  = mom01/mom00 
+    d20 = mom20/mom00 
+    d11 = mom11/mom00 
+    d02 = mom02/mom00 
+    d30 = mom30/mom00 
+    d03 = mom03/mom00 
+    d40 = mom40/mom00 
+    d04 = mom04/mom00 
+
+    c20 = d20 - bx**2. 
+    c11 = d11 - bx*by
+    c02 = d02 - by**2.
+    c30 = d30 - 3.*bx*d20 + 2.*bx**3.
+    c03 = d03 - 3.*by*d02 + 2.*by**3.
+    c40 = d40 - 4.*bx*d30 + 6*(bx**2.)*d20 - 3.*bx**(4)
+    c04 = d04 - 4.*by*d03 + 6*(by**2.)*d02 - 3.*by**(4)
+
+    M1 = [1, 0, c20, c30, c40] 
+    xp, rho = hyperbolic_three_nodes(M1)
+    if c20 < csmall:
+        rho[0] = 0.
+        rho[1] = 1.
+        rho[2] = 0.
+        yf = 0*xp 
+        M2 = [1, 0, c02, c03, c04]
+        xp2, rho2 = hyperbolic_three_nodes(M2, max_skewness)
+        yp21 = xp2[0] 
+        yp22 = xp2[1] 
+        yp23 = xp2[2] 
+        rho21 = rho2[0] 
+        rho22 = rho2[1] 
+        rho23 = rho2[2]
+    else:
+        yf = c11*xp/c20 
+        mu2avg = c02 - sum(rho*(yf**2.))
+        mu2avg = max(mu2avg, 0.)
+        mu2 = mu2avg 
+        mu3 = 0*mu2 
+        mu4 = mu2**2. 
+        if mu2 > csmall:
+            q   = (c03 - sum(rho*(yf**3.)))/mu2**(3./2.) 
+            eta = (c04 - sum(rho*(yf**4.)) - 6*sum(rho*(yf**2.))*mu2)/mu2**2.
+            if eta < (q^2 + 1):
+                if abs(q) > verysmall:
+                    slope = (eta - 3.)/q 
+                    det = 8. + slope**2. 
+                    qp = 0.5*(slope + math.sqrt(det)) 
+                    qm = 0.5*(slope - math.sqrt(det)) 
+                    if q > 0:
+                        q = qp
+                    else:
+                        q = qm
+                else: 
+                    q = 0
+
+                eta = q^2 + 1
+
+            mu3 = q*mu2**(3./2.) 
+            mu4 = eta*mu2**2.
+        ] 
+        M3 = [1, 0, mu2, mu3, mu4]
+        xp3, rh3 = hyperbolic_three_nodes(M3,max_skewness)
+        yp21 = xp3[0] 
+        yp22 = xp3[1] 
+        yp23 = xp3[2] 
+        rho21 = rh3[0] 
+        rho22 = rh3[1] 
+        rho23 = rh3[2]
+
+    w[0] = rho[0]*rho21 
+    w[1] = rho[0]*rho22 
+    w[2] = rho[0]*rho23 
+    w[3] = rho[1]*rho21 
+    w[4] = rho[1]*rho22 
+    w[5] = rho[1]*rho23 
+    w[6] = rho[2]*rho21 
+    w[7] = rho[2]*rho22 
+    w[8] = rho[2]*rho23 
+    w = mom00*w
+
+    x[0] = xp[0] 
+    x[1] = xp[0]
+    x[2] = xp[0] 
+    x[3] = xp[1] 
+    x[4] = xp[1]
+    x[5] = xp[1]
+    x[6] = xp[2] 
+    x[7] = xp[2]
+    x[8] = xp[2] 
+    x = bx + x 
+
+    y[0] = yf[0] + yp21 
+    y[1] = yf[0] + yp22 
+    y[2] = yf[0] + yp23 
+    y[3] = yf[1] + yp21 
+    y[4] = yf[1] + yp22
+    y[5] = yf[1] + yp23 
+    y[6] = yf[2] + yp21
+    y[7] = yf[2] + yp22 
+    y[8] = yf[2] + yp23 
+    y = by + y 
+
+    x = [ x, y ]
     return x,w
 
 
