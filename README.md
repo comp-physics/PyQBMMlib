@@ -4,7 +4,7 @@ Spencer Bryngelson, Esteban Cisneros
 
 ## To-do
 
-- [ ] Make code output moments (ECG)
+- [x] Make code output moments (ECG)
 - [ ] Test a 2D case against Mathematica (SHB)
 - [ ] Implement 2D+1D inversion for bubble dynamics (SHB)
 
