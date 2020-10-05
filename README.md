@@ -5,6 +5,7 @@ Spencer Bryngelson, Esteban Cisneros
 ## To-do
 
 - [x] Make code output moments (ECG)
+- [ ] In issues: qbmm_mgr rhs hacks (ECG)
 - [ ] Test a 2D case against Mathematica (SHB)
 - [ ] Implement 2D+1D inversion for bubble dynamics (SHB)
 
