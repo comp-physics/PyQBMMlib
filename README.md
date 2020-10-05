@@ -4,9 +4,10 @@ Spencer Bryngelson, Esteban Cisneros
 
 ## To-do
 
-- [ ] 
-- [ ] 
-- [ ] 
+- [ ] Make code output moments
+- [ ] Test a 2D case against Mathematica
+- [ ] Implement 3D inversion (SHB)
+- [ ] Implement spatial dependencies
 
 ## Functionality
 
