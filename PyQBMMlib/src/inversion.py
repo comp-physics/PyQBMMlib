@@ -297,12 +297,15 @@ def conditional_hyperbolic(moments, indices, max_skewness = 30):
 
 def chyqmom4(moments, idx, max_skewness = 30):
 
-    mom00 = moments[idx.index([0,0])]
-    mom10 = moments[idx.index([1,0])]
-    mom01 = moments[idx.index([0,1])]
-    mom20 = moments[idx.index([2,0])]
-    mom11 = moments[idx.index([1,1])]
-    mom02 = moments[idx.index([0,2])]
+    # SHB: HACK so that I can get the required elements from the numpy array
+    normalidx = idx.tolist()
+
+    mom00 = moments[normalidx.index([0,0])]
+    mom10 = moments[normalidx.index([1,0])]
+    mom01 = moments[normalidx.index([0,1])]
+    mom20 = moments[normalidx.index([2,0])]
+    mom11 = moments[normalidx.index([1,1])]
+    mom02 = moments[normalidx.index([0,2])]
 
     n = 4
     w = zeros(n)
@@ -320,13 +323,13 @@ def chyqmom4(moments, idx, max_skewness = 30):
     c02 = d02 - by**2.
 
     M1 = [1, 0, c20]
-    xp, rho = hyperbolic2(M1) 
+    xp, rho = hyperbolic_two_nodes(M1) 
     yf = c11*xp/c20 
     mu2avg = c02 - sum(rho*yf**2)
     mu2avg = max(mu2avg, 0)
     mu2 = mu2avg 
     M3 = [ 1, 0, mu2 ] 
-    xp3, rh3 = hyperbolic2(M3)
+    xp3, rh3 = hyperbolic_two_nodes(M3)
     yp21  = xp3[0] 
     yp22  = xp3[1] 
     rho21 = rh3[0] 
@@ -434,7 +437,7 @@ def chyqmom9(moments, indices, max_skewness = 30):
 
             mu3 = q*mu2**(3./2.) 
             mu4 = eta*mu2**2.
-        ] 
+
         M3 = [1, 0, mu2, mu3, mu4]
         xp3, rh3 = hyperbolic_three_nodes(M3,max_skewness)
         yp21 = xp3[0] 

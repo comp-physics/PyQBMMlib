@@ -38,10 +38,10 @@ class qbmm_manager:
 
         # Determine moment indices
         self.moment_indices()
-        if self.num_internal_coords == 1:
-            print( '\t num_moments         = %i' % self.num_moments )
-        else:
-            i_array_pretty_print( '\t num_moments        ', '', self.num_moments )
+        # if self.num_internal_coords == 1:
+        print( '\t num_moments         = %i' % self.num_moments )
+        # else:
+        #     i_array_pretty_print( '\t num_moments        ', '', self.num_moments )
 
         # Determine coefficients & exponents from governing dynamics
         self.transport_terms() # [ecg] better name for this?
@@ -147,16 +147,19 @@ class qbmm_manager:
                 if self.num_quadrature_nodes == 4:
                     self.indices = np.array( [ [0,0], [1,0], [0,1], [2,0], [1,1], [0,2] ] )
                     message  = 'qbmm_mgr: moment_indices: Warning: CHyQMOM indices hardcoded for num_coords(2) '
-                    message += 'and num_nodes(2), requested num_coords(%i) and num_nodes(%i)'
+                    message += 'and num_nodes(4), requested num_coords(%i) and num_nodes(%i)'
                     print( message % ( self.num_internal_coords, self.num_quadrature_nodes ) )
-                if self.num_quadrature_nodes == 9:
+                elif self.num_quadrature_nodes == 9:
                     self.indices = np.array( [ [0,0], [1,0], [0,1], [2,0], [1,1], [0,2], [3,0], [0,3], [4,0], [0,4] ] )
                     message  = 'qbmm_mgr: moment_indices: Warning: CHyQMOM indices hardcoded for num_coords(2) '
                     message += 'and num_nodes(3), requested num_coords(%i) and num_nodes(%i)'
                     print( message % ( self.num_internal_coords, self.num_quadrature_nodes ) )
+                else :
+                    print( 'qbmm_mgr: moment_indices: Error: incorrect number of quadrature nodes (not 4 or 9), aborting... %i' % self.num_quadrature_nodes )
+                    quit()
 
             #
-            self.num_moments = self.indices.shape
+            self.num_moments = self.indices.shape[0]
             #
         else:
             #
@@ -257,9 +260,23 @@ class qbmm_manager:
         ### this routine only works for 1D problems, and takes in
         ### a scalar for moment_index (weak).
         ###
-        xi_to_idx = abscissas ** moment_index
-        # \sum_j w_j xi_j^i_j
-        q = np.dot( weights, xi_to_idx )
+        if self.num_internal_coords == 1:
+            xi_to_idx = abscissas ** moment_index
+            # \sum_j w_j xi_j^i_j
+            q = np.dot( weights, xi_to_idx )
+        elif self.num_internal_coords == 2:
+            # print('absc: ',abscissas,len(abscissas[0]))
+            # print('wght: ',weights)
+            # print('indx: ',moment_index)
+            q = 0.
+            for i in range(len(abscissas[0])):
+                q = q + weights[i] * \
+                    abscissas[0][i]**moment_index[0] * \
+                    abscissas[1][i]**moment_index[1]
+        else:
+            print('quadrature not implemented', self.num_internal_coords)
+            quit()
+
         return q
 
     def projection(self, weights, abscissas, indices):
@@ -277,19 +294,39 @@ class qbmm_manager:
         Compute moment-transport RHS
         """
         # Compute abscissas and weights from moments
-        abscissas, weights = self.moment_invert( moments )      
+        if self.num_internal_coords == 1:
+            abscissas, weights = self.moment_invert( moments )      
+        else:
+            abscissas, weights = self.moment_invert( moments,self.indices )      
 
         # Symbols
         c0 = self.symbolic_indices
-        
+        l = c0[0]  
+        m = c0[1]  
+
         # Loop over moments
         for i_moment in range( self.num_moments ):
             # Evalue RHS terms
             # [ecg] HACK HACK HACK
-            exponents    = [self.exponents[j,0].subs( c0, self.indices[i_moment] )
-                            for j in range(self.num_exponents)]
-            coefficients = [self.coefficients[j].subs( c0, self.indices[i_moment] )
-                            for j in range(self.num_coefficients)]
+            if self.num_internal_coords == 1:
+                exponents    = [self.exponents[j,0].subs( c0, self.indices[i_moment] ) 
+                                for j in range(self.num_exponents)]
+                coefficients = [self.coefficients[j].subs( c0, self.indices[i_moment] ) 
+                                for j in range(self.num_coefficients)]
+            # [SHB] HACK HACK HACK
+            elif self.num_internal_coords == 2:
+                exponents    = [ [ \
+                        self.exponents[j,0].subs( c0[0], self.indices[i_moment][0]).subs( c0[1], self.indices[i_moment][1]), \
+                        self.exponents[j,1].subs( c0[0], self.indices[i_moment][0]).subs( c0[1], self.indices[i_moment][1])  \
+                        ]
+                        for j in range(self.num_exponents)]
+                coefficients = [ \
+                        self.coefficients[j].subs( c0[0], self.indices[i_moment][0]).subs( c0[1], self.indices[i_moment][1] ) 
+                        for j in range(self.num_coefficients)]
+            else :
+                print('num_internal_coords',self.num_internal_coords,'not supported')
+                quit()
+
             # Put them in numpy arrays
             np_exponents    = np.array( exponents )
             np_coefficients = np.array( coefficients )

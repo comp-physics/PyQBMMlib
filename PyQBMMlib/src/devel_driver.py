@@ -4,7 +4,7 @@ sys.path.append('../utils/')
 from stats_util import *
 from pretty_print_util import *
 
-def advance_example():
+def advance_example1d():
 
     config = {}
     config['qbmm'] = {}
@@ -31,6 +31,43 @@ def advance_example():
     mu    = 1.0
     sigma = 0.1
     advancer.initialize_state_gaussian_univar( mu, sigma )
+
+    # Run
+    advancer.run()
+    
+    return
+
+
+def advance_example2d():
+
+    config = {}
+    config['qbmm'] = {}
+    config['advancer'] = {}
+    
+    config['qbmm']['governing_dynamics'] = ' 4*x - 2*xdot**2'
+    config['qbmm']['num_internal_coords']  = 2
+    config['qbmm']['num_quadrature_nodes'] = 4
+    config['qbmm']['method']               = 'chyqmom'
+    config['qbmm']['adaptive']             = False
+    config['qbmm']['max_skewness']         = 30
+
+    config['advancer']['method']     = 'RK23'
+    config['advancer']['time_step']  = 0.1
+    config['advancer']['final_time'] = 2.0
+    config['advancer']['error_tol']  = 1.0e-5
+    config['advancer']['num_steps']  = 10
+    config['advancer']['num_steps_print'] = 1
+    config['advancer']['num_steps_write'] = 1
+    
+    advancer = time_advancer( config )
+
+    # Initialize condition
+    mu1    = 1.0
+    mu2    = 0.0
+    sigma1 = 0.1
+    sigma2 = 0.1
+
+    advancer.initialize_state_gaussian_bivar( mu1, mu2, sigma1, sigma2 )
 
     # Run
     advancer.run()
@@ -92,7 +129,8 @@ if __name__ == '__main__':
 
     np.set_printoptions( formatter = { 'float': '{: 0.4E}'.format } )
     
-    advance_example()
+    # advance_example1d()
+    advance_example2d()
     
     ###
     ### [ecg] The following workflow will be encapsulated in a single

@@ -20,6 +20,8 @@ class time_advancer:
         self.qbmm_mgr = qbmm_manager( config )
 
         self.num_dim  = self.qbmm_mgr.num_moments
+        self.indices  = self.qbmm_mgr.indices
+
         self.state    = np.zeros( self.num_dim )
         self.rhs      = np.zeros( self.num_dim )
 
@@ -31,7 +33,7 @@ class time_advancer:
         elif self.method == 'RK23':
             self.advance = self.advance_RK23
 
-        print('advancer: init: Configuration optiosn ready')
+        print('advancer: init: Configuration options ready')
         print('\t method          = %s'   % self.method)
         print('\t time_step       = %.4E' % self.time_step)
         print('\t final_time      = %.4E' % self.final_time)
@@ -47,6 +49,13 @@ class time_advancer:
 
         self.state = init_state
         
+        return
+
+    def initialize_state_gaussian_bivar(self, mu1, mu2, sigma1, sigma2):
+
+        self.state  = raw_gaussian_moments_bivar( self.indices, mu1, mu2, sigma1, sigma2 )
+        message = 'advancer: initialize_bigaussian: '
+        f_array_pretty_print( message, 'state', self.state )
         return
 
     def initialize_state_gaussian_univar(self, mu, sigma):

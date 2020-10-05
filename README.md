@@ -2,6 +2,12 @@
 
 Spencer Bryngelson, Esteban Cisneros
 
+## To-do
+
+- [ ] 
+- [ ] 
+- [ ] 
+
 ## Functionality
 
 1. Get carried moment indices/exponents for a given number of quadrature points and moment inversion method
