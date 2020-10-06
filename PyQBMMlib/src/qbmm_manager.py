@@ -301,8 +301,6 @@ class qbmm_manager:
 
         # Symbols
         c0 = self.symbolic_indices
-        l = c0[0]  
-        m = c0[1]  
 
         # Loop over moments
         for i_moment in range( self.num_moments ):

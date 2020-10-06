@@ -24,6 +24,9 @@ def advance_example1d():
     config['advancer']['num_steps']  = 10
     config['advancer']['num_steps_print'] = 1
     config['advancer']['num_steps_write'] = 1
+    config['advancer']['output_dir']      = './'
+    config['advancer']['output_id']       = 'example_1D'
+    config['advancer']['write_to']        = 'txt'
     
     advancer = time_advancer( config )
 
@@ -57,7 +60,10 @@ def advance_example2d():
     config['advancer']['error_tol']  = 1.0e-5
     config['advancer']['num_steps']  = 10
     config['advancer']['num_steps_print'] = 1
-    config['advancer']['num_steps_write'] = 1
+    config['advancer']['num_steps_write'] = 2
+    config['advancer']['output_dir']      = './'
+    config['advancer']['output_id']       = 'example_2D'
+    config['advancer']['write_to']        = 'txt'
     
     advancer = time_advancer( config )
 
@@ -128,9 +134,13 @@ def moments_workflow_example():
 if __name__ == '__main__':
 
     np.set_printoptions( formatter = { 'float': '{: 0.4E}'.format } )
-    
-    # advance_example1d()
-    advance_example2d()
+
+    case = 'example_1D'
+
+    if case == 'example_1D':
+        advance_example1d()
+    elif case == 'example_2D':
+        advance_example2d()
     
     ###
     ### [ecg] The following workflow will be encapsulated in a single

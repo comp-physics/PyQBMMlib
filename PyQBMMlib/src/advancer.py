@@ -4,19 +4,23 @@ from stats_util import *
 from pretty_print_util import *
 from qbmm_manager import *
 import numpy as np
+import csv
 
 class time_advancer:
 
     def __init__(self, config):
 
-        self.method        = config['advancer']['method']
-        self.time_step     = config['advancer']['time_step']
-        self.final_time    = config['advancer']['final_time']
-        self.error_tol     = config['advancer']['error_tol']
-        self.num_steps     = config['advancer']['num_steps']
+        self.method          = config['advancer']['method']
+        self.time_step       = config['advancer']['time_step']
+        self.final_time      = config['advancer']['final_time']
+        self.error_tol       = config['advancer']['error_tol']
+        self.num_steps       = config['advancer']['num_steps']
         self.num_steps_print = config['advancer']['num_steps_print']
         self.num_steps_write = config['advancer']['num_steps_write']
-
+        self.output_dir      = config['advancer']['output_dir']
+        self.output_id       = config['advancer']['output_id']
+        self.write_to        = config['advancer']['write_to']
+        
         self.qbmm_mgr = qbmm_manager( config )
 
         self.num_dim  = self.qbmm_mgr.num_moments
@@ -40,8 +44,19 @@ class time_advancer:
         print('\t error_tol       = %.4E' % self.error_tol)
         print('\t num_steps_print = %i'   % self.num_steps_print)
         print('\t num_steps_write = %i'   % self.num_steps_write)
+        print('\t output_dir      = %s'   % self.output_dir)
+        print('\t output_id       = %s'   % self.output_id)
+        print('\t write_to        = %s'   % self.write_to)
 
         self.max_time_step = 1.0
+
+        self.file_name = self.output_dir + 'qbmm_state_' + self.output_id
+        if self.write_to == 'txt':
+            self.file_name += '.dat'
+            self.write_to_file = self.write_to_txt
+        elif self.write_to == 'h5':
+            self.file_name += '.h5'
+            self.write_to_file = self.write_to_h5
         
         return
     
@@ -127,6 +142,7 @@ class time_advancer:
         self.time = 0.0
 
         self.report_step(0)
+        self.write_step(0)
 
         i_step = 0
         step   = True
@@ -139,7 +155,10 @@ class time_advancer:
 
             if i_step % self.num_steps_print == 0:
                 self.report_step(i_step)
-            
+
+            if i_step % self.num_steps_write == 0:
+                self.write_step(i_step)
+                
             self.adapt_time_step()
 
             if self.time > self.final_time or i_step >= self.num_steps:
@@ -153,3 +172,25 @@ class time_advancer:
 
         message = 'advancer: step = ' + str(i_step) + ' ... time = ' + '{:.16E}'.format(self.time) + ' ... time_step = ' + '{:.16E}'.format(self.time_step) + ' ... '
         f_array_pretty_print( message, 'state', self.state )
+
+    def write_step(self, i_step):
+
+        message = 'advancer: step = ' + str(i_step) + ' ... Writing to file'
+        print(message)
+        self.write_to_file( i_step )
+        
+    def write_to_txt(self, i_step):
+
+        write_flag = 'a'
+        if i_step == 0:
+            write_flag = 'w'
+            
+        with open( self.file_name, write_flag ) as file_id:
+           csv.writer( file_id, delimiter=' ' ).writerow( self.state )
+           
+        return
+        
+    def write_to_h5(self):
+        
+        print('advancer: write_to_h5: not implemented yet')
+        return
