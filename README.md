@@ -4,10 +4,16 @@ Spencer Bryngelson, Esteban Cisneros
 
 ## To-do
 
-- [ ] Make code output moments
-- [ ] Test a 2D case against Mathematica
+- [x] Make code output moments (ECG)
+- [ ] In issues: qbmm_mgr rhs hacks (ECG)
+- [ ] Test a 2D case against Mathematica (SHB)
+- [ ] Implement 2D+1D inversion for bubble dynamics (SHB)
+
+Towards Rodney CHyQMOM case 
+- [ ] Implement spatial dependencies (ECG)
+    - [ ] Flux function
+    - [ ] Initialize flow field?
 - [ ] Implement 3D inversion (SHB)
-- [ ] Implement spatial dependencies
 
 ## Functionality
 
