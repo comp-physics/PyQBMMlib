@@ -66,6 +66,15 @@ class time_advancer:
         
         return
 
+    def initialize_state_gaussian_trivar(self, mu1, mu2, mu3, sig1, sig2, sig3):
+
+        # print('indices: ',self.indices)
+        self.state  = raw_gaussian_moments_trivar( self.indices, mu1, mu2, mu3, sig1, sig2, sig3 )
+        message = 'advancer: initialize_trigaussian: '
+        f_array_pretty_print( message, 'state', self.state )
+        return
+
+
     def initialize_state_gaussian_bivar(self, mu1, mu2, sigma1, sigma2):
 
         self.state  = raw_gaussian_moments_bivar( self.indices, mu1, mu2, sigma1, sigma2 )

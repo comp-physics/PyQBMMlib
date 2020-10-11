@@ -142,34 +142,54 @@ def moments_workflow_example():
 
     config = {}
     config['qbmm'] = {}
-    config['qbmm']['governing_dynamics'] = '1+3*x'
+    config['advancer'] = {}
+    config['qbmm']['governing_dynamics'] = '1+3*x+xdot'
 
-    config['qbmm']['num_internal_coords']  = 1
-    config['qbmm']['num_quadrature_nodes'] = 2
-    config['qbmm']['method']       = 'qmom'
+    config['qbmm']['num_internal_coords']  = 3
+    config['qbmm']['num_quadrature_nodes'] = 27
+    config['qbmm']['method']       = 'chyqmom'
     config['qbmm']['adaptive']     = False
+
+    config['advancer']['method']     = 'RK23'
+    config['advancer']['time_step']  = 1.e-5
+    config['advancer']['final_time'] = 15.
+    config['advancer']['error_tol']  = 1.0e-5
+    config['advancer']['num_steps']  = 10000
+    config['advancer']['num_steps_print'] = 1
+    config['advancer']['num_steps_write'] = 1
+    config['advancer']['output_dir']      = './'
+    config['advancer']['output_id']       = 'example_2D'
+    config['advancer']['write_to']        = 'txt'
+
+
+    advancer = time_advancer( config )
 
     qbmm_mgr    = qbmm_manager( config )
     num_moments = qbmm_mgr.num_moments
     
-    mu    = 1.0
-    sigma = 0.1
-    moments = raw_gaussian_moments_univar( num_moments, mu, sigma )
+    mu1    = 1.0
+    mu2    = 1.0
+    mu3    = 1.0
+    sigma1 = 0.1
+    sigma2 = 0.1
+    sigma3 = 0.1
+    # moments = raw_gaussian_moments_trivar( num_moments, mu1, mu2, mu3, sigma1, sigma2, sigma3 )
+    advancer.initialize_state_gaussian_trivar( mu1, mu2, mu3, sigma1, sigma2, sigma3 )
     indices = qbmm_mgr.indices
 
-    message = 'devel_driver: main: '
-    f_array_pretty_print( message, 'moments', moments )
-    i_array_pretty_print( message, 'indices', indices )
+    # message = 'devel_driver: main: '
+    # f_array_pretty_print( message, 'moments', moments )
+    # i_array_pretty_print( message, 'indices', indices )
 
     abscissas, weights = qbmm_mgr.moment_invert( moments )
-    f_array_pretty_print( message, 'weights', weights )
-    f_array_pretty_print( message, 'abscissas', abscissas )
+    # f_array_pretty_print( message, 'weights', weights )
+    # f_array_pretty_print( message, 'abscissas', abscissas )
     
-    projected_moments = qbmm_mgr.projection( weights, abscissas, indices )
-    f_array_pretty_print( message, 'projected_moments', projected_moments )
+    # projected_moments = qbmm_mgr.projection( weights, abscissas, indices )
+    # f_array_pretty_print( message, 'projected_moments', projected_moments )
 
-    recons_error = np.abs( moments - projected_moments ).max()
-    f_scalar_pretty_print( message, 'recons_error', recons_error )
+    # recons_error = np.abs( moments - projected_moments ).max()
+    # f_scalar_pretty_print( message, 'recons_error', recons_error )
 
     return
     
@@ -177,12 +197,14 @@ if __name__ == '__main__':
 
     np.set_printoptions( formatter = { 'float': '{: 0.4E}'.format } )
 
-    case = 'example_2D'
+    case = 'test'
 
     if case == 'example_1D':
         advance_example1d()
     elif case == 'example_2D':
         advance_example2d()
+    elif case == 'test':
+        moments_workflow_example() 
     
     ###
     ### [ecg] The following workflow will be encapsulated in a single

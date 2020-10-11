@@ -44,7 +44,8 @@ class qbmm_manager:
         #     i_array_pretty_print( '\t num_moments        ', '', self.num_moments )
 
         # Determine coefficients & exponents from governing dynamics
-        self.transport_terms() # [ecg] better name for this?
+        if self.num_internal_coords < 3:
+            self.transport_terms() 
 
         # RHS buffer
         self.rhs = np.zeros( self.num_moments )
@@ -173,15 +174,19 @@ class qbmm_manager:
             if self.method == 'chyqmom':
                 if self.num_quadrature_nodes == 27:
                     self.indices = np.array( [ [0,0,0], [1,0,0], [0,1,0], [0,0,1], [2,0,0], [1,1,0], [1,0,1], [0,2,0], [0,1,1], [0,0,2], [3,0,0], [0,3,0], [0,0,3], [4,0,0], [0,4,0], [0,0,4] ] )
+
                 else :
                     print( 'qbmm_mgr: moment_indices: Error: incorrect number of quadrature nodes (not 27), aborting... %i' % self.num_quadrature_nodes )
+                    quit()
             else :
                 print( 'qbmm_mgr: moment_indices: Error: Unsupported method, aborting...' )
+                quit()
 
             self.num_moments = self.indices.shape[0]
         else:
             #
             print('qbmm_mgr: moment_indices: Error: dimensionality %i unsupported' % self.num_internal_coords )
+            quit()
         return 
 
     def transport_terms(self):
