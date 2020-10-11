@@ -5,6 +5,14 @@ from scipy.linalg import eig
 
 import math
 
+def sign(q):
+    if q > 0:
+        return 1
+    elif q == 0:
+        return 0
+    else:
+        return -1
+
 ###
 ### Invesion methods for 1D problems
 ###
@@ -146,8 +154,8 @@ def hyperbolic(moments, max_skewness = 30):
 def hyperbolic_two_nodes(moments):
 
     n = 2
-    w = zeros(n)
-    x = zeros(n)
+    w = np.zeros(n)
+    x = np.zeros(n)
     
     w[0] = moments[0]/2.
     w[1] = w[0]
@@ -171,11 +179,11 @@ def hyperbolic3(momenst, max_skewness):
     verysmall = 10**(-14) 
     realsmall = 10**(-14) 
 
-    w   = zeros(n)
-    x   = zeros(n) 
-    xp  = zeros(n)
-    xps = zeros(n)
-    rho = zeros(n)
+    w   = np.zeros(n)
+    x   = np.zeros(n) 
+    xp  = np.zeros(n)
+    xps = np.zeros(n)
+    rho = np.zeros(n)
 
     if moments[0] <= verysmall:
         w[1] = moments[0]
@@ -308,9 +316,9 @@ def chyqmom4(moments, idx, max_skewness = 30):
     mom02 = moments[normalidx.index([0,2])]
 
     n = 4
-    w = zeros(n)
-    x = zeros(n)
-    y = zeros(n)
+    w = np.zeros(n)
+    x = np.zeros(n)
+    y = np.zeros(n)
 
     bx  = mom10/mom00
     by  = mom01/mom00
@@ -370,9 +378,9 @@ def chyqmom9(moments, indices, max_skewness = 30):
     mom04 = moments[idx.index([0,4])]
 
     n = 9
-    w = zeros(n)
-    x = zeros(n)
-    y = zeros(n)
+    w = np.zeros(n)
+    x = np.zeros(n)
+    y = np.zeros(n)
 
     csmall    = 10.**(-10) 
     verysmall = 10.**(-14) 
@@ -420,7 +428,7 @@ def chyqmom9(moments, indices, max_skewness = 30):
         if mu2 > csmall:
             q   = (c03 - sum(rho*(yf**3.)))/mu2**(3./2.) 
             eta = (c04 - sum(rho*(yf**4.)) - 6*sum(rho*(yf**2.))*mu2)/mu2**2.
-            if eta < (q^2 + 1):
+            if eta < (q**2 + 1):
                 if abs(q) > verysmall:
                     slope = (eta - 3.)/q 
                     det = 8. + slope**2. 
@@ -433,7 +441,7 @@ def chyqmom9(moments, indices, max_skewness = 30):
                 else: 
                     q = 0
 
-                eta = q^2 + 1
+                eta = q**2 + 1
 
             mu3 = q*mu2**(3./2.) 
             mu4 = eta*mu2**2.
@@ -489,22 +497,18 @@ def chyqmom27(moments, indices, max_skewness = 30):
     mom100 = moments[idx.index([1,0,0])]
     mom010 = moments[idx.index([0,1,0])]
     mom001 = moments[idx.index([0,0,1])]
-
     mom200 = moments[idx.index([2,0,0])]
     mom110 = moments[idx.index([1,1,0])]
     mom101 = moments[idx.index([1,0,1])]
     mom020 = moments[idx.index([0,2,0])]
     mom011 = moments[idx.index([0,1,1])]
     mom002 = moments[idx.index([0,0,2])]
-
     mom300 = moments[idx.index([3,0,0])]
     mom030 = moments[idx.index([0,3,0])]
     mom003 = moments[idx.index([0,0,3])]
-
     mom400 = moments[idx.index([4,0,0])]
     mom040 = moments[idx.index([0,4,0])]
     mom004 = moments[idx.index([0,0,4])]
-
 
     small = 1.e-10 
     isosmall = 1.e-14
@@ -513,19 +517,18 @@ def chyqmom27(moments, indices, max_skewness = 30):
     verysmall = 1.e-14
 
     n = 27
-    u = zeros(n)
-    v = zeros(n)
-    w = zeros(n)
-    z = zeros(n)
-
+    u = np.zeros(n)
+    v = np.zeros(n)
+    w = np.zeros(n)
+    z = np.zeros(n)
 
     if m000 <= verysmall:
         n[13] = m000
         return
 
-    bx  = mom100/mom000 
-    by  = mom010/mom000 
-    bz  = mom001/mom000 
+    bu  = mom100/mom000 
+    bv  = mom010/mom000 
+    bw  = mom001/mom000 
 
     if m000 <= isosmall: 
         d200 = m200/m000
@@ -588,18 +591,17 @@ def chyqmom27(moments, indices, max_skewness = 30):
         eta = c400/c200**2
         if abs(q) > verysmall:
             slope = (eta - 3.)/q
-            det = 8 + slope**2
-            qp = 0.5*( slope + math.sqrt(det) )
-            qm = 0.5*( slope - math.sqrt(det) )
-            if q > 0 :
+            det   = 8 + slope**2
+            qp    = 0.5*( slope + math.sqrt(det) )
+            qm    = 0.5*( slope - math.sqrt(det) )
+            if q > 0:
                 q = qp
             else:
                 q = qm
-            end
         else:
             q = 0
 
-        eta = q**2 + 1
+        eta  = q**2 + 1
         c300 = q*c200**(3./2.)
         c400 = eta*c200**2.
 
@@ -608,76 +610,67 @@ def chyqmom27(moments, indices, max_skewness = 30):
         c030 = 0
         c040 = 0
 
-    if c200*c400 < c200**3 + c300**2:
+    if c200*c400 < (c200**3 + c300**2):
         q = c300/c200**(3/2) 
         eta = c400/c200**2 
         if abs(q) > verysmall:
             slope = (eta - 3)/q 
-            det = 8 + slope**2 
-            qp = 0.5*( slope + sqrt(det) ) 
-            qm = 0.5*( slope - sqrt(det) ) 
+            det   = 8 + slope**2 
+            qp    = 0.5*( slope + math.sqrt(det) ) 
+            qm    = 0.5*( slope - math.sqrt(det) ) 
             if sign(q) == 1:
                 q = qp 
             else
                 q = qm 
-            end
         else
             q = 0 
-        end
         eta = q**2 + 1 
         c300 = q*c200**(3/2) 
         c400 = eta*c200**2 
-    end
+
     if c020 <= 0:
         c020 = 0 
         c030 = 0 
         c040 = 0 
-    end
-    if c020*c040 < c020**3 + c030**2:
+
+    if c020*c040 < (c020**3 + c030**2):
         q = c030/c020**(3/2) 
         eta = c040/c020**2 
         if abs(q) > verysmall:
             slope = (eta - 3)/q 
             det = 8 + slope**2 
-            qp = 0.5*( slope + sqrt(det) ) 
-            qm = 0.5*( slope - sqrt(det) ) 
+            qp = 0.5*( slope + math.sqrt(det) ) 
+            qm = 0.5*( slope - math.sqrt(det) ) 
             if sign(q) == 1:
                 q = qp 
-            else
+            else:
                 q = qm 
-            end
-        else
+        else:
             q = 0 
-        end
         eta = q**2 + 1 
         c030 = q*c020**(3/2) 
         c040 = eta*c020**2 
-    end
     if c002 <= 0:
         c002 = 0 
         c003 = 0 
         c004 = 0 
-    end
-    if c002*c004 < c002**3 + c003**2:
+    if c002*c004 < (c002**3 + c003**2):
         q = c003/c002**(3/2) 
         eta = c004/c002**2 
         if abs(q) > verysmall:
             slope = (eta - 3)/q 
             det = 8 + slope**2 
-            qp = 0.5*( slope + sqrt(det) ) 
-            qm = 0.5*( slope - sqrt(det) ) 
+            qp = 0.5*( slope + math.sqrt(det) ) 
+            qm = 0.5*( slope - math.sqrt(det) ) 
             if sign(q) == 1:
                 q = qp 
-            else
+            else:
                 q = qm 
-            end
-        else
+        else:
             q = 0 
-        end
         eta = q**2 + 1 
         c003 = q*c002**(3/2) 
         c004 = eta*c002**2 
-    end
     M1 = [ 1 0 c200 c300 c400 ] 
     [rho, up ] = three_node_hyqmom( M1 ) 
 
@@ -699,7 +692,7 @@ def chyqmom27(moments, indices, max_skewness = 30):
     vp32 = 0 
     vp33 = 0 
 
-    Vf = zeros(3,1) 
+    Vf = np.zeros(3) 
 
     rho111 = 0 
     rho112 = 1 
@@ -755,143 +748,142 @@ def chyqmom27(moments, indices, max_skewness = 30):
     wp331 = 0 
     wp332 = 0 
     wp333 = 0 
-    Wf = zeros(3,3) 
+    Wf = np.zeros(3,3) 
 
     if c200 <= csmall:
         if c020 <= csmall: 
             M0 = [ 1, 0, c002, c003, c004] 
             [ N0, W0 ] = three_node_hyqmom( M0 ) 
 
-            rho(1) = 0 
-            rho(2) = 1 
-            rho(3) = 0 
+            rho[1] = 0 
+            rho[2] = 1 
+            rho[3] = 0 
             rho22 = 1 
-            rho221 = N0(1) 
-            rho222 = N0(2) 
-            rho223 = N0(3) 
+            rho221 = N0(1] 
+            rho222 = N0[2] 
+            rho223 = N0[3] 
             up = 0*up 
-            wp221 = W0(1) 
-            wp222 = W0(2) 
-            wp223 = W0(3) 
+            wp221 = W0[1] 
+            wp222 = W0[2] 
+            wp223 = W0[3] 
         else:
             M1 = [ 1, 0, 0, c020, c011, c002, c030, c003, c040, c004] 
             [ N1, V1, W1 ] = nine_node_10mom_hycqmom_2D( M1 ) 
-            rho(1) = 0 
-            rho(2) = 1 
-            rho(3) = 0 
+            rho[1] = 0 
+            rho[2] = 1 
+            rho[3] = 0 
             rho12 = 0 
             rho21 = 1 
             rho22 = 1 
             rho23 = 1 
             rho31 = 0 
-            rho211 = N1(1) 
-            rho212 = N1(2) 
-            rho213 = N1(3) 
-            rho221 = N1(4) 
-            rho222 = N1(5) 
-            rho223 = N1(6) 
-            rho231 = N1(7) 
-            rho232 = N1(8) 
-            rho233 = N1(9) 
+            rho211 = N1[1] 
+            rho212 = N1[2] 
+            rho213 = N1[3] 
+            rho221 = N1[4] 
+            rho222 = N1[5] 
+            rho223 = N1[6] 
+            rho231 = N1[7] 
+            rho232 = N1[8] 
+            rho233 = N1[9] 
             up = 0*up 
-            vp21 = V1(1) 
-            vp22 = V1(5) 
-            vp23 = V1(9) 
-            wp211 = W1(1) 
-            wp212 = W1(2) 
-            wp213 = W1(3) 
-            wp221 = W1(4) 
-            wp222 = W1(5) 
-            wp223 = W1(6) 
-            wp231 = W1(7) 
-            wp232 = W1(8) 
-            wp233 = W1(9) 
-        end
+            vp21 = V1[1] 
+            vp22 = V1[5] 
+            vp23 = V1[9] 
+            wp211 = W1[1] 
+            wp212 = W1[2] 
+            wp213 = W1[3] 
+            wp221 = W1[4] 
+            wp222 = W1[5] 
+            wp223 = W1[6] 
+            wp231 = W1[7] 
+            wp232 = W1[8] 
+            wp233 = W1[9] 
     elif c020 <= csmall :
         M2 = [ 1, 0, 0, c200, c101, c002, c300, c003, c400, c004] 
         [ N2, U2, W2 ] = nine_node_10mom_hycqmom_2D( M2 ) 
 
-        rho(1) = 1 
-        rho(2) = 1 
-        rho(3) = 1 
+        rho[1] = 1 
+        rho[2] = 1 
+        rho[3] = 1 
         rho12 = 1 
         rho22 = 1 
         rho32 = 1 
-        rho121 = N2(1) 
-        rho122 = N2(2) 
-        rho123 = N2(3) 
-        rho221 = N2(4) 
-        rho222 = N2(5) 
-        rho223 = N2(6) 
-        rho321 = N2(7) 
-        rho322 = N2(8) 
-        rho323 = N2(9) 
-        up(1) = U2(1) 
-        up(2) = U2(5) 
-        up(3) = U2(9) 
-        wp121 = W2(1) 
-        wp122 = W2(2) 
-        wp123 = W2(3) 
-        wp221 = W2(4) 
-        wp222 = W2(5) 
-        wp223 = W2(6) 
-        wp321 = W2(7) 
-        wp322 = W2(8) 
-        wp323 = W2(9) 
+        rho121 = N2[1] 
+        rho122 = N2[2] 
+        rho123 = N2[3] 
+        rho221 = N2[4] 
+        rho222 = N2[5] 
+        rho223 = N2[6] 
+        rho321 = N2[7] 
+        rho322 = N2[8] 
+        rho323 = N2[9] 
+        up[1] = U2[1] 
+        up[2] = U2[5] 
+        up[3] = U2[9] 
+        wp121 = W2[1] 
+        wp122 = W2[2] 
+        wp123 = W2[3] 
+        wp221 = W2[4] 
+        wp222 = W2[5] 
+        wp223 = W2[6] 
+        wp321 = W2[7] 
+        wp322 = W2[8] 
+        wp323 = W2[9] 
     elif c002 <= csmall :
         M3 = [ 1, 0, 0, c200, c110, c020, c300, c030, c400, c040] 
-        [ N3, U3, V3 ] = nine_node_10mom_hycqmom_2D( M3 ) 
-        rho(1)= 1 
-        rho(2)= 1 
-        rho(3)= 1 
-        rho11 = N3(1) 
-        rho12 = N3(2) 
-        rho13 = N3(3) 
-        rho21 = N3(4) 
-        rho22 = N3(5) 
-        rho23 = N3(6) 
-        rho31 = N3(7) 
-        rho32 = N3(8) 
-        rho33 = N3(9) 
-        up(1)= U3(1) 
-        up(2)= U3(5) 
-        up(3)= U3(9) 
-        vp11 = V3(1) 
-        vp12 = V3(2) 
-        vp13 = V3(3) 
-        vp21 = V3(4) 
-        vp22 = V3(5) 
-        vp23 = V3(6) 
-        vp31 = V3(7) 
-        vp32 = V3(8) 
-        vp33 = V3(9) 
-    else 
+        [ N3, U3, V3 ] = nine_node_10mom_hycqmom_2D( M3 )
+        rho[1]= 1 
+        rho[2]= 1 
+        rho[3]= 1 
+        rho11 = N3[1] 
+        rho12 = N3[2] 
+        rho13 = N3[3] 
+        rho21 = N3[4] 
+        rho22 = N3[5] 
+        rho23 = N3[6] 
+        rho31 = N3[7] 
+        rho32 = N3[8] 
+        rho33 = N3[9] 
+        up[1]= U3[1] 
+        up[2]= U3[5] 
+        up[3]= U3[9] 
+        vp11 = V3[1] 
+        vp12 = V3[2] 
+        vp13 = V3[3] 
+        vp21 = V3[4] 
+        vp22 = V3[5] 
+        vp23 = V3[6] 
+        vp31 = V3[7] 
+        vp32 = V3[8] 
+        vp33 = V3[9] 
+    else:
         M4 = [ 1, 0, 0, c200, c110, c020, c300, c030, c400, c040] 
         [ N4, ~, V4 ] = nine_node_10mom_hycqmom_2D( M4 ) 
 
-        rho11 = N4(1)/(N4(1)+N4(2)+N4(3)) 
-        rho12 = N4(2)/(N4(1)+N4(2)+N4(3)) 
-        rho13 = N4(3)/(N4(1)+N4(2)+N4(3)) 
-        rho21 = N4(4)/(N4(4)+N4(5)+N4(6)) 
-        rho22 = N4(5)/(N4(4)+N4(5)+N4(6)) 
-        rho23 = N4(6)/(N4(4)+N4(5)+N4(6)) 
-        rho31 = N4(7)/(N4(7)+N4(8)+N4(9)) 
-        rho32 = N4(8)/(N4(7)+N4(8)+N4(9)) 
-        rho33 = N4(9)/(N4(7)+N4(8)+N4(9)) 
-        Vf(1) = rho11*V4(1)+rho12*V4(2)+rho13*V4(3) 
-        Vf(2) = rho21*V4(4)+rho22*V4(5)+rho23*V4(6) 
-        Vf(3) = rho31*V4(7)+rho32*V4(8)+rho33*V4(9) 
-        vp11 = V4(1)-Vf(1) 
-        vp12 = V4(2)-Vf(1) 
-        vp13 = V4(3)-Vf(1) 
-        vp21 = V4(4)-Vf(2) 
-        vp22 = V4(5)-Vf(2) 
-        vp23 = V4(6)-Vf(2) 
-        vp31 = V4(7)-Vf(3) 
-        vp32 = V4(8)-Vf(3) 
-        vp33 = V4(9)-Vf(3) 
-        scale1 = sqrt(c200) 
-        scale2 = sqrt(c020) 
+        rho11 = N4[1]/[N4[1]+N4[2]+N4[3]] 
+        rho12 = N4[2]/[N4[1]+N4[2]+N4[3]] 
+        rho13 = N4[3]/[N4[1]+N4[2]+N4[3]] 
+        rho21 = N4[4]/[N4[4]+N4[5]+N4[6]] 
+        rho22 = N4[5]/[N4[4]+N4[5]+N4[6]] 
+        rho23 = N4[6]/[N4[4]+N4[5]+N4[6]] 
+        rho31 = N4[7]/[N4[7]+N4[8]+N4[9]] 
+        rho32 = N4[8]/[N4[7]+N4[8]+N4[9]] 
+        rho33 = N4[9]/[N4[7]+N4[8]+N4[9]] 
+        Vf[1] = rho11*V4[1]+rho12*V4[2]+rho13*V4[3] 
+        Vf[2] = rho21*V4[4]+rho22*V4[5]+rho23*V4[6] 
+        Vf[3] = rho31*V4[7]+rho32*V4[8]+rho33*V4[9] 
+        vp11 = V4[1]-Vf[1] 
+        vp12 = V4[2]-Vf[1] 
+        vp13 = V4[3]-Vf[1] 
+        vp21 = V4[4]-Vf[2] 
+        vp22 = V4[5]-Vf[2] 
+        vp23 = V4[6]-Vf[2] 
+        vp31 = V4[7]-Vf[3] 
+        vp32 = V4[8]-Vf[3] 
+        vp33 = V4[9]-Vf[3] 
+        scale1 = math.sqrt(c200) 
+        scale2 = math.sqrt(c020) 
         Rho1 = diag(rho) 
         Rho2 = [rho11 rho12 rho13 ; rho21 rho22 rho23 ; rho31 rho32 rho33] 
         Vp2 = [vp11 vp12 vp13 ; vp21 vp22 vp23 ; vp31 vp32 vp33] 
@@ -907,19 +899,21 @@ def chyqmom27(moments, indices, max_skewness = 30):
         Vc2 = Vp2s 
         A1 = sum(sum(C01.*Vc1))  
         A2 = sum(sum(C01.*Vc2))  
+
         c101s = c101/scale1  
         c011s = c011/scale2 
         if c101s**2 >= c002*(1 - small) :
-            c101s = sign(c101s)*sqrt(c002) 
+            c101s = sign(c101s)*math.sqrt(c002) 
         elif c011s**2 >= c002*(1 - small) :
             c110s = c110/scale1/scale2 
-            c011s = sign(c011s)*sqrt(c002) 
+            c011s = sign(c011s)*math.sqrt(c002) 
             c101s = c110s*c011s 
-        end 
-        b0 = 0; b1 = c101s; b2 = 0
+
+        b0 = 0
+        b1 = c101s
+        b2 = 0
         if A2 > wsmall:
             b2 = ( c011s - A1*b1 )/A2 
-        end
         Wf = b0*Vc0 + b1*Vc1 + b2*Vc2  
         SUM002 = sum(sum(RAB.*Wf.**2)) 
         mu2 = c002 - SUM002 
@@ -932,209 +926,208 @@ def chyqmom27(moments, indices, max_skewness = 30):
             SUM2 = mu2**2 
             SUM4 = sum(sum(RAB.*Wf.**4)) + 6*SUM002*mu2 
             eta = ( c004 - SUM4 )/SUM2 
-            if eta < q**2 + 1:
+            if eta < (q**2 + 1):
                 if abs(q) > verysmall:
                     slope = (eta - 3)/q 
                     det = 8 + slope**2 
-                    qp = 0.5*( slope + sqrt(det) ) 
-                    qm = 0.5*( slope - sqrt(det) ) 
+                    qp = 0.5*( slope + math.sqrt(det) ) 
+                    qm = 0.5*( slope - math.sqrt(det) ) 
                     if sign(q) == 1:
                         q = qp 
-                    else
+                    else:
                         q = qm 
-                    end
-                else
+                else:
                     q = 0 
                 eta = q**2 + 1 
         mu3 = q*mu2**(3/2) 
         mu4 = eta*mu2**2 
         M5 = [1 0 mu2 mu3 mu4] 
         [ rh11, up11 ] = three_node_hyqmom( M5 ) 
-        rho111 = rh11(1) 
-        rho112 = rh11(2) 
-        rho113 = rh11(3) 
-        wp111 = up11(1) 
-        wp112 = up11(2) 
-        wp113 = up11(3) 
+        rho111 = rh11[1] 
+        rho112 = rh11[2] 
+        rho113 = rh11[3] 
+        wp111 = up11[1] 
+        wp112 = up11[2] 
+        wp113 = up11[3] 
         rh12 = rh11 
         up12 = up11 
-        rho121 = rh12(1) 
-        rho122 = rh12(2) 
-        rho123 = rh12(3) 
-        wp121 = up12(1) 
-        wp122 = up12(2) 
-        wp123 = up12(3) 
+        rho121 = rh12[1] 
+        rho122 = rh12[2] 
+        rho123 = rh12[3] 
+        wp121 = up12[1] 
+        wp122 = up12[2] 
+        wp123 = up12[3] 
         rh13 = rh11 
         up13 = up11 
-        rho131 = rh13(1) 
-        rho132 = rh13(2) 
-        rho133 = rh13(3) 
-        wp131 = up13(1) 
-        wp132 = up13(2) 
-        wp133 = up13(3) 
+        rho131 = rh13[1] 
+        rho132 = rh13[2] 
+        rho133 = rh13[3] 
+        wp131 = up13[1] 
+        wp132 = up13[2] 
+        wp133 = up13[3] 
         rh21 = rh11 
         up21 = up11 
-        wp211 = up21(1) 
-        wp212 = up21(2) 
-        wp213 = up21(3) 
-        rho211 = rh21(1) 
-        rho212 = rh21(2) 
-        rho213 = rh21(3) 
+        wp211 = up21[1] 
+        wp212 = up21[2] 
+        wp213 = up21[3] 
+        rho211 = rh21[1] 
+        rho212 = rh21[2] 
+        rho213 = rh21[3] 
         rh22 = rh11 
         up22 = up11 
-        wp221 = up22(1) 
-        wp222 = up22(2) 
-        wp223 = up22(3) 
-        rho221 = rh22(1) 
-        rho222 = rh22(2) 
-        rho223 = rh22(3) 
+        wp221 = up22[1] 
+        wp222 = up22[2] 
+        wp223 = up22[3] 
+        rho221 = rh22[1] 
+        rho222 = rh22[2] 
+        rho223 = rh22[3] 
         rh23 = rh11 
         up23 = up11 
-        wp231 = up23(1) 
-        wp232 = up23(2) 
-        wp233 = up23(3) 
-        rho231 = rh23(1) 
-        rho232 = rh23(2) 
-        rho233 = rh23(3) 
+        wp231 = up23[1] 
+        wp232 = up23[2] 
+        wp233 = up23[3] 
+        rho231 = rh23[1] 
+        rho232 = rh23[2] 
+        rho233 = rh23[3] 
         rh31 = rh11 
         up31 = up11 
-        rho311 = rh31(1) 
-        rho312 = rh31(2) 
-        rho313 = rh31(3) 
-        wp311 = up31(1) 
-        wp312 = up31(2) 
-        wp313 = up31(3) 
+        rho311 = rh31[1] 
+        rho312 = rh31[2] 
+        rho313 = rh31[3] 
+        wp311 = up31[1] 
+        wp312 = up31[2] 
+        wp313 = up31[3] 
         rh32 = rh11 
         up32 = up11 
-        rho321 = rh32(1) 
-        rho322 = rh32(2) 
-        rho323 = rh32(3) 
-        wp321 = up32(1) 
-        wp322 = up32(2) 
-        wp323 = up32(3) 
+        rho321 = rh32[1] 
+        rho322 = rh32[2] 
+        rho323 = rh32[3] 
+        wp321 = up32[1] 
+        wp322 = up32[2] 
+        wp323 = up32[3] 
         rh33 = rh11 
         up33 = up11 
-        rho331 = rh33(1) 
-        rho332 = rh33(2) 
-        rho333 = rh33(3) 
-        wp331 = up33(1) 
-        wp332 = up33(2) 
-        wp333 = up33(3) 
+        rho331 = rh33[1] 
+        rho332 = rh33[2] 
+        rho333 = rh33[3] 
+        wp331 = up33[1] 
+        wp332 = up33[2] 
+        wp333 = up33[3] 
 
-    N(1) = rho(1)*rho11*rho111
-    N(2) = rho(1)*rho11*rho112
-    N(3) = rho(1)*rho11*rho113
-    N(4) = rho(1)*rho12*rho121
-    N(5) = rho(1)*rho12*rho122
-    N(6) = rho(1)*rho12*rho123
-    N(7) = rho(1)*rho13*rho131
-    N(8) = rho(1)*rho13*rho132
-    N(9) = rho(1)*rho13*rho133
-    N(10)= rho(2)*rho21*rho211
-    N(11)= rho(2)*rho21*rho212
-    N(12)= rho(2)*rho21*rho213
-    N(13)= rho(2)*rho22*rho221
-    N(14)= rho(2)*rho22*rho222 
-    N(15)= rho(2)*rho22*rho223
-    N(16)= rho(2)*rho23*rho231
-    N(17)= rho(2)*rho23*rho232
-    N(18)= rho(2)*rho23*rho233
-    N(19)= rho(3)*rho31*rho311
-    N(20)= rho(3)*rho31*rho312
-    N(21)= rho(3)*rho31*rho313
-    N(22)= rho(3)*rho32*rho321
-    N(23)= rho(3)*rho32*rho322
-    N(24)= rho(3)*rho32*rho323
-    N(25)= rho(3)*rho33*rho331
-    N(26)= rho(3)*rho33*rho332
-    N(27)= rho(3)*rho33*rho333
+    N[1] = rho[1]*rho11*rho111
+    N[2] = rho[1]*rho11*rho112
+    N[3] = rho[1]*rho11*rho113
+    N[4] = rho[1]*rho12*rho121
+    N[5] = rho[1]*rho12*rho122
+    N[6] = rho[1]*rho12*rho123
+    N[7] = rho[1]*rho13*rho131
+    N[8] = rho[1]*rho13*rho132
+    N[9] = rho[1]*rho13*rho133
+    N[10]= rho[2]*rho21*rho211
+    N[11]= rho[2]*rho21*rho212
+    N[12]= rho[2]*rho21*rho213
+    N[13]= rho[2]*rho22*rho221
+    N[14]= rho[2]*rho22*rho222 
+    N[15]= rho[2]*rho22*rho223
+    N[16]= rho[2]*rho23*rho231
+    N[17]= rho[2]*rho23*rho232
+    N[18]= rho[2]*rho23*rho233
+    N[19]= rho[3]*rho31*rho311
+    N[20]= rho[3]*rho31*rho312
+    N[21]= rho[3]*rho31*rho313
+    N[22]= rho[3]*rho32*rho321
+    N[23]= rho[3]*rho32*rho322
+    N[24]= rho[3]*rho32*rho323
+    N[25]= rho[3]*rho33*rho331
+    N[26]= rho[3]*rho33*rho332
+    N[27]= rho[3]*rho33*rho333
     N = m000*N 
 
-    U(1) = up(1)
-    U(2) = up(1)
-    U(3) = up(1)
-    U(4) = up(1)
-    U(5) = up(1)
-    U(6) = up(1)
-    U(7) = up(1)
-    U(8) = up(1)
-    U(9) = up(1)
-    U(10)= up(2) 
-    U(11)= up(2) 
-    U(12)= up(2) 
-    U(13)= up(2)
-    U(14)= up(2)
-    U(15)= up(2) 
-    U(16)= up(2) 
-    U(17)= up(2) 
-    U(18)= up(2) 
-    U(19)= up(3)
-    U(20)= up(3)
-    U(21)= up(3)
-    U(22)= up(3)
-    U(23)= up(3)
-    U(24)= up(3)
-    U(25)= up(3)
-    U(26)= up(3)
-    U(27)= up(3)
+    U[1] = up[1]
+    U[2] = up[1]
+    U[3] = up[1]
+    U[4] = up[1]
+    U[5] = up[1]
+    U[6] = up[1]
+    U[7] = up[1]
+    U[8] = up[1]
+    U[9] = up[1]
+    U[10]= up[2] 
+    U[11]= up[2] 
+    U[12]= up[2] 
+    U[13]= up[2]
+    U[14]= up[2]
+    U[15]= up[2] 
+    U[16]= up[2] 
+    U[17]= up[2] 
+    U[18]= up[2] 
+    U[19]= up[3]
+    U[20]= up[3]
+    U[21]= up[3]
+    U[22]= up[3]
+    U[23]= up[3]
+    U[24]= up[3]
+    U[25]= up[3]
+    U[26]= up[3]
+    U[27]= up[3]
     U = bu + U 
 
-    V(1) = Vf(1)+vp11
-    V(2) = Vf(1)+vp11
-    V(3) = Vf(1)+vp11
-    V(4) = Vf(1)+vp12
-    V(5) = Vf(1)+vp12
-    V(6) = Vf(1)+vp12
-    V(7) = Vf(1)+vp13
-    V(8) = Vf(1)+vp13
-    V(9) = Vf(1)+vp13
-    V(10)= Vf(2)+vp21
-    V(11)= Vf(2)+vp21
-    V(12)= Vf(2)+vp21
-    V(13)= Vf(2)+vp22 
-    V(14)= Vf(2)+vp22 
-    V(15)= Vf(2)+vp22
-    V(16)= Vf(2)+vp23 
-    V(17)= Vf(2)+vp23
-    V(18)= Vf(2)+vp23
-    V(19)= Vf(3)+vp31
-    V(20)= Vf(3)+vp31
-    V(21)= Vf(3)+vp31
-    V(22)= Vf(3)+vp32
-    V(23)= Vf(3)+vp32
-    V(24)= Vf(3)+vp32
-    V(25)= Vf(3)+vp33
-    V(26)= Vf(3)+vp33
-    V(27)= Vf(3)+vp33
+    V[1] = Vf[1]+vp11
+    V[2] = Vf[1]+vp11
+    V[3] = Vf[1]+vp11
+    V[4] = Vf[1]+vp12
+    V[5] = Vf[1]+vp12
+    V[6] = Vf[1]+vp12
+    V[7] = Vf[1]+vp13
+    V[8] = Vf[1]+vp13
+    V[9] = Vf[1]+vp13
+    V[10]= Vf[2]+vp21
+    V[11]= Vf[2]+vp21
+    V[12]= Vf[2]+vp21
+    V[13]= Vf[2]+vp22 
+    V[14]= Vf[2]+vp22 
+    V[15]= Vf[2]+vp22
+    V[16]= Vf[2]+vp23 
+    V[17]= Vf[2]+vp23
+    V[18]= Vf[2]+vp23
+    V[19]= Vf[3]+vp31
+    V[20]= Vf[3]+vp31
+    V[21]= Vf[3]+vp31
+    V[22]= Vf[3]+vp32
+    V[23]= Vf[3]+vp32
+    V[24]= Vf[3]+vp32
+    V[25]= Vf[3]+vp33
+    V[26]= Vf[3]+vp33
+    V[27]= Vf[3]+vp33
     V = bv + V 
 
-    W(1) = Wf(1,1)+wp111
-    W(2) = Wf(1,1)+wp112
-    W(3) = Wf(1,1)+wp113
-    W(4) = Wf(1,2)+wp121
-    W(5) = Wf(1,2)+wp122
-    W(6) = Wf(1,2)+wp123
-    W(7) = Wf(1,3)+wp131
-    W(8) = Wf(1,3)+wp132
-    W(9) = Wf(1,3)+wp133
-    W(10)= Wf(2,1)+wp211 
-    W(11)= Wf(2,1)+wp212
-    W(12)= Wf(2,1)+wp213
-    W(13)= Wf(2,2)+wp221 
-    W(14)= Wf(2,2)+wp222 
-    W(15)= Wf(2,2)+wp223
-    W(16)= Wf(2,3)+wp231
-    W(17)= Wf(2,3)+wp232
-    W(18)= Wf(2,3)+wp233
-    W(19)= Wf(3,1)+wp311
-    W(20)= Wf(3,1)+wp312
-    W(21)= Wf(3,1)+wp313
-    W(22)= Wf(3,2)+wp321
-    W(23)= Wf(3,2)+wp322
-    W(24)= Wf(3,2)+wp323
-    W(25)= Wf(3,3)+wp331
-    W(26)= Wf(3,3)+wp332
-    W(27)= Wf(3,3)+wp333
+    W[1] = Wf[1,1]+wp111
+    W[2] = Wf[1,1]+wp112
+    W[3] = Wf[1,1]+wp113
+    W[4] = Wf[1,2]+wp121
+    W[5] = Wf[1,2]+wp122
+    W[6] = Wf[1,2]+wp123
+    W[7] = Wf[1,3]+wp131
+    W[8] = Wf[1,3]+wp132
+    W[9] = Wf[1,3]+wp133
+    W[10]= Wf[2,1]+wp211 
+    W[11]= Wf[2,1]+wp212
+    W[12]= Wf[2,1]+wp213
+    W[13]= Wf[2,2]+wp221 
+    W[14]= Wf[2,2]+wp222 
+    W[15]= Wf[2,2]+wp223
+    W[16]= Wf[2,3]+wp231
+    W[17]= Wf[2,3]+wp232
+    W[18]= Wf[2,3]+wp233
+    W[19]= Wf[3,1]+wp311
+    W[20]= Wf[3,1]+wp312
+    W[21]= Wf[3,1]+wp313
+    W[22]= Wf[3,2]+wp321
+    W[23]= Wf[3,2]+wp322
+    W[24]= Wf[3,2]+wp323
+    W[25]= Wf[3,3]+wp331
+    W[26]= Wf[3,3]+wp332
+    W[27]= Wf[3,3]+wp333
     W = bw + W 
 
 
