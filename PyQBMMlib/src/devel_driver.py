@@ -4,6 +4,26 @@ sys.path.append('../utils/')
 from stats_util import *
 from pretty_print_util import *
 
+def flow_example():
+
+    config = {}
+    config['qbmm'] = {}
+    config['advancer'] = {}
+
+    config['qbmm']['governing_dynamics'] = 'x'
+    config['qbmm']['num_internal_coords']  = 3
+    config['qbmm']['num_quadrature_nodes'] = 27
+    config['qbmm']['method']               = 'hyqmom'
+    config['qbmm']['adaptive']             = False
+    config['qbmm']['max_skewness']         = 30
+
+    qbmm_mgr = qbmm_manager( config )
+
+    # Initial condition
+    
+
+    return
+
 def advance_example1d():
 
     config = {}

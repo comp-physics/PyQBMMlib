@@ -11,7 +11,8 @@ class qbmm_manager:
     def __init__(self, config):
         """
         Constructor. Takes in a config dictionary.
-        """        
+        """
+        self.flow                 = config['qbmm']['flow']
         self.governing_dynamics   = config['qbmm']['governing_dynamics']
         self.num_internal_coords  = config['qbmm']['num_internal_coords'] 
         self.num_quadrature_nodes = config['qbmm']['num_quadrature_nodes']
@@ -25,6 +26,7 @@ class qbmm_manager:
 
         # Report config
         print('qbmm_mgr: init: Configuration options ready:')
+        print('\t flow                = %s' % self.flow )
         print('\t governing_dynamics  = %s' % self.governing_dynamics)
         print('\t num_internal_coords = %i' % self.num_internal_coords)
         print('\t method              = %s' % self.method)
