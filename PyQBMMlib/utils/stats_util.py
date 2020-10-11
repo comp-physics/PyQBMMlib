@@ -50,3 +50,49 @@ def raw_gaussian_moments_bivar(indices, mu1, mu2, sig1, sig2):
             sc.hyp1f1((1.+j)/2.,1./2.,mu2**2./(2. * sig2**2.)) \
           )
     return moments
+
+def raw_gaussian_moments_trivar(indices,mu1,mu2,mu3,sig1,sig2,sig3):
+    num_moments = len(indices)
+    moments = np.zeros( num_moments) 
+
+    i = 0
+    for idx2 in indices:
+        idx = idx2.tolist()
+        if idx == [0, 0, 0]: moments[i] =  1
+        if idx == [0, 0, 1]: moments[i] =  mu3
+        if idx == [0, 0, 2]: moments[i] =  mu3**2 + sig3**2
+        if idx == [0, 0, 3]: moments[i] =  mu3**3 + 3*mu3*sig3**2
+        if idx == [0, 0, 4]: moments[i] =  mu3**4 + 6*mu3**2*sig3**2 + 3*sig3**4
+        if idx == [0, 1, 0]: moments[i] =  mu2
+        if idx == [0, 1, 1]: moments[i] =  mu2*mu3
+        if idx == [0, 1, 2]: moments[i] =  mu2*mu3**2 + mu2*sig3**2
+        if idx == [0, 1, 3]: moments[i] =  mu2*mu3**3 + 3*mu2*mu3*sig3**2
+        if idx == [0, 2, 0]: moments[i] =  mu2**2 + sig2**2
+        if idx == [0, 2, 1]: moments[i] =  mu2**2*mu3 + mu3*sig2**2
+        if idx == [0, 2, 2]: moments[i] =  mu2**2*mu3**2 + mu3**2*sig2**2 + mu2**2*sig3**2 + sig2**2*sig3**2
+        if idx == [0, 3, 0]: moments[i] =  mu2**3 + 3*mu2*sig2**2
+        if idx == [0, 3, 1]: moments[i] =  mu2**3*mu3 + 3*mu2*mu3*sig2**2
+        if idx == [0, 4, 0]: moments[i] =  mu2**4 + 6*mu2**2*sig2**2 + 3*sig2**4
+        if idx == [1, 0, 0]: moments[i] =  mu1
+        if idx == [1, 0, 1]: moments[i] =  mu1*mu3
+        if idx == [1, 0, 2]: moments[i] =  mu1*mu3**2 + mu1*sig3**2
+        if idx == [1, 0, 3]: moments[i] =  mu1*mu3**3 + 3*mu1*mu3*sig3**2
+        if idx == [1, 1, 0]: moments[i] =  mu1*mu2
+        if idx == [1, 1, 1]: moments[i] =  mu1*mu2*mu3
+        if idx == [1, 1, 2]: moments[i] =  mu1*mu2*mu3**2 + mu1*mu2*sig3**2
+        if idx == [1, 2, 0]: moments[i] =  mu1*mu2**2 + mu1*sig2**2
+        if idx == [1, 2, 1]: moments[i] =  mu1*mu2**2*mu3 + mu1*mu3*sig2**2
+        if idx == [1, 3, 0]: moments[i] =  mu1*mu2**3 + 3*mu1*mu2*sig2**2
+        if idx == [2, 0, 0]: moments[i] =  mu1**2 + sig1**2
+        if idx == [2, 0, 1]: moments[i] =  mu1**2*mu3 + mu3*sig1**2
+        if idx == [2, 0, 2]: moments[i] =  mu1**2*mu3**2 + mu3**2*sig1**2 + mu1**2*sig3**2 + sig1**2*sig3**2
+        if idx == [2, 1, 0]: moments[i] =  mu1**2*mu2 + mu2*sig1**2
+        if idx == [2, 1, 1]: moments[i] =  mu1**2*mu2*mu3 + mu2*mu3*sig1**2
+        if idx == [2, 2, 0]: moments[i] =  mu1**2*mu2**2 + mu2**2*sig1**2 + mu1**2*sig2**2 + sig1**2*sig2**2
+        if idx == [3, 0, 0]: moments[i] =  mu1**3 + 3*mu1*sig1**2
+        if idx == [3, 0, 1]: moments[i] =  mu1**3*mu3 + 3*mu1*mu3*sig1**2
+        if idx == [3, 1, 0]: moments[i] =  mu1**3*mu2 + 3*mu1*mu2*sig1**2
+        if idx == [4, 0, 0]: moments[i] =  mu1**4 + 6*mu1**2*sig1**2 + 3*sig1**4
+        i = i + 1
+
+    return moments

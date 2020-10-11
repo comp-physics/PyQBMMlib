@@ -501,24 +501,24 @@ def chyqmom27(moments, indices, max_skewness = 30):
     RF_idx = [ [0,0], [1,0], [0,1], [2,0], [1,1], [0,2], [3,0], [0,3], [4,0], [0,4] ]
 
     # SHB: HACK so that I can get the required elements from the numpy array
-    normalidx = idx.tolist()
+    normalidx = indices.tolist()
 
-    mom000 = moments[normalidx.index([0,0,0])]
-    mom100 = moments[normalidx.index([1,0,0])]
-    mom010 = moments[normalidx.index([0,1,0])]
-    mom001 = moments[normalidx.index([0,0,1])]
-    mom200 = moments[normalidx.index([2,0,0])]
-    mom110 = moments[normalidx.index([1,1,0])]
-    mom101 = moments[normalidx.index([1,0,1])]
-    mom020 = moments[normalidx.index([0,2,0])]
-    mom011 = moments[normalidx.index([0,1,1])]
-    mom002 = moments[normalidx.index([0,0,2])]
-    mom300 = moments[normalidx.index([3,0,0])]
-    mom030 = moments[normalidx.index([0,3,0])]
-    mom003 = moments[normalidx.index([0,0,3])]
-    mom400 = moments[normalidx.index([4,0,0])]
-    mom040 = moments[normalidx.index([0,4,0])]
-    mom004 = moments[normalidx.index([0,0,4])]
+    m000 = moments[normalidx.index([0,0,0])]
+    m100 = moments[normalidx.index([1,0,0])]
+    m010 = moments[normalidx.index([0,1,0])]
+    m001 = moments[normalidx.index([0,0,1])]
+    m200 = moments[normalidx.index([2,0,0])]
+    m110 = moments[normalidx.index([1,1,0])]
+    m101 = moments[normalidx.index([1,0,1])]
+    m020 = moments[normalidx.index([0,2,0])]
+    m011 = moments[normalidx.index([0,1,1])]
+    m002 = moments[normalidx.index([0,0,2])]
+    m300 = moments[normalidx.index([3,0,0])]
+    m030 = moments[normalidx.index([0,3,0])]
+    m003 = moments[normalidx.index([0,0,3])]
+    m400 = moments[normalidx.index([4,0,0])]
+    m040 = moments[normalidx.index([0,4,0])]
+    m004 = moments[normalidx.index([0,0,4])]
 
     small = 1.e-10 
     isosmall = 1.e-14
@@ -536,9 +536,9 @@ def chyqmom27(moments, indices, max_skewness = 30):
         w[12] = m000
         return
 
-    bx  = mom100/mom000 
-    by  = mom010/mom000 
-    bz  = mom001/mom000 
+    bx  = m100/m000 
+    by  = m010/m000 
+    bz  = m001/m000 
 
     if m000 <= isosmall: 
         d200 = m200/m000
@@ -685,7 +685,7 @@ def chyqmom27(moments, indices, max_skewness = 30):
         c004 = eta*c002**2 
 
     M1 = [ 1, 0, c200, c300, c400 ] 
-    xp, rho = hyqmom_three_nodes(M1,max_skewness)
+    xp, rho = hyperbolic_three_nodes(M1,max_skewness)
 
     rho11 = 0 
     rho12 = 1 
@@ -769,7 +769,7 @@ def chyqmom27(moments, indices, max_skewness = 30):
     if c200 <= csmall:
         if c020 <= csmall: 
             M0 = [ 1, 0, c002, c003, c004] 
-            Z0, W0 = hyqmom_three_nodes(M0,max_skewness) 
+            Z0, W0 = hyperbolic_three_nodes(M0,max_skewness) 
 
             rho[0] = 0 
             rho[1] = 1 
@@ -971,7 +971,7 @@ def chyqmom27(moments, indices, max_skewness = 30):
         mu3 = q*mu2**(3/2) 
         mu4 = eta*mu2**2 
         M5 = [1, 0, mu2, mu3, mu4] 
-        xp11, rh11 = hyqmom_three_nodes(M5,max_skewness)
+        xp11, rh11 = hyperbolic_three_nodes(M5,max_skewness)
 
         rho111 = rh11[0] 
         rho112 = rh11[1] 
