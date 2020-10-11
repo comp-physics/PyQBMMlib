@@ -186,7 +186,8 @@ class time_advancer:
             write_flag = 'w'
             
         with open( self.file_name, write_flag ) as file_id:
-           csv.writer( file_id, delimiter=' ' ).writerow( self.state )
+           # csv.writer( file_id, delimiter=' ' ).writerow( self.state )
+           csv.writer( file_id, delimiter=' ' ).writerow( [self.time] + self.state.tolist() )
            
         return
         

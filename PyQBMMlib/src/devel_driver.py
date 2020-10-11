@@ -47,7 +47,8 @@ def advance_example2d():
     config['qbmm'] = {}
     config['advancer'] = {}
     
-    config['qbmm']['governing_dynamics'] = ' 4*x - 2*xdot**2'
+    # config['qbmm']['governing_dynamics'] = ' 4*x - 2*xdot**2'
+    config['qbmm']['governing_dynamics'] = ' - x - xdot'
     config['qbmm']['num_internal_coords']  = 2
     config['qbmm']['num_quadrature_nodes'] = 4
     config['qbmm']['method']               = 'chyqmom'
@@ -55,12 +56,12 @@ def advance_example2d():
     config['qbmm']['max_skewness']         = 30
 
     config['advancer']['method']     = 'RK23'
-    config['advancer']['time_step']  = 0.1
-    config['advancer']['final_time'] = 2.0
+    config['advancer']['time_step']  = 1.e-5
+    config['advancer']['final_time'] = 15.
     config['advancer']['error_tol']  = 1.0e-5
-    config['advancer']['num_steps']  = 10
+    config['advancer']['num_steps']  = 10000
     config['advancer']['num_steps_print'] = 1
-    config['advancer']['num_steps_write'] = 2
+    config['advancer']['num_steps_write'] = 10
     config['advancer']['output_dir']      = './'
     config['advancer']['output_id']       = 'example_2D'
     config['advancer']['write_to']        = 'txt'
@@ -71,7 +72,7 @@ def advance_example2d():
     mu1    = 1.0
     mu2    = 0.0
     sigma1 = 0.1
-    sigma2 = 0.1
+    sigma2 = 0.2
 
     advancer.initialize_state_gaussian_bivar( mu1, mu2, sigma1, sigma2 )
 
@@ -135,7 +136,7 @@ if __name__ == '__main__':
 
     np.set_printoptions( formatter = { 'float': '{: 0.4E}'.format } )
 
-    case = 'example_1D'
+    case = 'example_2D'
 
     if case == 'example_1D':
         advance_example1d()
