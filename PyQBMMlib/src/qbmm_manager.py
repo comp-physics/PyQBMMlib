@@ -174,7 +174,7 @@ class qbmm_manager:
         elif self.num_internal_coords == 3: 
             #
             if self.method == 'chyqmom':
-                if self.num_quadrature_nodes == 27:
+                if self.num_quadrature_nodes == 27:                    
                     self.indices = np.array( [ [0,0,0], [1,0,0], [0,1,0], [0,0,1], [2,0,0], [1,1,0], [1,0,1], [0,2,0], [0,1,1], [0,0,2], [3,0,0], [0,3,0], [0,0,3], [4,0,0], [0,4,0], [0,0,4] ] )
 
                 else :
@@ -189,6 +189,7 @@ class qbmm_manager:
             #
             print('qbmm_mgr: moment_indices: Error: dimensionality %i unsupported' % self.num_internal_coords )
             quit()
+        #
         return 
 
     def transport_terms(self):
@@ -295,11 +296,11 @@ class qbmm_manager:
                     abscissas[1][i]**moment_index[1]
         elif self.num_internal_coords == 3:
             q = 0.
-            for i in range(len(abscissas[0])):
+            for i in range( self.num_quadrature_nodes ):
                 q = q + weights[i] * \
-                    abscissas[0][i]**moment_index[0] * \
-                    abscissas[1][i]**moment_index[1] * \
-                    abscissas[2][i]**moment_index[2]
+                    abscissas[0,i]**moment_index[0] * \
+                    abscissas[1,i]**moment_index[1] * \
+                    abscissas[2,i]**moment_index[2]
         else:
             print('Quadrature not implemented for ', self.num_internal_coords)
             quit()

@@ -1,4 +1,4 @@
-from numpy import *
+import numpy as np
 
 def local_flux(weight, abscissa, moment):
 
@@ -10,7 +10,7 @@ def local_flux(weight, abscissa, moment):
     flux *= weight   
     return flux
 
-def fluxes(indices, wts_left, wts_right, xi_left, xi_right):
+def moment_fluxes(indices, wts_left, wts_right, xi_left, xi_right):
     """
     Computes moment fluxes
 
@@ -20,12 +20,12 @@ def fluxes(indices, wts_left, wts_right, xi_left, xi_right):
     indices:    moment indices, size [ num_moments, num_internal_coords ]
     wts_left:   weights on the left side,  size [ num_nodes ]
     wts_right:  weights on the right side, size [ num_nodes ]
-    xi_left:    abscissas on the left side,  size [ num_nodes, num_internal_coords ]
-    xi_right:   abscissas on the right side, size [ num_nodes, num_internal_coords ]
+    xi_left:    abscissas on the left side,  size [ num_internal_coords, num_nodes ]
+    xi_right:   abscissas on the right side, size [ num_internal_corods, num_nodes ]
     """
 
     num_moments = len( indices )
-    num_nodes, num_coords = abscissas_left.shape
+    num_coords, num_nodes = xi_left.shape
 
     flux = np.zeros( num_moments )
     
@@ -33,12 +33,12 @@ def fluxes(indices, wts_left, wts_right, xi_left, xi_right):
         for i_node in range( num_nodes ):
 
             # compute local fluxes
-            flux_left  = local_flux( wts_left[i_node],  xi_left[i_node],  moments[i_moment] )
-            flux_right = local_flux( wts_right[i_node], xi_right[i_node], moments[i_moment] )
+            flux_left  = local_flux( wts_left[i_node], xi_left[:,i_node], indices[i_moment,:] )
+            flux_right = local_flux( wts_right[i_node],xi_right[:,i_node],indices[i_moment,:] )
 
             # limiter (?)
-            flux_left  = flux_left  * max( xi_left[i_node,0],  0.0 )
-            flux_right = flux_right * min( xi_right[i_node,0], 0.0 )
+            flux_left  = flux_left  * max( xi_left[0,i_node],  0.0 )
+            flux_right = flux_right * min( xi_right[0,i_node], 0.0 )
 
             # quadrature
             flux[i_moment] += flux_left + flux_right
