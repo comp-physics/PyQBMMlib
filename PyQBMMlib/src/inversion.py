@@ -685,7 +685,7 @@ def chyqmom27(moments, indices, max_skewness = 30):
         c004 = eta*c002**2 
 
     M1 = [ 1, 0, c200, c300, c400 ] 
-    xp, rho = hyqmom_three_nodes(M1) 
+    xp, rho = hyqmom_three_nodes(M1,max_skewness)
 
     rho11 = 0 
     rho12 = 1 
@@ -785,8 +785,8 @@ def chyqmom27(moments, indices, max_skewness = 30):
         else:
             M1 = [ 1, 0, 0, c020, c011, c002, c030, c003, c040, c004] 
             Q1, W1 = chyqmom9(M1,RF_idx,max_skewness) 
-            Z1 = Q1[0]
-            Y1 = Q1[1]
+            Y1 = Q1[0]
+            Z1 = Q1[1]
 
             rho[0] = 0 
             rho[1] = 1 
@@ -821,7 +821,7 @@ def chyqmom27(moments, indices, max_skewness = 30):
             zp233 = Z1[8] 
     elif c020 <= csmall :
         M2 = [ 1, 0, 0, c200, c101, c002, c300, c003, c400, c004] 
-        Q2, W2  = chyqmom9(M2,RF_idx,max_skewness)
+        Q2, W2 = chyqmom9(M2,RF_idx,max_skewness)
         X2 = Q2[0]
         Z2 = Q2[1]
 
@@ -913,19 +913,19 @@ def chyqmom27(moments, indices, max_skewness = 30):
         yp33 = Y4[8] - Yf[2] 
         scale1 = math.sqrt(c200) 
         scale2 = math.sqrt(c020) 
-        Rho1 = diag(rho) 
+        Rho1 = np.diagonal(rho) 
         Rho2 = [ [ rho11, rho12, rho13], [rho21, rho22, rho23], [rho31, rho32, rho33]] 
-        yp2 = [ [yp11, yp12, yp13], [yp21, yp22, yp23], [yp31, yp32, yp33] ] 
-        yp2s = yp2/scale2 
+        Yp2 = [ [yp11, yp12, yp13], [yp21, yp22, yp23], [yp31, yp32, yp33] ] 
+        Yp2s = Yp2/scale2 
         RAB = Rho1*Rho2 
         XAB = [xp, xp, xp] 
         XABs = XAB/scale1 
-        YAB = yp2 + diag(Yf)*np.ones(3) 
+        YAB = Yp2 + np.diagonal(Yf)*np.ones(3) 
         YABs = YAB/scale2 
         C01 = np.multiply(RAB,YABs)
         Yc0 = np.ones(3) 
         Yc1 = XABs 
-        Yc2 = yp2s 
+        Yc2 = Yp2s 
         A1 = sum(sum(np.multiply(C01,Yc1)))  
         A2 = sum(sum(np.multiply(C01,Yc2)))  
 
@@ -1176,6 +1176,8 @@ def chyqmom27(moments, indices, max_skewness = 30):
     Z[25]= Zf[2,2]+zp332
     Z[26]= Zf[2,2]+zp333
     Z = bz + Z 
+
+    return [X,Y,Z], W
 
 
 def conditional_12(moments, indices):
