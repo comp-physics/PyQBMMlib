@@ -176,12 +176,13 @@ def moments_workflow_example():
     # moments = raw_gaussian_moments_trivar( num_moments, mu1, mu2, mu3, sigma1, sigma2, sigma3 )
     advancer.initialize_state_gaussian_trivar( mu1, mu2, mu3, sigma1, sigma2, sigma3 )
     indices = qbmm_mgr.indices
+    print(indices)
 
     # message = 'devel_driver: main: '
     # f_array_pretty_print( message, 'moments', moments )
     # i_array_pretty_print( message, 'indices', indices )
 
-    abscissas, weights = qbmm_mgr.moment_invert( moments )
+    abscissas, weights = qbmm_mgr.moment_invert( advancer.state, indices )
     # f_array_pretty_print( message, 'weights', weights )
     # f_array_pretty_print( message, 'abscissas', abscissas )
     
