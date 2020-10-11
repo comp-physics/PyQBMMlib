@@ -5,15 +5,18 @@ Spencer Bryngelson, Esteban Cisneros
 ## To-do
 
 - [x] Make code output moments (ECG)
+- [x] Test a 2D case against Mathematica (SHB)
 - [ ] In issues: qbmm_mgr rhs hacks (ECG)
-- [ ] Test a 2D case against Mathematica (SHB)
+- [ ] Make sure we didn't break 2D cases when implementing 3D ones (SHB)
 - [ ] Implement 2D+1D inversion for bubble dynamics (SHB)
 
 Towards Rodney CHyQMOM case 
 - [ ] Implement spatial dependencies (ECG)
-    - [ ] Flux function
-    - [ ] Initialize flow field?
-- [ ] Implement 3D inversion (SHB)
+    - [x] Flux function
+    - [x] Initialize flow field?
+    - [ ] Setup grid
+    - [ ] Use qbmm_mgr quadrature for fluxes
+- [x]  Implement 3D inversion (SHB)
 
 ## Functionality
 
