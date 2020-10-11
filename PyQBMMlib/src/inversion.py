@@ -620,11 +620,11 @@ def chyqmom27(moments, indices, max_skewness = 30):
             qm    = 0.5*( slope - math.sqrt(det) ) 
             if sign(q) == 1:
                 q = qp 
-            else
+            else:
                 q = qm 
-        else
+        else:
             q = 0 
-        eta = q**2 + 1 
+        eta  = q**2 + 1 
         c300 = q*c200**(3/2) 
         c400 = eta*c200**2 
 
@@ -634,20 +634,20 @@ def chyqmom27(moments, indices, max_skewness = 30):
         c040 = 0 
 
     if c020*c040 < (c020**3 + c030**2):
-        q = c030/c020**(3/2) 
+        q   = c030/c020**(3/2) 
         eta = c040/c020**2 
         if abs(q) > verysmall:
             slope = (eta - 3)/q 
-            det = 8 + slope**2 
-            qp = 0.5*( slope + math.sqrt(det) ) 
-            qm = 0.5*( slope - math.sqrt(det) ) 
+            det   = 8 + slope**2 
+            qp    = 0.5*( slope + math.sqrt(det) ) 
+            qm    = 0.5*( slope - math.sqrt(det) ) 
             if sign(q) == 1:
                 q = qp 
             else:
                 q = qm 
         else:
             q = 0 
-        eta = q**2 + 1 
+        eta  = q**2 + 1 
         c030 = q*c020**(3/2) 
         c040 = eta*c020**2 
     if c002 <= 0:
@@ -655,13 +655,13 @@ def chyqmom27(moments, indices, max_skewness = 30):
         c003 = 0 
         c004 = 0 
     if c002*c004 < (c002**3 + c003**2):
-        q = c003/c002**(3/2) 
+        q   = c003/c002**(3/2) 
         eta = c004/c002**2 
         if abs(q) > verysmall:
             slope = (eta - 3)/q 
-            det = 8 + slope**2 
-            qp = 0.5*( slope + math.sqrt(det) ) 
-            qm = 0.5*( slope - math.sqrt(det) ) 
+            det   = 8 + slope**2 
+            qp    = 0.5*( slope + math.sqrt(det) ) 
+            qm    = 0.5*( slope - math.sqrt(det) ) 
             if sign(q) == 1:
                 q = qp 
             else:
@@ -671,7 +671,7 @@ def chyqmom27(moments, indices, max_skewness = 30):
         eta = q**2 + 1 
         c003 = q*c002**(3/2) 
         c004 = eta*c002**2 
-    M1 = [ 1 0 c200 c300 c400 ] 
+    M1 = [ 1, 0, c200, c300, c400 ] 
     [rho, up ] = three_node_hyqmom( M1 ) 
 
     rho11 = 0 
@@ -759,7 +759,7 @@ def chyqmom27(moments, indices, max_skewness = 30):
             rho[2] = 1 
             rho[3] = 0 
             rho22 = 1 
-            rho221 = N0(1] 
+            rho221 = N0[1] 
             rho222 = N0[2] 
             rho223 = N0[3] 
             up = 0*up 
@@ -859,7 +859,8 @@ def chyqmom27(moments, indices, max_skewness = 30):
         vp33 = V3[9] 
     else:
         M4 = [ 1, 0, 0, c200, c110, c020, c300, c030, c400, c040] 
-        [ N4, ~, V4 ] = nine_node_10mom_hycqmom_2D( M4 ) 
+        U4 = np.zeros(4)
+        [ N4, U4 , V4 ] = nine_node_10mom_hycqmom_2D( M4 ) 
 
         rho11 = N4[1]/[N4[1]+N4[2]+N4[3]] 
         rho12 = N4[2]/[N4[1]+N4[2]+N4[3]] 
@@ -885,20 +886,20 @@ def chyqmom27(moments, indices, max_skewness = 30):
         scale1 = math.sqrt(c200) 
         scale2 = math.sqrt(c020) 
         Rho1 = diag(rho) 
-        Rho2 = [rho11 rho12 rho13 ; rho21 rho22 rho23 ; rho31 rho32 rho33] 
-        Vp2 = [vp11 vp12 vp13 ; vp21 vp22 vp23 ; vp31 vp32 vp33] 
+        Rho2 = [ [ rho11, rho12, rho13], [rho21, rho22, rho23], [rho31, rho32, rho33]] 
+        Vp2 = [ [vp11, vp12, vp13], [vp21, vp22, vp23], [vp31, vp32, vp33] ] 
         Vp2s = Vp2/scale2 
         RAB = Rho1*Rho2 
-        UAB = [up up up] 
+        UAB = [up, up, up] 
         UABs = UAB/scale1 
         VAB = Vp2 + diag(Vf)*ones(3) 
         VABs = VAB/scale2 
-        C01 = RAB.*VABs 
+        C01 = np.multiply(RAB,VABs)
         Vc0 = ones(3) 
         Vc1 = UABs 
         Vc2 = Vp2s 
-        A1 = sum(sum(C01.*Vc1))  
-        A2 = sum(sum(C01.*Vc2))  
+        A1 = sum(sum(np.multiply(C01,Vc1)))  
+        A2 = sum(sum(np.multiply(C01,Vc2)))  
 
         c101s = c101/scale1  
         c011s = c011/scale2 
@@ -915,16 +916,16 @@ def chyqmom27(moments, indices, max_skewness = 30):
         if A2 > wsmall:
             b2 = ( c011s - A1*b1 )/A2 
         Wf = b0*Vc0 + b1*Vc1 + b2*Vc2  
-        SUM002 = sum(sum(RAB.*Wf.**2)) 
+        SUM002 = sum(sum(np.multiply(RAB,Wf**2))) 
         mu2 = c002 - SUM002 
         mu2 = max(0,mu2) 
         q = 0 ; eta = 1 
         if mu2 > csmall:
             SUM1 = mu2**(3/2) 
-            SUM3 = sum(sum(RAB.*Wf.**3)) 
+            SUM3 = sum(sum(np.multiply(RAB,Wf**3))) 
             q = ( c003 - SUM3 )/SUM1 
             SUM2 = mu2**2 
-            SUM4 = sum(sum(RAB.*Wf.**4)) + 6*SUM002*mu2 
+            SUM4 = sum(sum(np.multiple(RAB,Wf**4))) + 6*SUM002*mu2 
             eta = ( c004 - SUM4 )/SUM2 
             if eta < (q**2 + 1):
                 if abs(q) > verysmall:
@@ -941,7 +942,7 @@ def chyqmom27(moments, indices, max_skewness = 30):
                 eta = q**2 + 1 
         mu3 = q*mu2**(3/2) 
         mu4 = eta*mu2**2 
-        M5 = [1 0 mu2 mu3 mu4] 
+        M5 = [1, 0, mu2, mu3, mu4] 
         [ rh11, up11 ] = three_node_hyqmom( M5 ) 
         rho111 = rh11[1] 
         rho112 = rh11[2] 

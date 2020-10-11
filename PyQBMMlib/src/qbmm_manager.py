@@ -82,7 +82,7 @@ class qbmm_manager:
                 print( message % self.method )
                 return(1)
             #
-        elif self.num_internal_coords == 2 or self.num_internal_coords == 3:
+        elif self.num_internal_coords == 2:
             #
             self.moment_invert = self.moment_invert_2PD
             #
@@ -107,6 +107,19 @@ class qbmm_manager:
                     self.permutation = qbmm_config['permutation']
                 self.inversion_option = self.max_skewness
                 self.inversion_option = self.permutation
+                #
+        elif self.num_internal_coords == 3:
+            #
+            self.moment_invert = self.moment_invert_2PD
+            #
+            if self.method == 'chyqmom':
+                #
+                self.moment_invert = conditional_hyperbolic
+                self.inversion_algorithm = conditional_hyperbolic
+                self.max_skewness = 30
+                if 'max_skewness' in qbmm_config:
+                    self.max_skewness = qbmm_config['max_skewness']
+                self.inversion_option = self.max_skewness
                 #
         else:
             message = 'qbmm_mgr: set_inversion: Error: dimensionality %i unsupported'
@@ -141,19 +154,13 @@ class qbmm_manager:
             #
             message = 'qbmm_mgr: moment_indices: '
             f_array_pretty_print( message, 'indices', self.indices )
-        elif self.num_internal_coords > 1: 
+        elif self.num_internal_coords == 2: 
             #
             if self.method == 'chyqmom':
                 if self.num_quadrature_nodes == 4:
                     self.indices = np.array( [ [0,0], [1,0], [0,1], [2,0], [1,1], [0,2] ] )
-                    message  = 'qbmm_mgr: moment_indices: Warning: CHyQMOM indices hardcoded for num_coords(2) '
-                    message += 'and num_nodes(4), requested num_coords(%i) and num_nodes(%i)'
-                    print( message % ( self.num_internal_coords, self.num_quadrature_nodes ) )
                 elif self.num_quadrature_nodes == 9:
                     self.indices = np.array( [ [0,0], [1,0], [0,1], [2,0], [1,1], [0,2], [3,0], [0,3], [4,0], [0,4] ] )
-                    message  = 'qbmm_mgr: moment_indices: Warning: CHyQMOM indices hardcoded for num_coords(2) '
-                    message += 'and num_nodes(3), requested num_coords(%i) and num_nodes(%i)'
-                    print( message % ( self.num_internal_coords, self.num_quadrature_nodes ) )
                 else :
                     print( 'qbmm_mgr: moment_indices: Error: incorrect number of quadrature nodes (not 4 or 9), aborting... %i' % self.num_quadrature_nodes )
                     quit()
@@ -161,11 +168,20 @@ class qbmm_manager:
             #
             self.num_moments = self.indices.shape[0]
             #
+        elif self.num_internal_coords == 3: 
+            #
+            if self.method == 'chyqmom':
+                if self.num_quadrature_nodes == 27:
+                    self.indices = np.array( [ [0,0,0], [1,0,0], [0,1,0], [0,0,1], [2,0,0], [1,1,0], [1,0,1], [0,2,0], [0,1,1], [0,0,2], [3,0,0], [0,3,0], [0,0,3], [4,0,0], [0,4,0], [0,0,4] ] )
+                else :
+                    print( 'qbmm_mgr: moment_indices: Error: incorrect number of quadrature nodes (not 27), aborting... %i' % self.num_quadrature_nodes )
+            else :
+                print( 'qbmm_mgr: moment_indices: Error: Unsupported method, aborting...' )
+
+            self.num_moments = self.indices.shape[0]
         else:
             #
             print('qbmm_mgr: moment_indices: Error: dimensionality %i unsupported' % self.num_internal_coords )
-
-            
         return 
 
     def transport_terms(self):
@@ -265,18 +281,21 @@ class qbmm_manager:
             # \sum_j w_j xi_j^i_j
             q = np.dot( weights, xi_to_idx )
         elif self.num_internal_coords == 2:
-            # print('absc: ',abscissas,len(abscissas[0]))
-            # print('wght: ',weights)
-            # print('indx: ',moment_index)
             q = 0.
             for i in range(len(abscissas[0])):
                 q = q + weights[i] * \
                     abscissas[0][i]**moment_index[0] * \
                     abscissas[1][i]**moment_index[1]
+        elif self.num_internal_coords == 3:
+            q = 0.
+            for i in range(len(abscissas[0])):
+                q = q + weights[i] * \
+                    abscissas[0][i]**moment_index[0] * \
+                    abscissas[1][i]**moment_index[1] * \
+                    abscissas[2][i]**moment_index[2]
         else:
-            print('quadrature not implemented', self.num_internal_coords)
+            print('Quadrature not implemented for ', self.num_internal_coords)
             quit()
-
         return q
 
     def projection(self, weights, abscissas, indices):
@@ -322,7 +341,7 @@ class qbmm_manager:
                         self.coefficients[j].subs( c0[0], self.indices[i_moment][0]).subs( c0[1], self.indices[i_moment][1] ) 
                         for j in range(self.num_coefficients)]
             else :
-                print('num_internal_coords',self.num_internal_coords,'not supported')
+                print('num_internal_coords',self.num_internal_coords,'not supported yet')
                 quit()
 
             # Put them in numpy arrays
