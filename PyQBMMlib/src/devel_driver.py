@@ -5,6 +5,7 @@ from stats_util import *
 from euler_util import *
 from jets_rfox_util import *
 from pretty_print_util import *
+import cProfile
 
 def flow_example():
     
@@ -94,6 +95,7 @@ def advance_example2d():
     config['advancer'] = {}
     
     # config['qbmm']['governing_dynamics'] = ' 4*x - 2*xdot**2'
+    config['qbmm']['flow'] = False
     config['qbmm']['governing_dynamics'] = ' - x - xdot'
     config['qbmm']['num_internal_coords']  = 2
     config['qbmm']['num_quadrature_nodes'] = 4
@@ -244,12 +246,13 @@ if __name__ == '__main__':
 
     np.set_printoptions( formatter = { 'float': '{: 0.4E}'.format } )
 
-    case = 'flow'
+    case = 'example_2D'
 
     if case == 'example_1D':
         advance_example1d()
     elif case == 'example_2D':
         advance_example2d()
+        # cProfile.run('advance_example2d()')
     elif case == 'test':
         moments_workflow_example()
     elif case == 'flow':

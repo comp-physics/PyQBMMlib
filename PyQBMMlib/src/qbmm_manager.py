@@ -290,17 +290,18 @@ class qbmm_manager:
             q = np.dot( weights, xi_to_idx )
         elif self.num_internal_coords == 2:
             q = 0.
-            for i in range(len(abscissas[0])):
-                q = q + weights[i] * \
-                    abscissas[0][i]**moment_index[0] * \
-                    abscissas[1][i]**moment_index[1]
+            # for i in range(len(abscissas[0])):
+            for i in range( self.num_quadrature_nodes ):
+                q += weights[i] * \
+                     abscissas[0][i]**moment_index[0] * \
+                     abscissas[1][i]**moment_index[1]
         elif self.num_internal_coords == 3:
             q = 0.
             for i in range( self.num_quadrature_nodes ):
-                q = q + weights[i] * \
-                    abscissas[0,i]**moment_index[0] * \
-                    abscissas[1,i]**moment_index[1] * \
-                    abscissas[2,i]**moment_index[2]
+                q += weights[i] * \
+                     abscissas[0,i]**moment_index[0] * \
+                     abscissas[1,i]**moment_index[1] * \
+                     abscissas[2,i]**moment_index[2]
         else:
             print('Quadrature not implemented for ', self.num_internal_coords)
             quit()
