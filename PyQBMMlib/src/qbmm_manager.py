@@ -51,8 +51,40 @@ class qbmm_manager:
 
         # RHS buffer
         self.rhs = np.zeros( self.num_moments )
+
+        # Install quadrature routine
+        self.install_quadrature()
         
         return
+
+    def install_quadrature(self):
+
+        quad_routine = """def quadrature(self, weights, abscissas, moment_index):
+        if self.num_internal_coords == 1:
+            xi_to_idx = abscissas ** moment_index
+            q = 0.0
+            for i_node in range( self.num_quadrature_nodes ):
+                q += weights[i_node] * xi_to_idx[i_node] 
+        elif self.num_internal_coords == 2:
+            q = 0.0
+            for i_node in range( self.num_quadrature_nodes ):
+                q += weights[i_node] * ( abscissas[0][i_node] ** moment_index[0] ) * \
+                     ( abscissas[1][i_node] ** moment_index[1] )
+        elif self.num_internal_coords == 3:
+            q = 0.0
+            for i_node in range( self.num_quadrature_nodes ):
+                q += weights[i_node] * ( abscissas[0,i_node] ** moment_index[0] ) * \
+                     ( abscissas[1,i_node] ** moment_index[1] ) * \
+                     ( abscissas[2,i_node] ** moment_index[2] )        
+        else:
+            print('Quadrature not implemeted for ',self.num_internal_coords)
+            quit()
+        return q
+        """
+        self.namespace = {}
+        exec(compile(quad_routine, "<generated>", "exec"), self.namespace)
+        return
+        
 
     def set_inversion(self, config):
         """
@@ -314,7 +346,8 @@ class qbmm_manager:
         num_indices = len( indices )
         moments = np.zeros( num_indices )
         for i_index in range( num_indices ):
-            moments[i_index] = self.quadrature( weights, abscissas, indices[ i_index ] )                
+            #moments[i_index] = self.namespace['quadrature'](self,weights,abscissas,indices[i_index])
+            moments[i_index] = self.quadrature(weights,abscissas,indices[i_index]) 
         return moments
 
     def compute_rhs(self, moments, rhs):
