@@ -105,12 +105,12 @@ def advance_example2d():
 
     config['advancer']['method']     = 'RK23'
     config['advancer']['time_step']  = 1.e-5
-    config['advancer']['final_time'] = 15.
+    config['advancer']['final_time'] = 30.
     config['advancer']['error_tol']  = 1.0e-5
     config['advancer']['num_steps']  = 10000
-    config['advancer']['num_steps_print'] = 1
+    config['advancer']['num_steps_print'] = 10
     config['advancer']['num_steps_write'] = 1
-    config['advancer']['output_dir']      = './'
+    config['advancer']['output_dir']      = 'D/'
     config['advancer']['output_id']       = 'example_2D'
     config['advancer']['write_to']        = 'txt'
     

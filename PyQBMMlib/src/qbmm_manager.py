@@ -5,6 +5,8 @@ import numpy as np
 import sympy as smp
 from inversion import *
 from pretty_print_util import *
+from numba  import jit
+from quad import *
 
 class qbmm_manager:
 
@@ -53,39 +55,38 @@ class qbmm_manager:
         self.rhs = np.zeros( self.num_moments )
 
         # Install quadrature routine
-        self.install_quadrature()
+        # self.install_quadrature()
         
         return
 
-    def install_quadrature(self):
+    # def install_quadrature(self):
 
-        quad_routine = """def quadrature(self, weights, abscissas, moment_index):
-        if self.num_internal_coords == 1:
-            xi_to_idx = abscissas ** moment_index
-            q = 0.0
-            for i_node in range( self.num_quadrature_nodes ):
-                q += weights[i_node] * xi_to_idx[i_node] 
-        elif self.num_internal_coords == 2:
-            q = 0.0
-            for i_node in range( self.num_quadrature_nodes ):
-                q += weights[i_node] * ( abscissas[0][i_node] ** moment_index[0] ) * \
-                     ( abscissas[1][i_node] ** moment_index[1] )
-        elif self.num_internal_coords == 3:
-            q = 0.0
-            for i_node in range( self.num_quadrature_nodes ):
-                q += weights[i_node] * ( abscissas[0,i_node] ** moment_index[0] ) * \
-                     ( abscissas[1,i_node] ** moment_index[1] ) * \
-                     ( abscissas[2,i_node] ** moment_index[2] )        
-        else:
-            print('Quadrature not implemeted for ',self.num_internal_coords)
-            quit()
-        return q
-        """
-        self.namespace = {}
-        exec(compile(quad_routine, "<generated>", "exec"), self.namespace)
-        return
+    #     quad_routine = """def quadrature(self, weights, abscissas, moment_index):
+    #     if self.num_internal_coords == 1:
+    #         xi_to_idx = abscissas ** moment_index
+    #         q = 0.0
+    #         for i_node in range( self.num_quadrature_nodes ):
+    #             q += weights[i_node] * xi_to_idx[i_node] 
+    #     elif self.num_internal_coords == 2:
+    #         q = 0.0
+    #         for i_node in range( self.num_quadrature_nodes ):
+    #             q += weights[i_node] * ( abscissas[0][i_node] ** moment_index[0] ) * \
+    #                  ( abscissas[1][i_node] ** moment_index[1] )
+    #     elif self.num_internal_coords == 3:
+    #         q = 0.0
+    #         for i_node in range( self.num_quadrature_nodes ):
+    #             q += weights[i_node] * ( abscissas[0,i_node] ** moment_index[0] ) * \
+    #                  ( abscissas[1,i_node] ** moment_index[1] ) * \
+    #                  ( abscissas[2,i_node] ** moment_index[2] )        
+    #     else:
+    #         print('Quadrature not implemeted for ',self.num_internal_coords)
+    #         quit()
+    #     return q
+    #     """
+    #     self.namespace = {}
+    #     exec(compile(quad_routine, "<generated>", "exec"), self.namespace)
+    #     return
         
-
     def set_inversion(self, config):
         """
         This function sets the inversion procedure based on config options.
@@ -345,9 +346,19 @@ class qbmm_manager:
         """
         num_indices = len( indices )
         moments = np.zeros( num_indices )
-        for i_index in range( num_indices ):
-            #moments[i_index] = self.namespace['quadrature'](self,weights,abscissas,indices[i_index])
-            moments[i_index] = self.quadrature(weights,abscissas,indices[i_index]) 
+
+        # shb numba speedup stuff
+        num_internal_coords = self.num_internal_coords
+        num_quadrature_nodes = self.num_quadrature_nodes
+        abscissas = np.array(abscissas)
+        # indices = np.array(indices)
+
+        moments = shb_project(weights, abscissas, indices, num_quadrature_nodes, num_internal_coords, num_indices)
+        # for i_index in range( num_indices ):
+            # moments[i_index] = self.quadrature(weights,abscissas,indices[i_index]) 
+            # moments[i_index] = self.namespace['quadrature'](self,weights,abscissas,indices[i_index])
+            # moments[i_index] = shb_quadrature(weights, abscissas, indices[i_index], num_quadrature_nodes, num_internal_coords)
+
         return moments
 
     def compute_rhs(self, moments, rhs):
@@ -374,19 +385,25 @@ class qbmm_manager:
                                 for j in range(self.num_coefficients)]
             # [SHB] HACK HACK HACK
             elif self.num_internal_coords == 2:
+                # mylist=self.exponents[0,0].subs( c0[0], self.indices[i_moment][0]).subs( c0[1], self.indices[i_moment][1])
+                # print('mylist = ', mylist)
+                # print(type(mylist))
+                # print(type(mylist[0]))
+
                 exponents    = [ [ \
-                        self.exponents[j,0].subs( c0[0], self.indices[i_moment][0]).subs( c0[1], self.indices[i_moment][1]), \
-                        self.exponents[j,1].subs( c0[0], self.indices[i_moment][0]).subs( c0[1], self.indices[i_moment][1])  \
+                        np.double(self.exponents[j,0].subs( c0[0], self.indices[i_moment][0]).subs( c0[1], self.indices[i_moment][1])), \
+                        np.double(self.exponents[j,1].subs( c0[0], self.indices[i_moment][0]).subs( c0[1], self.indices[i_moment][1]))  \
                         ]
                         for j in range(self.num_exponents)]
                 coefficients = [ \
-                        self.coefficients[j].subs( c0[0], self.indices[i_moment][0]).subs( c0[1], self.indices[i_moment][1] ) 
+                        np.double(self.coefficients[j].subs( c0[0], self.indices[i_moment][0]).subs( c0[1], self.indices[i_moment][1] )) 
                         for j in range(self.num_coefficients)]
             else :
                 print('num_internal_coords',self.num_internal_coords,'not supported yet')
                 quit()
 
             # Put them in numpy arrays
+
             np_exponents    = np.array( exponents )
             np_coefficients = np.array( coefficients )
             # Project back to moments

@@ -185,7 +185,7 @@ class time_advancer:
     def write_step(self, i_step):
 
         message = 'advancer: step = ' + str(i_step) + ' ... Writing to file'
-        print(message)
+        # print(message)
         self.write_to_file( i_step )
         
     def write_to_txt(self, i_step):
