@@ -383,7 +383,7 @@ class qbmm_manager:
                                 for j in range(self.num_exponents)]
                 coefficients = [self.coefficients[j].subs( c0, self.indices[i_moment] ) 
                                 for j in range(self.num_coefficients)]
-            # [SHB] HACK HACK HACK
+            # [SHB] HACK HACK HACK... this is now slowest part of code
             elif self.num_internal_coords == 2:
                 # mylist=self.exponents[0,0].subs( c0[0], self.indices[i_moment][0]).subs( c0[1], self.indices[i_moment][1])
                 # print('mylist = ', mylist)
