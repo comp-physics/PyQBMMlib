@@ -57,6 +57,7 @@ def advance_example1d():
     config['qbmm'] = {}
     config['advancer'] = {}
     
+    config['qbmm']['flow'] = False
     config['qbmm']['governing_dynamics'] = '4*x - 2*x**2'
     config['qbmm']['num_internal_coords']  = 1
     config['qbmm']['num_quadrature_nodes'] = 2
@@ -106,10 +107,10 @@ def advance_example2d():
     config['advancer']['method']     = 'RK23'
     config['advancer']['time_step']  = 1.e-5
     config['advancer']['final_time'] = 30.
-    config['advancer']['error_tol']  = 1.0e-5
+    config['advancer']['error_tol']  = 1.0e-10
     config['advancer']['num_steps']  = 10000
-    config['advancer']['num_steps_print'] = 10
-    config['advancer']['num_steps_write'] = 1
+    config['advancer']['num_steps_print'] = 1000
+    config['advancer']['num_steps_write'] = 1000
     config['advancer']['output_dir']      = 'D/'
     config['advancer']['output_id']       = 'example_2D'
     config['advancer']['write_to']        = 'txt'

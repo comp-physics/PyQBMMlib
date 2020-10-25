@@ -264,7 +264,6 @@ class qbmm_manager:
 
         # Loop over terms
         for i in range( num_terms ):
-
             self.exponents[i,0] = terms[i].as_coeff_exponent(x)[1]
             if self.num_internal_coords == 1:
                 self.coefficients[i] = l * smp.poly( terms[i]).coeffs()[0]
@@ -278,6 +277,23 @@ class qbmm_manager:
             self.exponents[ num_terms, 1 ] = m + 1
             self.coefficients[ num_terms ] = l
 
+
+        self.num_coefficients = len( self.coefficients )
+        self.num_exponents    = len( self.exponents    )
+
+        for i in range( self.num_coefficients ):
+            if self.num_internal_coords == 1:
+                self.coefficients[i] = smp.lambdify([l],self.coefficients[i])
+                for j in range(self.num_internal_coords):
+                    self.exponents[i,j] = smp.lambdify([l],self.exponents[i,j])
+            elif self.num_internal_coords == 2:
+                self.coefficients[i] = smp.lambdify([l,m],self.coefficients[i])
+                for j in range(self.num_internal_coords):
+                    self.exponents[i,j] = smp.lambdify([l,m],self.exponents[i,j])
+            else:
+                print('Transport terms not implemented for 3D+')
+                quit()
+
         message = 'qbmm_mgr: transport_terms: '
         for i in range( total_num_terms ):
             sym_array_pretty_print( message, 'exponents', self.exponents[i,:] )
@@ -285,8 +301,7 @@ class qbmm_manager:
         message = 'qbmm_mgr: transport_terms: '
         sym_array_pretty_print( message, 'coefficients', self.coefficients )
         
-        self.num_coefficients = len( self.coefficients )
-        self.num_exponents    = len( self.exponents    )
+
         
         return
     
@@ -344,21 +359,14 @@ class qbmm_manager:
         """
         This function reconstructs moments from quadrature weights and abscissas
         """
-        num_indices = len( indices )
-        moments = np.zeros( num_indices )
-
-        # shb numba speedup stuff
-        num_internal_coords = self.num_internal_coords
-        num_quadrature_nodes = self.num_quadrature_nodes
+        # Numba requires this
         abscissas = np.array(abscissas)
-        # indices = np.array(indices)
 
-        moments = shb_project(weights, abscissas, indices, num_quadrature_nodes, num_internal_coords, num_indices)
-        # for i_index in range( num_indices ):
-            # moments[i_index] = self.quadrature(weights,abscissas,indices[i_index]) 
-            # moments[i_index] = self.namespace['quadrature'](self,weights,abscissas,indices[i_index])
-            # moments[i_index] = shb_quadrature(weights, abscissas, indices[i_index], num_quadrature_nodes, num_internal_coords)
-
+        # moments = shb_project(weights, abscissas, indices, self.num_quadrature_nodes, self.num_internal_coords)
+        if self.num_internal_coords == 2:
+            moments = shb_project_2d(weights, abscissas, indices, self.num_quadrature_nodes)
+        elif self.num_internal_coords == 1:
+            moments = shb_project_1d(weights, abscissas, indices)
         return moments
 
     def compute_rhs(self, moments, rhs):
@@ -377,26 +385,24 @@ class qbmm_manager:
         # Loop over moments
         for i_moment in range( self.num_moments ):
             # Evalue RHS terms
-            # [ecg] HACK HACK HACK
+            # [ecg] Hack
             if self.num_internal_coords == 1:
-                exponents    = [self.exponents[j,0].subs( c0, self.indices[i_moment] ) 
+                exponents    = [np.double(self.exponents[j,0](self.indices[i_moment])) 
                                 for j in range(self.num_exponents)]
-                coefficients = [self.coefficients[j].subs( c0, self.indices[i_moment] ) 
+                coefficients = [np.double(self.coefficients[j](self.indices[i_moment]) )
                                 for j in range(self.num_coefficients)]
-            # [SHB] HACK HACK HACK... this is now slowest part of code
+            # [SHB] Hack
             elif self.num_internal_coords == 2:
-                # mylist=self.exponents[0,0].subs( c0[0], self.indices[i_moment][0]).subs( c0[1], self.indices[i_moment][1])
-                # print('mylist = ', mylist)
-                # print(type(mylist))
-                # print(type(mylist[0]))
-
+                # exponents    = [ [ \
+                #         np.double(self.exponents[j,0](self.indices[i_moment][0],self.indices[i_moment][1])), \
+                #         np.double(self.exponents[j,1](self.indices[i_moment][0],self.indices[i_moment][1]))  \
+                #         ] for j in range(self.num_exponents)]
                 exponents    = [ [ \
-                        np.double(self.exponents[j,0].subs( c0[0], self.indices[i_moment][0]).subs( c0[1], self.indices[i_moment][1])), \
-                        np.double(self.exponents[j,1].subs( c0[0], self.indices[i_moment][0]).subs( c0[1], self.indices[i_moment][1]))  \
-                        ]
-                        for j in range(self.num_exponents)]
+                        np.double(self.exponents[j,0](self.indices[i_moment][0],self.indices[i_moment][1])), \
+                        np.double(self.exponents[j,1](self.indices[i_moment][0],self.indices[i_moment][1]))  \
+                        ] for j in range(self.num_exponents)]
                 coefficients = [ \
-                        np.double(self.coefficients[j].subs( c0[0], self.indices[i_moment][0]).subs( c0[1], self.indices[i_moment][1] )) 
+                        np.double(self.coefficients[j](self.indices[i_moment][0],self.indices[i_moment][1])) 
                         for j in range(self.num_coefficients)]
             else :
                 print('num_internal_coords',self.num_internal_coords,'not supported yet')
