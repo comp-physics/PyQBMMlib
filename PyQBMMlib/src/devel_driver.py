@@ -72,7 +72,7 @@ def advance_example1d():
     config['advancer']['num_steps']  = 10
     config['advancer']['num_steps_print'] = 1
     config['advancer']['num_steps_write'] = 1
-    config['advancer']['output_dir']      = './'
+    config['advancer']['output_dir']      = 'D/'
     config['advancer']['output_id']       = 'example_1D'
     config['advancer']['write_to']        = 'txt'
     
