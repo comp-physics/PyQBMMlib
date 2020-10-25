@@ -174,6 +174,7 @@ class time_advancer:
                 step = False
                 
         print('advancer: run: stepping ends')
+        print('advancer: Number of steps:',i_step)
             
         return
 

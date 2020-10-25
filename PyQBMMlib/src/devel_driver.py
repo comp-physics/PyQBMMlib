@@ -47,7 +47,7 @@ def flow_example():
 
     flux = moment_fluxes( indices, wts_left, wts_right, xi_left, xi_right )
 
-    #print(flux)
+    print(flux)
     
     return
 
@@ -99,7 +99,7 @@ def advance_example2d():
     config['qbmm']['flow'] = False
     config['qbmm']['governing_dynamics'] = ' - x - xdot'
     config['qbmm']['num_internal_coords']  = 2
-    config['qbmm']['num_quadrature_nodes'] = 4
+    config['qbmm']['num_quadrature_nodes'] = 9
     config['qbmm']['method']               = 'chyqmom'
     config['qbmm']['adaptive']             = False
     config['qbmm']['max_skewness']         = 30
@@ -107,8 +107,8 @@ def advance_example2d():
     config['advancer']['method']     = 'RK23'
     config['advancer']['time_step']  = 1.e-5
     config['advancer']['final_time'] = 30.
-    config['advancer']['error_tol']  = 1.0e-10
-    config['advancer']['num_steps']  = 10000
+    config['advancer']['error_tol']  = 1.0e-9
+    config['advancer']['num_steps']  = 20000
     config['advancer']['num_steps_print'] = 1000
     config['advancer']['num_steps_write'] = 1000
     config['advancer']['output_dir']      = 'D/'
@@ -247,7 +247,8 @@ if __name__ == '__main__':
 
     np.set_printoptions( formatter = { 'float': '{: 0.4E}'.format } )
 
-    case = 'example_2D'
+    case = 'flow'
+    # case = 'example_2D'
 
     if case == 'example_1D':
         advance_example1d()

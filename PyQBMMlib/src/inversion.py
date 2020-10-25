@@ -1,10 +1,10 @@
 import numpy as np
-
 from scipy import sqrt, zeros
 from scipy.linalg import eig
-
 import math
+from numba import jit
 
+@jit(nopython=True)
 def sign(q):
     if q > 0:
         return 1
@@ -52,7 +52,7 @@ def wheeler(moments, adaptive = False):
     ind = n
     a   = np.zeros( n )
     b   = np.zeros( n )    
-    sigma = np.zeros( [ 2*ind+1, 2*ind+1 ] )
+    sigma = np.zeros( ( 2*ind+1, 2*ind+1 ) )
 
     for i in range(1,2*ind+1):
         sigma[1,i] = nu[i-1]
@@ -81,7 +81,7 @@ def wheeler(moments, adaptive = False):
         b = np.zeros( n )
         w = np.zeros( n ) 
         x = np.zeros( n )
-        sigma = np.zeros( [ 2*n+1, 2*n+1 ] )
+        sigma = np.zeros( (2*n+1, 2*n+1) )
         sigma[1,1:] = nu
         
         a[0] = nu[1] / nu[0]
@@ -149,8 +149,9 @@ def hyperbolic(moments, max_skewness = 30):
         return hyperbolic_three_nodes( moments, max_skewness )
     else:
         print('inversion: hyperbolic: incorrect number of moments(%i)' % num_moments)
-        return [],[]
+        return
 
+@jit(nopython=True)
 def hyperbolic_two_nodes(moments):
 
     n = 2
@@ -171,6 +172,7 @@ def hyperbolic_two_nodes(moments):
 
     return x,w
 
+@jit(nopython=True)
 def hyperbolic_three_nodes(moments, max_skewness):
 
     n = 3
@@ -199,7 +201,7 @@ def hyperbolic_three_nodes(moments, max_skewness):
     if c2 < 0: 
         if c2 < -verysmall:
             print("Error: c2 negative in three node HYQMOM")
-            exit()
+            return
         c2 = 0
         c3 = 0 
         c4 = 0
@@ -225,7 +227,7 @@ def hyperbolic_three_nodes(moments, max_skewness):
                 c4 = eta*c2**2 
                 if realizable < -10.**(-6):
                     print("Error: c4 small in HYQMOM3")
-                    exit()
+                    return
             else: 
                 c3 = 0.
                 c4 = c2**2.
@@ -261,12 +263,12 @@ def hyperbolic_three_nodes(moments, max_skewness):
     rho[1] = 1 - 1/prod 
     rho[2] = dem/xps[2] 
 
-    srho = sum(rho)
+    srho = np.sum(rho)
     rho = rho/srho
     if min(rho) < 0 :
         print("Error: Negative weight in HYQMOM")
-        exit()
-    scales = sum(rho*xps**2)/sum(rho)
+        return
+    scales = np.sum(rho*xps**2)/np.sum(rho)
     for i in range(n):
         xp[i] = xps[i]*scale/math.sqrt(scales)
 
@@ -304,17 +306,23 @@ def conditional_hyperbolic(moments, indices, max_skewness = 30):
     elif num_dim == 16:
         return chyqmom27( moments, indices, max_skewness )
 
+@jit(nopython=True)
 def chyqmom4(moments, indices, max_skewness = 30):
 
-    # SHB: HACK so that I can get the required elements from the numpy array
-    normalidx = indices.tolist()
-
-    mom00 = moments[normalidx.index([0,0])]
-    mom10 = moments[normalidx.index([1,0])]
-    mom01 = moments[normalidx.index([0,1])]
-    mom20 = moments[normalidx.index([2,0])]
-    mom11 = moments[normalidx.index([1,1])]
-    mom02 = moments[normalidx.index([0,2])]
+    # SHB: Hack to get the required elements from numpy array
+    # normalidx = indices.tolist()
+    # mom00 = moments[normalidx.index([0,0])]
+    # mom10 = moments[normalidx.index([1,0])]
+    # mom01 = moments[normalidx.index([0,1])]
+    # mom20 = moments[normalidx.index([2,0])]
+    # mom11 = moments[normalidx.index([1,1])]
+    # mom02 = moments[normalidx.index([0,2])]
+    mom00 = moments[0]
+    mom10 = moments[1]
+    mom01 = moments[2]
+    mom20 = moments[3]
+    mom11 = moments[4]
+    mom02 = moments[5]
 
     n = 4
     w = np.zeros(n)
@@ -331,13 +339,13 @@ def chyqmom4(moments, indices, max_skewness = 30):
     c11 = d11 - bx*by
     c02 = d02 - by**2.
 
-    M1 = [1, 0, c20]
+    M1 = np.array([1, 0, c20])
     xp, rho = hyperbolic_two_nodes(M1) 
     yf = c11*xp/c20 
-    mu2avg = c02 - sum(rho*yf**2)
-    mu2avg = max(mu2avg, 0)
+    mu2avg = c02 - np.sum(rho*yf**2)
+    mu2avg = max(mu2avg,0)
     mu2 = mu2avg 
-    M3 = [ 1, 0, mu2 ] 
+    M3 = np.array([ 1, 0, mu2 ])
     xp3, rh3 = hyperbolic_two_nodes(M3)
     yp21  = xp3[0] 
     yp22  = xp3[1] 
@@ -365,21 +373,32 @@ def chyqmom4(moments, indices, max_skewness = 30):
     x = [ x, y ]
     return x,w
 
+@jit(nopython=True)
 def chyqmom9(moments, indices, max_skewness = 30):
 
     # SHB: HACK so that I can get the required elements from the numpy array
-    normalidx = indices.tolist()
+    # normalidx = indices.tolist()
+    # mom00 = moments[normalidx.index([0,0])]
+    # mom10 = moments[normalidx.index([1,0])]
+    # mom01 = moments[normalidx.index([0,1])]
+    # mom20 = moments[normalidx.index([2,0])]
+    # mom11 = moments[normalidx.index([1,1])]
+    # mom02 = moments[normalidx.index([0,2])]
+    # mom30 = moments[normalidx.index([3,0])]
+    # mom03 = moments[normalidx.index([0,3])]
+    # mom40 = moments[normalidx.index([4,0])]
+    # mom04 = moments[normalidx.index([0,4])]
 
-    mom00 = moments[normalidx.index([0,0])]
-    mom10 = moments[normalidx.index([1,0])]
-    mom01 = moments[normalidx.index([0,1])]
-    mom20 = moments[normalidx.index([2,0])]
-    mom11 = moments[normalidx.index([1,1])]
-    mom02 = moments[normalidx.index([0,2])]
-    mom30 = moments[normalidx.index([3,0])]
-    mom03 = moments[normalidx.index([0,3])]
-    mom40 = moments[normalidx.index([4,0])]
-    mom04 = moments[normalidx.index([0,4])]
+    mom00 = moments[0]
+    mom10 = moments[1]
+    mom01 = moments[2]
+    mom20 = moments[3]
+    mom11 = moments[4]
+    mom02 = moments[5]
+    mom30 = moments[6]
+    mom03 = moments[7]
+    mom40 = moments[8]
+    mom04 = moments[9]
 
     n = 9
     w = np.zeros(n)
@@ -407,14 +426,14 @@ def chyqmom9(moments, indices, max_skewness = 30):
     c40 = d40 - 4.*bx*d30 + 6*(bx**2.)*d20 - 3.*bx**(4)
     c04 = d04 - 4.*by*d03 + 6*(by**2.)*d02 - 3.*by**(4)
 
-    M1 = [1, 0, c20, c30, c40] 
+    M1 = np.array([1, 0, c20, c30, c40])
     xp, rho = hyperbolic_three_nodes(M1,max_skewness)
     if c20 < csmall:
         rho[0] = 0.
         rho[1] = 1.
         rho[2] = 0.
         yf = 0*xp 
-        M2 = [1, 0, c02, c03, c04]
+        M2 = np.array([1, 0, c02, c03, c04])
         xp2, rho2 = hyperbolic_three_nodes(M2,max_skewness)
         yp21 = xp2[0] 
         yp22 = xp2[1] 
@@ -424,14 +443,14 @@ def chyqmom9(moments, indices, max_skewness = 30):
         rho23 = rho2[2]
     else:
         yf = c11*xp/c20 
-        mu2avg = c02 - sum(rho*(yf**2.))
+        mu2avg = c02 - np.sum(rho*(yf**2.))
         mu2avg = max(mu2avg, 0.)
         mu2 = mu2avg 
         mu3 = 0*mu2 
         mu4 = mu2**2. 
         if mu2 > csmall:
-            q   = (c03 - sum(rho*(yf**3.)))/mu2**(3./2.) 
-            eta = (c04 - sum(rho*(yf**4.)) - 6*sum(rho*(yf**2.))*mu2)/mu2**2.
+            q   = (c03 - np.sum(rho*(yf**3.)))/mu2**(3./2.) 
+            eta = (c04 - np.sum(rho*(yf**4.)) - 6*np.sum(rho*(yf**2.))*mu2)/mu2**2.
             if eta < (q**2 + 1):
                 if abs(q) > verysmall:
                     slope = (eta - 3.)/q 
@@ -450,7 +469,7 @@ def chyqmom9(moments, indices, max_skewness = 30):
             mu3 = q*mu2**(3./2.) 
             mu4 = eta*mu2**2.
 
-        M3 = [1, 0, mu2, mu3, mu4]
+        M3 = np.array([1, 0, mu2, mu3, mu4])
         xp3, rh3 = hyperbolic_three_nodes(M3,max_skewness)
         yp21 = xp3[0] 
         yp22 = xp3[1] 
@@ -495,30 +514,47 @@ def chyqmom9(moments, indices, max_skewness = 30):
     x = [ x, y ]
     return x,w
 
+@jit(nopython=True)
 def chyqmom27(moments, indices, max_skewness = 30):
 
     # Indices used for calling chyqmom9
     RF_idx = np.array( [ [0,0], [1,0], [0,1], [2,0], [1,1], [0,2], [3,0], [0,3], [4,0], [0,4] ] )
 
-    # SHB: HACK so that I can get the required elements from the numpy array
-    normalidx = indices.tolist()
+    # SHB: Hack so that I can get the required elements from the numpy array
+    # normalidx = indices.tolist()
+    # m000 = moments[normalidx.index([0,0,0])]
+    # m100 = moments[normalidx.index([1,0,0])]
+    # m010 = moments[normalidx.index([0,1,0])]
+    # m001 = moments[normalidx.index([0,0,1])]
+    # m200 = moments[normalidx.index([2,0,0])]
+    # m110 = moments[normalidx.index([1,1,0])]
+    # m101 = moments[normalidx.index([1,0,1])]
+    # m020 = moments[normalidx.index([0,2,0])]
+    # m011 = moments[normalidx.index([0,1,1])]
+    # m002 = moments[normalidx.index([0,0,2])]
+    # m300 = moments[normalidx.index([3,0,0])]
+    # m030 = moments[normalidx.index([0,3,0])]
+    # m003 = moments[normalidx.index([0,0,3])]
+    # m400 = moments[normalidx.index([4,0,0])]
+    # m040 = moments[normalidx.index([0,4,0])]
+    # m004 = moments[normalidx.index([0,0,4])]
 
-    m000 = moments[normalidx.index([0,0,0])]
-    m100 = moments[normalidx.index([1,0,0])]
-    m010 = moments[normalidx.index([0,1,0])]
-    m001 = moments[normalidx.index([0,0,1])]
-    m200 = moments[normalidx.index([2,0,0])]
-    m110 = moments[normalidx.index([1,1,0])]
-    m101 = moments[normalidx.index([1,0,1])]
-    m020 = moments[normalidx.index([0,2,0])]
-    m011 = moments[normalidx.index([0,1,1])]
-    m002 = moments[normalidx.index([0,0,2])]
-    m300 = moments[normalidx.index([3,0,0])]
-    m030 = moments[normalidx.index([0,3,0])]
-    m003 = moments[normalidx.index([0,0,3])]
-    m400 = moments[normalidx.index([4,0,0])]
-    m040 = moments[normalidx.index([0,4,0])]
-    m004 = moments[normalidx.index([0,0,4])]
+    m000 = moments[0]
+    m100 = moments[1]
+    m010 = moments[2]
+    m001 = moments[3]
+    m200 = moments[4]
+    m110 = moments[5]
+    m101 = moments[6]
+    m020 = moments[7]
+    m011 = moments[8]
+    m002 = moments[9]
+    m300 = moments[10]
+    m030 = moments[11]
+    m003 = moments[12]
+    m400 = moments[13]
+    m040 = moments[14]
+    m004 = moments[15]
 
     small = 1.e-10 
     isosmall = 1.e-14
@@ -684,7 +720,7 @@ def chyqmom27(moments, indices, max_skewness = 30):
         c003 = q*c002**(3/2) 
         c004 = eta*c002**2 
 
-    M1 = [ 1, 0, c200, c300, c400 ] 
+    M1 = np.array([ 1, 0, c200, c300, c400 ])
     xp, rho = hyperbolic_three_nodes(M1,max_skewness)
 
     rho11 = 0 
@@ -764,11 +800,11 @@ def chyqmom27(moments, indices, max_skewness = 30):
     zp332 = 0 
     zp333 = 0 
 
-    Zf = np.zeros([3,3]) 
+    Zf = np.zeros((3,3)) 
 
     if c200 <= csmall:
         if c020 <= csmall: 
-            M0 = [ 1, 0, c002, c003, c004] 
+            M0 = np.array([ 1, 0, c002, c003, c004])
             Z0, W0 = hyperbolic_three_nodes(M0,max_skewness) 
 
             rho[0] = 0 
@@ -783,7 +819,7 @@ def chyqmom27(moments, indices, max_skewness = 30):
             zp222 = Z0[1] 
             zp223 = Z0[2] 
         else:
-            M1 = [ 1, 0, 0, c020, c011, c002, c030, c003, c040, c004] 
+            M1 = np.array([ 1, 0, 0, c020, c011, c002, c030, c003, c040, c004])
             Q1, W1 = chyqmom9(M1,RF_idx,max_skewness) 
             Y1 = Q1[0]
             Z1 = Q1[1]
@@ -820,7 +856,7 @@ def chyqmom27(moments, indices, max_skewness = 30):
             zp232 = Z1[7] 
             zp233 = Z1[8] 
     elif c020 <= csmall :
-        M2 = [ 1, 0, 0, c200, c101, c002, c300, c003, c400, c004] 
+        M2 = np.array([ 1, 0, 0, c200, c101, c002, c300, c003, c400, c004])
         Q2, W2 = chyqmom9(M2,RF_idx,max_skewness)
         X2 = Q2[0]
         Z2 = Q2[1]
@@ -853,7 +889,7 @@ def chyqmom27(moments, indices, max_skewness = 30):
         zp322 = Z2[7] 
         zp323 = Z2[8] 
     elif c002 <= csmall :
-        M3 = [ 1, 0, 0, c200, c110, c020, c300, c030, c400, c040] 
+        M3 = np.array([ 1, 0, 0, c200, c110, c020, c300, c030, c400, c040])
         Q3, W3 = chyqmom9(M3,RF_idx,max_skewness)
         X3 = Q3[0]
         Y3 = Q3[1]
@@ -883,7 +919,7 @@ def chyqmom27(moments, indices, max_skewness = 30):
         yp32 = Y3[7] 
         yp33 = Y3[8] 
     else:
-        M4 = [ 1, 0, 0, c200, c110, c020, c300, c030, c400, c040] 
+        M4 = np.array([ 1, 0, 0, c200, c110, c020, c300, c030, c400, c040])
         Q4, W4  = chyqmom9(M4,RF_idx,max_skewness)
         X4 = Q4[0]
         Y4 = Q4[1]
@@ -918,7 +954,11 @@ def chyqmom27(moments, indices, max_skewness = 30):
         Yp2 = np.array( [ [yp11, yp12, yp13], [yp21, yp22, yp23], [yp31, yp32, yp33] ]  )
         Yp2s = Yp2/scale2 
         RAB = Rho1*Rho2 
-        XAB = np.array([xp, xp, xp] )
+        XAB = np.array([ \
+                [xp[0], xp[1], xp[2]],\
+                [xp[0], xp[1], xp[2]],\
+                [xp[0], xp[1], xp[2]] \
+                ])
         XABs = XAB/scale1 
         YAB = Yp2 + np.diag(Yf)*np.ones(3) 
         YABs = YAB/scale2 
@@ -926,8 +966,8 @@ def chyqmom27(moments, indices, max_skewness = 30):
         Yc0 = np.ones(3) 
         Yc1 = XABs 
         Yc2 = Yp2s 
-        A1 = sum(sum(np.multiply(C01,Yc1)))  
-        A2 = sum(sum(np.multiply(C01,Yc2)))  
+        A1 = np.sum(np.multiply(C01,Yc1))
+        A2 = np.sum(np.multiply(C01,Yc2))
 
         c101s = c101/scale1  
         c011s = c011/scale2 
@@ -943,17 +983,18 @@ def chyqmom27(moments, indices, max_skewness = 30):
         b2 = 0
         if A2 > wsmall:
             b2 = ( c011s - A1*b1 )/A2 
+
         Zf = b0*Yc0 + b1*Yc1 + b2*Yc2  
-        SUM002 = sum(sum(np.multiply(RAB,Zf**2))) 
+        SUM002 = np.sum(np.multiply(RAB,Zf**2))
         mu2 = c002 - SUM002 
         mu2 = max(0,mu2) 
         q = 0 ; eta = 1 
         if mu2 > csmall:
             SUM1 = mu2**(3/2) 
-            SUM3 = sum(sum(np.multiply(RAB,Zf**3))) 
+            SUM3 = np.sum(np.multiply(RAB,Zf**3))
             q = ( c003 - SUM3 )/SUM1 
             SUM2 = mu2**2 
-            SUM4 = sum(sum(np.multiply(RAB,Zf**4))) + 6*SUM002*mu2 
+            SUM4 = np.sum(np.multiply(RAB,Zf**4)) + 6*SUM002*mu2 
             eta = ( c004 - SUM4 )/SUM2 
             if eta < (q**2 + 1):
                 if abs(q) > verysmall:
@@ -970,7 +1011,7 @@ def chyqmom27(moments, indices, max_skewness = 30):
                 eta = q**2 + 1 
         mu3 = q*mu2**(3/2) 
         mu4 = eta*mu2**2 
-        M5 = [1, 0, mu2, mu3, mu4] 
+        M5 = np.array([1, 0, mu2, mu3, mu4])
         xp11, rh11 = hyperbolic_three_nodes(M5,max_skewness)
 
         rho111 = rh11[0] 
@@ -1091,7 +1132,7 @@ def chyqmom27(moments, indices, max_skewness = 30):
     W[26]= rho[2]*rho33*rho333
     W = m000*W 
 
-    abscissas = np.zeros( [27,3] )
+    abscissas = np.zeros( (27,3) )
     abscissas[0,0] = xp[0]
     abscissas[1,0] = xp[0]
     abscissas[2,0] = xp[0]

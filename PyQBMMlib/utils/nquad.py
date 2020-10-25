@@ -1,11 +1,14 @@
 import math
 import numpy as np
+from numba import jit
 
+@jit(nopython=True)
 def quadrature_1d(weights, abscissas, moment_index):
     xi_to_idx = abscissas ** moment_index
     q = np.dot( weights, xi_to_idx )
     return q
 
+@jit(nopython=True)
 def quadrature_2d(weights, abscissas, moment_index, num_quadrature_nodes):
     q = 0.
     for i in range( num_quadrature_nodes ):

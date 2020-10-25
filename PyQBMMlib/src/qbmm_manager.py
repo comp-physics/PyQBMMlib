@@ -5,8 +5,13 @@ import numpy as np
 import sympy as smp
 from inversion import *
 from pretty_print_util import *
-from numba  import jit
-from quad import *
+
+try:
+    import numba
+    from nquad import *
+except:
+    print('Did not find numba! Install it for significant speedups.')
+    from quad import *
 
 class qbmm_manager:
 
@@ -54,39 +59,8 @@ class qbmm_manager:
         # RHS buffer
         self.rhs = np.zeros( self.num_moments )
 
-        # Install quadrature routine
-        # self.install_quadrature()
-        
         return
 
-    # def install_quadrature(self):
-
-    #     quad_routine = """def quadrature(self, weights, abscissas, moment_index):
-    #     if self.num_internal_coords == 1:
-    #         xi_to_idx = abscissas ** moment_index
-    #         q = 0.0
-    #         for i_node in range( self.num_quadrature_nodes ):
-    #             q += weights[i_node] * xi_to_idx[i_node] 
-    #     elif self.num_internal_coords == 2:
-    #         q = 0.0
-    #         for i_node in range( self.num_quadrature_nodes ):
-    #             q += weights[i_node] * ( abscissas[0][i_node] ** moment_index[0] ) * \
-    #                  ( abscissas[1][i_node] ** moment_index[1] )
-    #     elif self.num_internal_coords == 3:
-    #         q = 0.0
-    #         for i_node in range( self.num_quadrature_nodes ):
-    #             q += weights[i_node] * ( abscissas[0,i_node] ** moment_index[0] ) * \
-    #                  ( abscissas[1,i_node] ** moment_index[1] ) * \
-    #                  ( abscissas[2,i_node] ** moment_index[2] )        
-    #     else:
-    #         print('Quadrature not implemeted for ',self.num_internal_coords)
-    #         quit()
-    #     return q
-    #     """
-    #     self.namespace = {}
-    #     exec(compile(quad_routine, "<generated>", "exec"), self.namespace)
-    #     return
-        
     def set_inversion(self, config):
         """
         This function sets the inversion procedure based on config options.
@@ -209,7 +183,6 @@ class qbmm_manager:
             if self.method == 'chyqmom':
                 if self.num_quadrature_nodes == 27:                    
                     self.indices = np.array( [ [0,0,0], [1,0,0], [0,1,0], [0,0,1], [2,0,0], [1,1,0], [1,0,1], [0,2,0], [0,1,1], [0,0,2], [3,0,0], [0,3,0], [0,0,3], [4,0,0], [0,4,0], [0,0,4] ] )
-
                 else :
                     print( 'qbmm_mgr: moment_indices: Error: incorrect number of quadrature nodes (not 27), aborting... %i' % self.num_quadrature_nodes )
                     quit()
@@ -277,7 +250,6 @@ class qbmm_manager:
             self.exponents[ num_terms, 1 ] = m + 1
             self.coefficients[ num_terms ] = l
 
-
         self.num_coefficients = len( self.coefficients )
         self.num_exponents    = len( self.exponents    )
 
@@ -300,9 +272,7 @@ class qbmm_manager:
 
         message = 'qbmm_mgr: transport_terms: '
         sym_array_pretty_print( message, 'coefficients', self.coefficients )
-        
 
-        
         return
     
     def moment_invert_1D(self, moments):
@@ -317,56 +287,19 @@ class qbmm_manager:
         """
         return self.inversion_algorithm( moments, self.indices, self.inversion_option )
 
-    def quadrature(self, weights, abscissas, moment_index):
-        """
-        This function performs a general cubature for given weights, abscissas and indices
-        """
-        ###
-        ### [ecg] For indices of shape [num_coords, num_moments],
-        ### this should work (I think):
-        ### (1) xi_to_idx = np.power( abscissas, self.indices[None,:] )
-        ### However, indices in 1D problems are 'flat' arrays
-        ### (see moment_indices, line 103, and the note therein).
-        ### This means that moment_index passed from projection
-        ### is a scalar, so expression (1) does not work. For now,
-        ### this routine only works for 1D problems, and takes in
-        ### a scalar for moment_index (weak).
-        ###
-        if self.num_internal_coords == 1:
-            xi_to_idx = abscissas ** moment_index
-            # \sum_j w_j xi_j^i_j
-            q = np.dot( weights, xi_to_idx )
-        elif self.num_internal_coords == 2:
-            q = 0.
-            # for i in range(len(abscissas[0])):
-            for i in range( self.num_quadrature_nodes ):
-                q += weights[i] * \
-                     abscissas[0][i]**moment_index[0] * \
-                     abscissas[1][i]**moment_index[1]
-        elif self.num_internal_coords == 3:
-            q = 0.
-            for i in range( self.num_quadrature_nodes ):
-                q += weights[i] * \
-                     abscissas[0,i]**moment_index[0] * \
-                     abscissas[1,i]**moment_index[1] * \
-                     abscissas[2,i]**moment_index[2]
-        else:
-            print('Quadrature not implemented for ', self.num_internal_coords)
-            quit()
-        return q
-
     def projection(self, weights, abscissas, indices):
         """
-        This function reconstructs moments from quadrature weights and abscissas
+        This function reconstructs moments (indices) from quadrature weights and abscissas
         """
-        # Numba requires this
         abscissas = np.array(abscissas)
-
-        # moments = shb_project(weights, abscissas, indices, self.num_quadrature_nodes, self.num_internal_coords)
-        if self.num_internal_coords == 2:
-            moments = shb_project_2d(weights, abscissas, indices, self.num_quadrature_nodes)
-        elif self.num_internal_coords == 1:
-            moments = shb_project_1d(weights, abscissas, indices)
+        moments = np.zeros( len(indices) )
+        for i_index in range( len(indices) ):
+            if self.num_internal_coords == 3:
+                moments[i_index] = quadrature_3d(weights, abscissas, indices[i_index], self.num_quadrature_nodes)
+            if self.num_internal_coords == 2:
+                moments[i_index] = quadrature_2d(weights, abscissas, indices[i_index], self.num_quadrature_nodes)
+            elif self.num_internal_coords == 1:
+                moments[i_index] = quadrature_1d(weights, abscissas, indices[i_index])
         return moments
 
     def compute_rhs(self, moments, rhs):
@@ -379,9 +312,6 @@ class qbmm_manager:
         else:
             abscissas, weights = self.moment_invert( moments,self.indices )      
 
-        # Symbols
-        c0 = self.symbolic_indices
-
         # Loop over moments
         for i_moment in range( self.num_moments ):
             # Evalue RHS terms
@@ -393,10 +323,6 @@ class qbmm_manager:
                                 for j in range(self.num_coefficients)]
             # [SHB] Hack
             elif self.num_internal_coords == 2:
-                # exponents    = [ [ \
-                #         np.double(self.exponents[j,0](self.indices[i_moment][0],self.indices[i_moment][1])), \
-                #         np.double(self.exponents[j,1](self.indices[i_moment][0],self.indices[i_moment][1]))  \
-                #         ] for j in range(self.num_exponents)]
                 exponents    = [ [ \
                         np.double(self.exponents[j,0](self.indices[i_moment][0],self.indices[i_moment][1])), \
                         np.double(self.exponents[j,1](self.indices[i_moment][0],self.indices[i_moment][1]))  \
@@ -409,7 +335,6 @@ class qbmm_manager:
                 quit()
 
             # Put them in numpy arrays
-
             np_exponents    = np.array( exponents )
             np_coefficients = np.array( coefficients )
             # Project back to moments
