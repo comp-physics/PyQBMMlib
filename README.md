@@ -7,9 +7,8 @@ Developers: Spencer H. Bryngelson (Caltech), Esteban Cisneros (Illinois)
 - Python >= 3.0
 - Numpy
 - Scipy
-- 
-- Nu
-
+- Sympy
+- Optional: Numba (significant speed increase via JIT compiling)
 
 ## Current capabilities 
 
