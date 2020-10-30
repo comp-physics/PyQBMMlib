@@ -25,11 +25,11 @@ class qbmm_manager:
         self.num_quadrature_nodes = config['qbmm']['num_quadrature_nodes']
         self.method               = config['qbmm']['method']
         self.adaptive             = config['qbmm']['adaptive']
-        self.poly                 = config['qbmm']['polydisperse']
+        # self.poly                 = config['qbmm']['polydisperse']
 
-        if self.poly:
-            self.num_poly_nodes = config['qbmm']['num_poly_nodes']
-            self.poly_symbol    = config['qbmm']['poly_symbol']
+        # if self.poly:
+        #     self.num_poly_nodes = config['qbmm']['num_poly_nodes']
+        #     self.poly_symbol    = config['qbmm']['poly_symbol']
 
         iret = self.set_inversion( config )
         if iret == 1:
@@ -183,13 +183,13 @@ class qbmm_manager:
             print('qbmm_mgr: moment_indices: Error: dimensionality %i unsupported' % self.num_internal_coords )
             quit()
         #
-        if self.num_internal_coords == 2 and self.poly:
-            # Todo: append indices for polydisperse direction r0
-            orig_idx = self.indices
-            self.indices = np.zeros( num_poly_nodes * len(orig_idx) )
-            for j in range( num_poly_nodes ):
-                for i in range( len(orig_idx) ):
-                    self.indices[i] = np.append( orig_idx[i], j )
+        # # Todo: append indices for polydisperse direction r0
+        # if self.num_internal_coords == 2 and self.poly:
+        #     orig_idx = self.indices
+        #     self.indices = np.zeros( num_poly_nodes * len(orig_idx) )
+        #     for j in range( num_poly_nodes ):
+        #         for i in range( len(orig_idx) ):
+        #             self.indices[i] = np.append( orig_idx[i], j )
         return 
 
     def transport_terms(self):
@@ -205,8 +205,8 @@ class qbmm_manager:
             integrand = xdot * ( x ** ( l - 1 ) )
             self.symbolic_indices = l
         elif self.num_internal_coords == 2:
-            if self.poly:
-                r0 = smp.symbols( self.poly_symbol )
+            # if self.poly:
+            #     r0 = smp.symbols( self.poly_symbol )
             x,xdot = smp.symbols( 'x xdot' )
             l,m    = smp.symbols( 'l m', real = True )
             xddot  = smp.parse_expr( self.governing_dynamics )
