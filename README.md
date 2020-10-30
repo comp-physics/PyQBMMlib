@@ -7,7 +7,7 @@ It can be cited as
 ```
 @article{bryngelson_2020,
     Author        = {Spencer H. Bryngelson and Tim Colonius and Rodney O. Fox},
-    Title         = {QBMMlib: A library of quadrature-based moment methods},
+    Title         = {{QBMMlib: A} library of quadrature-based moment methods},
     Journal       = {SoftwareX},
     Year          = {2020},
 }
