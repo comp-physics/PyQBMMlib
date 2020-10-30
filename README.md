@@ -1,6 +1,6 @@
 # PyQBMMlib
 
-Developers: Spencer H. Bryngelson (Caltech), Esteban Cisneros (Illinois)
+Developers: [Spencer H. Bryngelson](https://bryngelson-research.com) (Caltech) and Esteban Cisneros Garibay (Illinois)
 
 This is a Python version of [QBMMlib](https://github.com/sbryngelson/QBMMlib), which was developed by Dr. Spencer Bryngelson, Prof. Rodney Fox, and Prof. Tim Colonius. 
 It can be cited as
@@ -24,7 +24,7 @@ Its documentation is also located on the [arXiv](http://arxiv.org/abs/2008.05063
 
 ## Current capabilities 
 
-PyQBMMlib currently has all the capabilities of QBMMlib except for traditional CQMOM, which was elided in lieu of CHyQMOM.
+PyQBMMlib currently has all the capabilities of QBMMlib except for traditional CQMOM, which was elided in lieu of its contemporary, CHyQMOM.
 This includes:
 - Automatic formulation of moment transport equations
 - 1-3D moment inversion
