@@ -184,7 +184,7 @@ class qbmm_manager:
             quit()
         #
         if self.num_internal_coords == 2 and self.poly:
-            # todo: append indices for polydisperse direction r0
+            # Todo: append indices for polydisperse direction r0
             orig_idx = self.indices
             self.indices = np.zeros( num_poly_nodes * len(orig_idx) )
             for j in range( num_poly_nodes ):
@@ -197,7 +197,6 @@ class qbmm_manager:
         This function determines the RHS in the moments equation
         for a given governing dynamics
         """
-        print('qbmm_mgr: transport_terms: Warning: works for up to two internal coordinates only')
 
         if self.num_internal_coords == 1:
             x = smp.symbols( 'x' )
