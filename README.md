@@ -2,6 +2,15 @@
 
 Developers: Spencer H. Bryngelson (Caltech), Esteban Cisneros (Illinois)
 
+## Requirements
+
+- Python >= 3.0
+- Numpy
+- Scipy
+- 
+- Nu
+
+
 ## Current capabilities 
 
 - 1D and 2D moment inversion
