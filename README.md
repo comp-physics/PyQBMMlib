@@ -12,10 +12,10 @@ Developers: Spencer H. Bryngelson (Caltech), Esteban Cisneros (Illinois)
 
 ## Current capabilities 
 
-- 1D and 2D moment inversion
 - Automatic formulation of moment transport equations
-- CHyQMOM (2 node and 3 node)
-- Wheeler's algorithm
+- 1-3D moment inversion
+- QMOM (Wheeler), HyQMOM (2 and 3 node), CHyQMOM (4, 9,  and 27 node)
+- SSP RK2-3 
 
 ## Under development
 
