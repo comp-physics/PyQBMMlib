@@ -4,6 +4,12 @@ from numba import jit
 
 @jit(nopython=True)
 def quadrature_1d(weights, abscissas, moment_index):
+    """
+    This function computes quadrature in 1D
+    Inputs:
+    - weights: quadrature weights 
+    Return:
+    """
     xi_to_idx = abscissas ** moment_index
     q = np.dot( weights, xi_to_idx )
     return q

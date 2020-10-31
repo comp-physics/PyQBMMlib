@@ -9,7 +9,11 @@ import csv
 class time_advancer:
 
     def __init__(self, config):
-
+        """
+        Constructor
+        """
+        
+        
         self.method          = config['advancer']['method']
         self.time_step       = config['advancer']['time_step']
         self.final_time      = config['advancer']['final_time']
@@ -61,14 +65,27 @@ class time_advancer:
         return
     
     def initialize_state(self, init_state):
+        """
+        This function initializes the advancer state
 
+        Inputs:
+          init_state: Initial condition
+        """
+        
         self.state = init_state
         
         return
 
     def initialize_state_gaussian_trivar(self, mu1, mu2, mu3, sig1, sig2, sig3):
+        """
+        This function initializes the state to the raw moments of a trivariate Gaussian distribution.
 
-        # print('indices: ',self.indices)
+        Inputs:
+          mu1, mu2, mu3: Means
+          sigma1, sigma2, sigma3: Standard deviations
+        """
+
+        
         self.state  = raw_gaussian_moments_trivar( self.indices, mu1, mu2, mu3, sig1, sig2, sig3 )
         message = 'advancer: initialize_trigaussian: '
         f_array_pretty_print( message, 'state', self.state )
@@ -76,13 +93,28 @@ class time_advancer:
 
 
     def initialize_state_gaussian_bivar(self, mu1, mu2, sigma1, sigma2):
+        """
+        This function initializes the state to the raw moments of a bivariate Gaussian distribution.
 
+        Inputs:
+          mu1, mu2: Means
+          sigma1, sigma2: Standard deviations 
+        """
+        
+        
         self.state  = raw_gaussian_moments_bivar( self.indices, mu1, mu2, sigma1, sigma2 )
         message = 'advancer: initialize_bigaussian: '
         f_array_pretty_print( message, 'state', self.state )
         return
 
     def initialize_state_gaussian_univar(self, mu, sigma):
+        """
+        This function initializes the state to the raw moments of a univariate Gaussian distribution.
+
+        Inputs:
+          mu:    mean
+          sigma: standard deviation        
+        """
 
         self.state = raw_gaussian_moments_univar( self.num_dim, mu, sigma)
         message = 'advancer: initialize_gaussian: '
@@ -90,7 +122,9 @@ class time_advancer:
         return
     
     def advance_euler(self):
-
+        """
+        This function advances the state with an explicit Euler scheme
+        """
         # self.rhs += self.qbmm_mgr.evaluate_rhs( self.state )
 
         print('advancer: advance: Euler time advancer')
@@ -103,6 +137,9 @@ class time_advancer:
         return
 
     def advance_RK23(self):
+        """
+        This function advances the state with a Runge--Kutta 2/3 scheme
+        """
 
         #message = 'advancer: advace_RK3: '
         #f_array_pretty_print( message, 'state', self.state )
@@ -136,6 +173,9 @@ class time_advancer:
         self.rk_error = np.linalg.norm( self.state - test_state ) / np.linalg.norm( self.state )
 
     def adapt_time_step(self):
+        """
+        This function adapts the time step according to user-specified tolerance
+        """
 
         error_fraction   = np.sqrt( 0.5 * self.error_tol / self.rk_error )
         time_step_factor = min( max( error_fraction, 0.3 ), 2.0 )
@@ -145,6 +185,9 @@ class time_advancer:
         return
         
     def run(self):
+        """
+        Advancer driver
+        """
 
         print('advancer: run: Preparing to step')
         

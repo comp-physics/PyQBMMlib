@@ -1,0 +1,24 @@
+init_condition:
+    mu:    1.0
+    sigma: 0.1
+
+qbmm:
+    flow: no
+    governing_dynamics:   "4*x - 2*x**2"
+    num_internal_coords:  1
+    num_quadrature_nodes: 2
+    method:               "hyqmom"
+    adaptive:             no
+    max_skewness:         30
+
+advancer:
+    method:          "RK23"
+    time_step:       0.1
+    final_time:      2.0
+    error_tol:       1.0e-5
+    num_steps:       10
+    num_steps_print: 1
+    num_steps_write: 1
+    output_dir:      "D/"
+    output_id:       "example_1D"
+    write_to:        "txt"

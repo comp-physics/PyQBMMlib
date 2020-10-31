@@ -17,7 +17,10 @@ class qbmm_manager:
 
     def __init__(self, config):
         """
-        Constructor. Takes in a config dictionary.
+        Constructor
+
+        Inputs:
+          config: Configuration dictionary
         """
         self.flow                 = config['qbmm']['flow']
         self.governing_dynamics   = config['qbmm']['governing_dynamics']
@@ -50,10 +53,7 @@ class qbmm_manager:
 
         # Determine moment indices
         self.moment_indices()
-        # if self.num_internal_coords == 1:
         print( '\t num_moments         = %i' % self.num_moments )
-        # else:
-        #     i_array_pretty_print( '\t num_moments        ', '', self.num_moments )
 
         # Determine coefficients & exponents from governing dynamics
         if self.num_internal_coords < 3:
@@ -66,7 +66,10 @@ class qbmm_manager:
 
     def set_inversion(self, config):
         """
-        This function sets the inversion procedure based on config options.
+        This function sets the inversion procedure based on config options
+
+        Inputs:
+          config: Configuration dictionary
         """        
         qbmm_config = config['qbmm']
         
@@ -134,9 +137,9 @@ class qbmm_manager:
     
     def moment_indices(self):
         """
-        This function sets moment indices according to 
-        dimensionality (num_coords and num_nodes) and method.
+        This function sets moment indices according to dimensionality (num_coords and num_nodes) and method.
         """
+        
         ###
         self.num_moments = 0
         #
@@ -194,8 +197,7 @@ class qbmm_manager:
 
     def transport_terms(self):
         """
-        This function determines the RHS in the moments equation
-        for a given governing dynamics
+        This function determines the RHS in the moments equation for a given governing dynamics
         """
 
         if self.num_internal_coords == 1:
@@ -297,6 +299,10 @@ class qbmm_manager:
     def compute_rhs(self, moments, rhs):
         """
         Compute moment-transport RHS
+
+        Inputs:
+          moments:
+          rhs: 
         """
         # Compute abscissas and weights from moments
         if self.num_internal_coords == 1:

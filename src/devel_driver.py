@@ -1,4 +1,5 @@
 from advancer import *
+from config_manager import *
 import sys
 sys.path.append('../utils/')
 from stats_util import *
@@ -7,7 +8,7 @@ from jets_util import *
 from pretty_print_util import *
 import cProfile
 
-def flow_example():
+def flow_example(): 
     
     # In development
     config = {}
@@ -52,84 +53,28 @@ def flow_example():
     
     return
 
-def advance_example1d():
+def advance_example(config):
 
-    config = {}
-    config['qbmm'] = {}
-    config['advancer'] = {}
-    
-    config['qbmm']['flow'] = False
-    config['qbmm']['governing_dynamics'] = '4*x - 2*x**2'
-    config['qbmm']['num_internal_coords']  = 1
-    config['qbmm']['num_quadrature_nodes'] = 2
-    config['qbmm']['method']               = 'hyqmom'
-    config['qbmm']['adaptive']             = False
-    config['qbmm']['max_skewness']         = 30
-
-    config['advancer']['method']     = 'RK23'
-    config['advancer']['time_step']  = 0.1
-    config['advancer']['final_time'] = 2.0
-    config['advancer']['error_tol']  = 1.0e-5
-    config['advancer']['num_steps']  = 10
-    config['advancer']['num_steps_print'] = 1
-    config['advancer']['num_steps_write'] = 1
-    config['advancer']['output_dir']      = 'D/'
-    config['advancer']['output_id']       = 'example_1D'
-    config['advancer']['write_to']        = 'txt'
-    
     advancer = time_advancer( config )
 
     # Initialize condition
-    mu    = 1.0
-    sigma = 0.1
-    advancer.initialize_state_gaussian_univar( mu, sigma )
+    num_dim = config['qbmm']['num_internal_coords']
+    mu    = config['init_condition']['mu']
+    sigma = config['init_condition']['sigma']
+
+    if num_dim == 1:
+        advancer.initialize_state_gaussian_univar( mu, sigma )
+    elif num_dim == 2:
+        mu1 = mu[0]
+        mu2 = mu[1]
+        sigma1 = sigma[0]
+        sigma2 = sigma[1]
+        advancer.initialize_state_gaussian_bivar( mu1, mu2, sigma1, sigma2 )
 
     # Run
     advancer.run()
     
     return
-
-
-def advance_example2d():
-
-    config = {}
-    config['qbmm'] = {}
-    config['advancer'] = {}
-    
-    config['qbmm']['flow'] = False
-    config['qbmm']['governing_dynamics'] = ' - x - xdot'
-    config['qbmm']['num_internal_coords']  = 2
-    config['qbmm']['num_quadrature_nodes'] = 4
-    config['qbmm']['method']               = 'chyqmom'
-    config['qbmm']['adaptive']             = False
-    config['qbmm']['max_skewness']         = 30
-
-    config['advancer']['method']     = 'RK23'
-    config['advancer']['time_step']  = 1.e-5
-    config['advancer']['final_time'] = 30.
-    config['advancer']['error_tol']  = 1.0e-9
-    config['advancer']['num_steps']  = 20000
-    config['advancer']['num_steps_print'] = 1000
-    config['advancer']['num_steps_write'] = 1000
-    config['advancer']['output_dir']      = 'D/'
-    config['advancer']['output_id']       = 'example_2D'
-    config['advancer']['write_to']        = 'txt'
-    
-    advancer = time_advancer( config )
-
-    # Initial condition
-    mu1    = 1.0
-    mu2    = 0.0
-    sigma1 = 0.1
-    sigma2 = 0.2
-
-    advancer.initialize_state_gaussian_bivar( mu1, mu2, sigma1, sigma2 )
-
-    # Run
-    advancer.run()
-    
-    return
-
 
 def advance_example2dp1():
     # In development!
@@ -178,13 +123,30 @@ if __name__ == '__main__':
 
     np.set_printoptions( formatter = { 'float': '{: 0.4E}'.format } )
 
-    case = 'example_2D'
+    nargs = len( sys.argv )
+    if nargs == 2:
+        config_file = sys.argv[1]
+        config_mgr  = config_manager( config_file )
+        config      = config_mgr.get_config()
+        advance_example( config )
+        ### Complete workflow for devel driver:
+        ### 1. Check whether input file exists
+        ### 2. If yes, run advance_example, then stop
+        ### 3. If no, compare argv[1] to case name
+        ### 4. If argv matches case, run, then stop
+        ### 5. If argv does not match case, then exit
+    else:
+        print('devel_driver: no config file supplied')
+        exit
+        
+    
+    # case = 'example_2D'
 
-    if case == 'example_1D':
-        advance_example1d()
-    elif case == 'example_2D':
-        advance_example2d()
-    elif case == 'flow':
-        flow_example()
+    # if case == 'example_1D':
+    #     advance_example1d()
+    # elif case == 'example_2D':
+    #     advance_example2d()
+    # elif case == 'flow':
+    #     flow_example()
 
     exit
