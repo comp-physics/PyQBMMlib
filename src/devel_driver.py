@@ -1,3 +1,14 @@
+"""
+
+.. module:: devel_driver
+   :platform: MacOS, Unix
+   :synopsis: A useful module indeed.
+
+.. moduleauthor:: SHB <spencer@caltech.edu> and Esteban Cisneros
+
+
+"""
+
 from advancer import *
 from config_manager import *
 import sys

@@ -1,5 +1,17 @@
+"""
+
+.. module:: advancer
+   :platform: MacOS, Unix
+   :synopsis: A useful module indeed.
+
+.. moduleauthor:: SHB <spencer@caltech.edu> and Esteban Cisneros
+
+
+"""
+
 import sys
 sys.path.append('../utils/')
+
 from stats_util import *
 from pretty_print_util import *
 from qbmm_manager import *
@@ -7,10 +19,43 @@ import numpy as np
 import csv
 
 class time_advancer:
+    """This function does something.
+    
+    Args:
+       name (str):  The name to use. 
+       
+    Kwargs:
+       state (bool): Current state to be in. 
+
+    Returns: 
+       int.  The return code::
+       
+          0 -- Success!
+          1 -- No good. 
+          2 -- Try again. 
+    
+    Raises:
+       AttributeError, KeyError
+
+    A really great idea.  A way you might use me is
+    
+    >>> print public_fn_with_googley_docstring(name='foo', state=None)
+    0
+    
+    BTW, this always returns 0.  **NEVER** use with :class:`MyPublicClass`.
+    
+    """
 
     def __init__(self, config):
-        """
-        Constructor
+        """Constructor
+        
+        :param name: The name to use.
+        :type name: str.
+        :param state: Current state to be in.    
+        :type state: bool.
+        :returns:  int -- the return code.      
+        :raises: AttributeError, KeyError
+
         """
         
         

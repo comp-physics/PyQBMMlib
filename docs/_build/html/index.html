@@ -1,0 +1,348 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welcome to PyQBMMlib’s documentation! &#8212; PyQBMMlib  documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">PyQBMMlib  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Welcome to PyQBMMlib’s documentation!</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="welcome-to-pyqbmmlib-s-documentation">
+<h1>Welcome to PyQBMMlib’s documentation!<a class="headerlink" href="#welcome-to-pyqbmmlib-s-documentation" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="toc-tree">
+<h1>TOC Tree<a class="headerlink" href="#toc-tree" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+<div class="section" id="module-advancer">
+<span id="advancer"></span><h1>Advancer<a class="headerlink" href="#module-advancer" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-0"></span><dl class="py class">
+<dt id="advancer.time_advancer">
+<em class="property">class </em><code class="sig-prename descclassname">advancer.</code><code class="sig-name descname">time_advancer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#advancer.time_advancer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This function does something.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – The name to use.</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Kwargs:</dt><dd><p>state (bool): Current state to be in.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><p>int.  The return code:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>0 -- Success!
+1 -- No good.
+2 -- Try again.
+</pre></div>
+</div>
+</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>AttributeError</strong><strong>, </strong><strong>KeyError</strong> – </p>
+</dd>
+</dl>
+<p>A really great idea.  A way you might use me is</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">public_fn_with_googley_docstring</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="go">0</span>
+</pre></div>
+</div>
+<p>BTW, this always returns 0.  <strong>NEVER</strong> use with <code class="xref py py-class docutils literal notranslate"><span class="pre">MyPublicClass</span></code>.</p>
+<dl class="py method">
+<dt id="advancer.time_advancer.adapt_time_step">
+<code class="sig-name descname">adapt_time_step</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#advancer.time_advancer.adapt_time_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function adapts the time step according to user-specified tolerance</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="advancer.time_advancer.advance_RK23">
+<code class="sig-name descname">advance_RK23</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#advancer.time_advancer.advance_RK23" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function advances the state with a Runge–Kutta 2/3 scheme</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="advancer.time_advancer.advance_euler">
+<code class="sig-name descname">advance_euler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#advancer.time_advancer.advance_euler" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function advances the state with an explicit Euler scheme</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="advancer.time_advancer.initialize_state">
+<code class="sig-name descname">initialize_state</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">init_state</span></em><span class="sig-paren">)</span><a class="headerlink" href="#advancer.time_advancer.initialize_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function initializes the advancer state</p>
+<dl class="simple">
+<dt>Inputs:</dt><dd><p>init_state: Initial condition</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="advancer.time_advancer.initialize_state_gaussian_bivar">
+<code class="sig-name descname">initialize_state_gaussian_bivar</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mu1</span></em>, <em class="sig-param"><span class="n">mu2</span></em>, <em class="sig-param"><span class="n">sigma1</span></em>, <em class="sig-param"><span class="n">sigma2</span></em><span class="sig-paren">)</span><a class="headerlink" href="#advancer.time_advancer.initialize_state_gaussian_bivar" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function initializes the state to the raw moments of a bivariate Gaussian distribution.</p>
+<dl class="simple">
+<dt>Inputs:</dt><dd><p>mu1, mu2: Means
+sigma1, sigma2: Standard deviations</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="advancer.time_advancer.initialize_state_gaussian_trivar">
+<code class="sig-name descname">initialize_state_gaussian_trivar</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mu1</span></em>, <em class="sig-param"><span class="n">mu2</span></em>, <em class="sig-param"><span class="n">mu3</span></em>, <em class="sig-param"><span class="n">sig1</span></em>, <em class="sig-param"><span class="n">sig2</span></em>, <em class="sig-param"><span class="n">sig3</span></em><span class="sig-paren">)</span><a class="headerlink" href="#advancer.time_advancer.initialize_state_gaussian_trivar" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function initializes the state to the raw moments of a trivariate Gaussian distribution.</p>
+<dl class="simple">
+<dt>Inputs:</dt><dd><p>mu1, mu2, mu3: Means
+sigma1, sigma2, sigma3: Standard deviations</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="advancer.time_advancer.initialize_state_gaussian_univar">
+<code class="sig-name descname">initialize_state_gaussian_univar</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mu</span></em>, <em class="sig-param"><span class="n">sigma</span></em><span class="sig-paren">)</span><a class="headerlink" href="#advancer.time_advancer.initialize_state_gaussian_univar" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function initializes the state to the raw moments of a univariate Gaussian distribution.</p>
+<dl class="simple">
+<dt>Inputs:</dt><dd><p>mu:    mean
+sigma: standard deviation</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="advancer.time_advancer.report_step">
+<code class="sig-name descname">report_step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_step</span></em><span class="sig-paren">)</span><a class="headerlink" href="#advancer.time_advancer.report_step" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="advancer.time_advancer.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#advancer.time_advancer.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Advancer driver</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="advancer.time_advancer.write_step">
+<code class="sig-name descname">write_step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_step</span></em><span class="sig-paren">)</span><a class="headerlink" href="#advancer.time_advancer.write_step" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="advancer.time_advancer.write_to_h5">
+<code class="sig-name descname">write_to_h5</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#advancer.time_advancer.write_to_h5" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="advancer.time_advancer.write_to_txt">
+<code class="sig-name descname">write_to_txt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">i_step</span></em><span class="sig-paren">)</span><a class="headerlink" href="#advancer.time_advancer.write_to_txt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-qbmm_manager">
+<span id="qbmm-manager"></span><h1>QBMM Manager<a class="headerlink" href="#module-qbmm_manager" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-1"></span><dl class="py class">
+<dt id="qbmm_manager.qbmm_manager">
+<em class="property">class </em><code class="sig-prename descclassname">qbmm_manager.</code><code class="sig-name descname">qbmm_manager</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qbmm_manager.qbmm_manager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This function does something.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – The name to use.</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Kwargs:</dt><dd><p>state (bool): Current state to be in.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><p>int.  The return code:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>0 -- Success!
+1 -- No good.
+2 -- Try again.
+</pre></div>
+</div>
+</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>AttributeError</strong><strong>, </strong><strong>KeyError</strong> – </p>
+</dd>
+</dl>
+<p>A really great idea.  A way you might use me is</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">public_fn_with_googley_docstring</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="go">0</span>
+</pre></div>
+</div>
+<p>BTW, this always returns 0.  <strong>NEVER</strong> use with <code class="xref py py-class docutils literal notranslate"><span class="pre">MyPublicClass</span></code>.</p>
+<dl class="py method">
+<dt id="qbmm_manager.qbmm_manager.compute_rhs">
+<code class="sig-name descname">compute_rhs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">moments</span></em>, <em class="sig-param"><span class="n">rhs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qbmm_manager.qbmm_manager.compute_rhs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute moment-transport RHS</p>
+<dl class="simple">
+<dt>Inputs:</dt><dd><p>moments:
+rhs:</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qbmm_manager.qbmm_manager.moment_indices">
+<code class="sig-name descname">moment_indices</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qbmm_manager.qbmm_manager.moment_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function sets moment indices according to dimensionality (num_coords and num_nodes) and method.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qbmm_manager.qbmm_manager.moment_invert_1D">
+<code class="sig-name descname">moment_invert_1D</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">moments</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qbmm_manager.qbmm_manager.moment_invert_1D" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function inverts moments in 1D</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qbmm_manager.qbmm_manager.moment_invert_2PD">
+<code class="sig-name descname">moment_invert_2PD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">moments</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qbmm_manager.qbmm_manager.moment_invert_2PD" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function inverts moments in ND, with N &gt; 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qbmm_manager.qbmm_manager.projection">
+<code class="sig-name descname">projection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">weights</span></em>, <em class="sig-param"><span class="n">abscissas</span></em>, <em class="sig-param"><span class="n">indices</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qbmm_manager.qbmm_manager.projection" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function reconstructs moments (indices) from quadrature weights and abscissas</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qbmm_manager.qbmm_manager.set_inversion">
+<code class="sig-name descname">set_inversion</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qbmm_manager.qbmm_manager.set_inversion" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function sets the inversion procedure based on config options</p>
+<dl class="simple">
+<dt>Inputs:</dt><dd><p>config: Configuration dictionary</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qbmm_manager.qbmm_manager.transport_terms">
+<code class="sig-name descname">transport_terms</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qbmm_manager.qbmm_manager.transport_terms" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function determines the RHS in the moments equation for a given governing dynamics</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-devel_driver">
+<span id="drivers"></span><h1>Drivers<a class="headerlink" href="#module-devel_driver" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-2"></span><dl class="py function">
+<dt id="devel_driver.advance_example">
+<code class="sig-prename descclassname">devel_driver.</code><code class="sig-name descname">advance_example</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="headerlink" href="#devel_driver.advance_example" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="devel_driver.advance_example2dp1">
+<code class="sig-prename descclassname">devel_driver.</code><code class="sig-name descname">advance_example2dp1</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#devel_driver.advance_example2dp1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="devel_driver.flow_example">
+<code class="sig-prename descclassname">devel_driver.</code><code class="sig-name descname">flow_example</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#devel_driver.flow_example" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Welcome to PyQBMMlib’s documentation!</a></li>
+<li><a class="reference internal" href="#toc-tree">TOC Tree</a></li>
+<li><a class="reference internal" href="#module-advancer">Advancer</a></li>
+<li><a class="reference internal" href="#module-qbmm_manager">QBMM Manager</a></li>
+<li><a class="reference internal" href="#module-devel_driver">Drivers</a></li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">PyQBMMlib  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Welcome to PyQBMMlib’s documentation!</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Spencer Bryngelson.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.3.0.
+    </div>
+  </body>
+</html>
