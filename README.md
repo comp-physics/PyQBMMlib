@@ -1,8 +1,6 @@
 # PyQBMMlib
 
-Authors: [Spencer H. Bryngelson](https://bryngelson-research.com) (Caltech) and Esteban Cisneros Garibay (Illinois)
-
-This is a Python fork of [QBMMlib](https://github.com/sbryngelson/QBMMlib), which was developed by Dr. Spencer Bryngelson, Prof. Rodney Fox, and Prof. Tim Colonius. 
+PyQBMMlib is a Python fork of [QBMMlib](https://github.com/sbryngelson/QBMMlib), which was developed by Dr. Spencer Bryngelson, Prof. Rodney Fox, and Prof. Tim Colonius. 
 It can be cited as
 ```
 @article{bryngelson_2020,
@@ -15,7 +13,14 @@ It can be cited as
 Its documentation is also located on the [arXiv](http://arxiv.org/abs/2008.05063v1).
 When compared to QBMMlib, PyQBMMlib offers significantly decreased time to solution (when using Numba).
 
-## Requirements
+## Authors: 
+
+* [Spencer H. Bryngelson](https://bryngelson-research.com) (Caltech) 
+    * spencer@caltech.edu
+* Esteban Cisneros (Illinois)
+    * csnrsgr2@illinois.edu
+
+## Required Python modules
 
 - Python >= 3.0
 - Numpy
