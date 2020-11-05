@@ -24,7 +24,7 @@ except:
     from quad import *
 
 class qbmm_manager:
-    """This class is manages the computation of moment-transport RHS. It is meant to be called from within :class:`time_advancer`, with which it interfaces through :func:`compute_rhs`.     
+    """This class manages the computation of moment-transport RHS. It is meant to be called from within :class:`time_advancer`, with which it interfaces through :func:`compute_rhs`.     
     """
 
     def __init__(self, config):
