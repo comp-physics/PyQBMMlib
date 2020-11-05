@@ -4,7 +4,7 @@
    :platform: MacOS, Unix
    :synopsis: A useful module indeed.
 
-.. moduleauthor:: SHB <spencer@caltech.edu> and Esteban Cisneros
+.. moduleauthor:: SHB <spencer@caltech.edu> and Esteban Cisneros <csnrsgr2@illinois.edu>
 
 
 """
@@ -19,42 +19,26 @@ import numpy as np
 import csv
 
 class time_advancer:
-    """This function does something.
+    """This class advances the moment transport equations in time.
     
-    Args:
-       name (str):  The name to use. 
-       
-    Kwargs:
-       state (bool): Current state to be in. 
+    To use this class, you'll need a :any:`config` dictionary. Once you have it, instantiante an advancer object:
+    
+    >>> advancer = time_advancer( config )
 
-    Returns: 
-       int.  The return code::
-       
-          0 -- Success!
-          1 -- No good. 
-          2 -- Try again. 
-    
-    Raises:
-       AttributeError, KeyError
+    Then, you'll need initialize the state. One way you may do this is through:
 
-    A really great idea.  A way you might use me is
-    
-    >>> print public_fn_with_googley_docstring(name='foo', state=None)
-    0
-    
-    BTW, this always returns 0.  **NEVER** use with :class:`MyPublicClass`.
-    
+    >>> advancer.initialize_state_gaussian_univar( mu, sigma )
+
+    for a 1D problem, where :any:`mu` and :any:`sigma` are user-specified. Now all you have to do is:
+
+    >>> advancer.run()    
     """
 
     def __init__(self, config):
         """Constructor
-        
-        :param name: The name to use.
-        :type name: str.
-        :param state: Current state to be in.    
-        :type state: bool.
-        :returns:  int -- the return code.      
-        :raises: AttributeError, KeyError
+                
+        :param config: Configuration
+        :type config: dict
 
         """
         
@@ -113,8 +97,8 @@ class time_advancer:
         """
         This function initializes the advancer state
 
-        Inputs:
-          init_state: Initial condition
+        :param init_state: Initial condition
+        :type init_state: array like
         """
         
         self.state = init_state
@@ -125,9 +109,18 @@ class time_advancer:
         """
         This function initializes the state to the raw moments of a trivariate Gaussian distribution.
 
-        Inputs:
-          mu1, mu2, mu3: Means
-          sigma1, sigma2, sigma3: Standard deviations
+        :param mu1: Mean of coordinate 1
+        :param mu2: Mean of coordinate 2
+        :param mu3: Mean of coordinate 3
+        :param sig1: Standard deviation of coordinate 1
+        :param sig2: Standard deviation of coordinate 2
+        :param sig3: Standard deviation of coordinate 3
+        :type mu1: float
+        :type mu2: float
+        :type mu3: floag
+        :type sig1: float
+        :type sig2: float
+        :type sig3: float
         """
 
         
@@ -141,9 +134,14 @@ class time_advancer:
         """
         This function initializes the state to the raw moments of a bivariate Gaussian distribution.
 
-        Inputs:
-          mu1, mu2: Means
-          sigma1, sigma2: Standard deviations 
+        :param mu1: Mean of coordinate 1
+        :param mu2: Mean of coordinate 2
+        :param sig1: Standard deviation of coordinate 1
+        :param sig2: Standard deviation of coordinate 2
+        :type mu1: float
+        :type mu2: float
+        :type sig1: float
+        :type sig2: float
         """
         
         
@@ -156,9 +154,8 @@ class time_advancer:
         """
         This function initializes the state to the raw moments of a univariate Gaussian distribution.
 
-        Inputs:
-          mu:    mean
-          sigma: standard deviation        
+        :param mu: Mean
+        :param sigma: Standard deviation
         """
 
         self.state = raw_gaussian_moments_univar( self.num_dim, mu, sigma)
@@ -186,9 +183,6 @@ class time_advancer:
         This function advances the state with a Runge--Kutta 2/3 scheme
         """
 
-        #message = 'advancer: advace_RK3: '
-        #f_array_pretty_print( message, 'state', self.state )
-        
         # Stage 1: { y_1, k_1 } = f( t_n, y_0 )
         self.stage_state[0] = self.state.copy()
         time = self.time
@@ -206,14 +200,6 @@ class time_advancer:
         # Updates
         test_state = 0.5 * ( self.stage_state[0] + ( self.stage_state[1] + self.time_step * self.stage_k[1] ) )
         self.state = ( self.stage_state[0] + 2.0 * ( self.stage_state[2] + self.time_step * self.stage_k[2] ) ) / 3.0 
-
-        # f_array_pretty_print( message, 'stage_state_0', self.stage_state[0] )
-        # f_array_pretty_print( message, 'stage_state_1', self.stage_state[1] )
-        # f_array_pretty_print( message, 'stage_state_2', self.stage_state[2] )
-        # f_array_pretty_print( message, 'stage_k_0', self.stage_k[0] )
-        # f_array_pretty_print( message, 'stage_k_1', self.stage_k[1] )
-        # f_array_pretty_print( message, 'stage_k_2', self.stage_k[2] )
-        # f_array_pretty_print( message, 'state', self.state )
         
         self.rk_error = np.linalg.norm( self.state - test_state ) / np.linalg.norm( self.state )
 
@@ -267,18 +253,35 @@ class time_advancer:
         return
 
     def report_step(self, i_step):
+        """
+        This function reports the current state
+
+        :param i_step: Current step
+        :type i_step: int
+        """
 
         message = 'advancer: step = ' + str(i_step) + ' ... time = ' + '{:.16E}'.format(self.time) + ' ... time_step = ' + '{:.16E}'.format(self.time_step) + ' ... '
         f_array_pretty_print( message, 'state', self.state )
 
     def write_step(self, i_step):
+        """
+        This function writes the current state
+
+        :param i_step: Current step
+        :type i_step: int
+        """
 
         message = 'advancer: step = ' + str(i_step) + ' ... Writing to file'
         # print(message)
         self.write_to_file( i_step )
         
     def write_to_txt(self, i_step):
+        """
+        This function writes the current state to a txt file
 
+        :param i_step: Current step
+        :type i_step: int
+        """
         write_flag = 'a'
         if i_step == 0:
             write_flag = 'w'
@@ -290,6 +293,8 @@ class time_advancer:
         return
         
     def write_to_h5(self):
-        
+        """
+        This function writes the current state to a h5 file, but is not implemented yet.        
+        """
         print('advancer: write_to_h5: not implemented yet')
         return

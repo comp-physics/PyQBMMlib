@@ -4,7 +4,7 @@
    :platform: MacOS, Unix
    :synopsis: A useful module indeed.
 
-.. moduleauthor:: SHB <spencer@caltech.edu> and Esteban Cisneros
+.. moduleauthor:: SHB <spencer@caltech.edu> and Esteban Cisneros <csnrsgr2@illinois.edu>
 
 """
 
@@ -24,38 +24,14 @@ except:
     from quad import *
 
 class qbmm_manager:
-    """This function does something.
-    
-    Args:
-       name (str):  The name to use. 
-       
-    Kwargs:
-       state (bool): Current state to be in. 
-
-    Returns: 
-       int.  The return code::
-       
-          0 -- Success!
-          1 -- No good. 
-          2 -- Try again. 
-    
-    Raises:
-       AttributeError, KeyError
-
-    A really great idea.  A way you might use me is
-    
-    >>> print public_fn_with_googley_docstring(name='foo', state=None)
-    0
-    
-    BTW, this always returns 0.  **NEVER** use with :class:`MyPublicClass`.
-    
+    """This class is manages the computation of moment-transport RHS. It is meant to be called from within :class:`time_advancer`, with which it interfaces through :func:`compute_rhs`.     
     """
 
     def __init__(self, config):
         """Constructor
 
-        Inputs:
-          config: Configuration dictionary
+        :param config: Configuration
+        :type config: dict
         """
         self.flow                 = config['qbmm']['flow']
         self.governing_dynamics   = config['qbmm']['governing_dynamics']
@@ -103,8 +79,8 @@ class qbmm_manager:
         """
         This function sets the inversion procedure based on config options
 
-        Inputs:
-          config: Configuration dictionary
+        :param config: Configuration
+        :type config: dict
         """        
         qbmm_config = config['qbmm']
         
@@ -306,19 +282,50 @@ class qbmm_manager:
     
     def moment_invert_1D(self, moments):
         """
-        This function inverts moments in 1D
+        This function inverts tracked moments into a quadrature rule in 1D
+
+        :param moments: Tracked moments
+        :type moments: array like
+        :return: quadrature abscissas, weights
+        :rtype: array like
+
+        This is never directly invoked. Instead, the user calls
+
+        >>> xi, wts = qbmm_mgr.moment_inver(moments)
+
+        and qbmm_manager automatically selects moment_invert_1D based if :any:`num_internal_coords = 1`
         """
         return self.inversion_algorithm( moments, self.inversion_option )
 
     def moment_invert_2PD(self, moments):
         """
-        This function inverts moments in ND, with N > 1
+        This function inverts moments into a quadrature rule in ND > 1
+
+        :param moments: Tracked moments
+        :type moments: array like
+        :return: quadrature abscissas, weights
+        :rtype: array like
+
+        This is never directly invoked. Instead, the user calls
+
+        >>> xi, wts = qbmm_mgr.moment_inver(moments)
+
+        and qbmm_manager automatically selects moment_invert_2PD based if :any:`num_internal_coords > 1`
         """
         return self.inversion_algorithm( moments, self.indices, self.inversion_option )
 
     def projection(self, weights, abscissas, indices):
         """
         This function reconstructs moments (indices) from quadrature weights and abscissas
+
+        :param weights: Quadrature weights
+        :param abscissas: Quadrature abscissas
+        :param indices: Full moment set indices
+        :type weights: array like
+        :type abscissas: array like
+        :type weights: array like
+        :return: projected moments
+        :rtype: array like
         """
         abscissas = np.array(abscissas)
         moments = np.zeros( len(indices) )
@@ -333,11 +340,11 @@ class qbmm_manager:
 
     def compute_rhs(self, moments, rhs):
         """
-        Compute moment-transport RHS
+        This function computes moment-transport RHS
 
-        Inputs:
-          moments:
-          rhs: 
+        :param moments: Transported moments
+        :param rhs: Moments rate-of-change
+
         """
         # Compute abscissas and weights from moments
         if self.num_internal_coords == 1:
