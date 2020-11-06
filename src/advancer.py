@@ -21,15 +21,26 @@ import csv
 class time_advancer:
     """This class advances the moment transport equations in time.
     
-    To use this class, you'll need a :any:`config` dictionary. Once you have it, instantiante an advancer object:
+    To use this class, you'll need a ``config`` dictionary. Example files are provided in ``inputs/``. The dictionary is used to set the following variables:
+
+    :ivar method: Time integration scheme (``euler`` or ``RK23``)
+    :ivar time_step: Time integration time step 
+    :ivar final_time: Final integration time
+    :ivar num_steps: Number of integration steps
+    :ivar num_steps_print: Report-status frequency
+    :ivar num_steps_write: Write-to-file frequency
+    :ivar output_dir: Directory to which output is written
+    :ivar output_id: An ID for each run's output file
+
+    Create an advancer object simply by typing 
     
     >>> advancer = time_advancer( config )
 
-    Then, you'll need initialize the state. One way you may do this is through:
+    Before running, you'll need to initialize the state. One way you may do this is through:
 
     >>> advancer.initialize_state_gaussian_univar( mu, sigma )
 
-    for a 1D problem, where :any:`mu` and :any:`sigma` are user-specified. Now all you have to do is:
+    for a 1D problem, where ``mu`` and ``sigma`` are user-specified. Now all you have to do is:
 
     >>> advancer.run()    
     """

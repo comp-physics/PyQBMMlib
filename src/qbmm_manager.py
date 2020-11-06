@@ -24,7 +24,14 @@ except:
     from quad import *
 
 class qbmm_manager:
-    """This class manages the computation of moment-transport RHS. It is meant to be called from within :class:`time_advancer`, with which it interfaces through :func:`compute_rhs`.     
+    """This class manages the computation of moment-transport RHS. It is meant to be called from within :class:`time_advancer`, with which it interfaces through :func:`compute_rhs`. The ``config`` dictionary carries values for the following variables:  
+
+    :ivar governing dynamics: Governing internal dynamics
+    :ivar num_internal_coords: Number of internal coordinates    
+    :ivar num_quadrature_nodes: Number of quadrature nodes
+    :ivar method: Inversion method (``qmom``, ``hyqmom``, ``chyqmom``)
+    :ivar adaptive: Adaptivity flag for ``method = qmom`` (Wheeler)
+    :ivar max_skewness: Maximum skewness for ``method = hyqmom or chyqmom`` (hyperbolic or conditional hyperbolic)
     """
 
     def __init__(self, config):
@@ -293,7 +300,7 @@ class qbmm_manager:
 
         >>> xi, wts = qbmm_mgr.moment_inver(moments)
 
-        and qbmm_manager automatically selects moment_invert_1D based if :any:`num_internal_coords = 1`
+        and qbmm_manager automatically selects moment_invert_1D based if ``num_internal_coords = 1``
         """
         return self.inversion_algorithm( moments, self.inversion_option )
 
@@ -310,7 +317,7 @@ class qbmm_manager:
 
         >>> xi, wts = qbmm_mgr.moment_inver(moments)
 
-        and qbmm_manager automatically selects moment_invert_2PD based if :any:`num_internal_coords > 1`
+        and qbmm_manager automatically selects moment_invert_2PD based if ``num_internal_coords > 1``
         """
         return self.inversion_algorithm( moments, self.indices, self.inversion_option )
 

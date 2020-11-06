@@ -17,12 +17,17 @@ def sign(q):
 ### Invesion methods for 1D problems
 ###
 def wheeler(moments, adaptive = False):
-    
+    """
+    This function inverts moments into 1D quadrature weights and abscissas using adaptive Wheeler algorithm. 
+
+    :param moments: Statistical moments of the transported PDF
+    :type moments: array like
+    :return: Abscissas, weights
+    :rtype: array like
+    """
+
     # From Bo Kong code in old_python_qmom
     # def adaptive_Wheeler(mom):
-    """ Return weights,  nodes, and number of nodes using adaptive Wheeler
-    algorithm.
-    """
     
     # SHB: need to convert all this stuff to numpy?
 
@@ -141,6 +146,16 @@ def wheeler(moments, adaptive = False):
     # return weights, abscissas
 
 def hyperbolic(moments, max_skewness = 30):
+    """
+    This is a driver for hyperbolic qmom. It calls :func:`hyperbolic_two_nodes` if ``len(moments) = 2``, or :func:`hyperbolic_three_nodes` if ``len(moments) = 3``
+
+    :param moments: Statistical moments of the transported PDF
+    :param max_skewness: Maximum skewness (optional, defaults to 30)
+    :type moments: array like
+    :type max_skewness: float
+    :return: Abscissas, weights
+    :rtype: array like
+    """
     
     num_moments = len( moments )
     if num_moments == 3:
@@ -153,6 +168,14 @@ def hyperbolic(moments, max_skewness = 30):
 
 # @jit(nopython=True)
 def hyperbolic_two_nodes(moments):
+    """
+    This function inverts moments into a two-node quadrature rule.
+
+    :param moments: Statistical moments of the transported PDF    
+    :type moments: array like
+    :return: Abscissas, weights
+    :rtype: array like
+    """
 
     n = 2
     w = np.zeros(n)
@@ -174,7 +197,17 @@ def hyperbolic_two_nodes(moments):
 
 # @jit(nopython=True)
 def hyperbolic_three_nodes(moments, max_skewness):
+    """
+    This function inverts moments into a three-node quadrature rule.
 
+    :param moments: Statistical moments of the transported PDF
+    :param max_skewness: Maximum skewness
+    :type moments: array like
+    :type max_skewness: float
+    :return: Abscissas, weights
+    :rtype: array like
+    """
+    
     n = 3
     etasmall  = 10**(-10) 
     verysmall = 10**(-14) 
@@ -279,7 +312,15 @@ def hyperbolic_three_nodes(moments, max_skewness):
     return x,w
 
 def conditional_hyperbolic(moments, indices, max_skewness = 30):
+    """
+    This function inverts moments into a two-node quadrature rule.
 
+    :param moments: Statistical moments of the transported PDF
+    :type moments: array like
+    :return: Abscissas, weights
+    :rtype: array like
+    """
+    
     num_dim = len(indices)
 
     if num_dim == 6:

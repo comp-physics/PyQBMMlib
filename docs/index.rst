@@ -13,7 +13,12 @@ TOC Tree
    :maxdepth: 2
    :caption: Contents:
 
-
+Drivers
+=========================
+.. automodule:: devel_driver
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 Advancer
 =========================
@@ -30,17 +35,13 @@ QBMM Manager
    :undoc-members:
    :show-inheritance:
 
-
-Drivers
+Inversion
 =========================
-.. automodule:: devel_driver
+.. automodule:: inversion
    :members:
    :undoc-members:
    :show-inheritance:
-
-
-
-
+      
 Indices and tables
 ==================
 
