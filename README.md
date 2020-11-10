@@ -6,12 +6,12 @@ It can be cited as
 @article{bryngelson_2020,
     Author        = {Spencer H. Bryngelson and Tim Colonius and Rodney O. Fox},
     Title         = {{QBMMlib: A} library of quadrature-based moment methods},
-    Volume        = 12
-    Pages         = 100615
+    Journal       = {SoftwareX},
+    Volume        = {12},
+    Pages         = {100615},
     Year          = {2020},
 }
 ```
-Its documentation is also located on the [arXiv](http://arxiv.org/abs/2008.05063v1).
 When compared to QBMMlib, PyQBMMlib offers significantly decreased time to solution (when using Numba).
 
 ## Authors: 
