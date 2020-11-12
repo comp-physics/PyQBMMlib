@@ -1,6 +1,6 @@
 # PyQBMMlib
 
-<a href="https://black.readthedocs.io/en/stable/?badge=stable"><img alt="Documentation Status" src="https://readthedocs.org/projects/pyqbmmlib/badge/?version=stable"></a>
+<a href="https://pyqbmmlib.readthedocs.io/en/stable/?badge=stable"><img alt="Documentation Status" src="https://readthedocs.org/projects/pyqbmmlib/badge/?version=stable"></a>
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 
