@@ -1,7 +1,10 @@
 # PyQBMMlib
 
-<a href="https://pyqbmmlib.readthedocs.io/en/stable/?badge=stable"><img alt="Documentation Status" src="https://readthedocs.org/projects/pyqbmmlib/badge/?version=stable"></a>
+|docs| 
+
+
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![Documentation Status](https://readthedocs.org/projects/pyqbmmlib/badge/?version=latest)](https://pyqbmmlib.readthedocs.io/en/latest/?badge=latest)
 
 
 PyQBMMlib is a Python fork of [QBMMlib](https://github.com/sbryngelson/QBMMlib), which was developed by Dr. Spencer Bryngelson, Prof. Rodney Fox, and Prof. Tim Colonius. 
@@ -54,4 +57,3 @@ A partial list is included here.
 
 Great thanks is owed to Professor Alberto Passalacqua (Iowa State University) for his part in developing these algorithms and teaching me the same.
 We acknowledge funding from the U.S. Office of Naval Research under grant numbers N0014-17-1-2676 and N0014-18-1-2625 (SHB) and the U.S. Department of Energy, National Nuclear Security Administration, under Award Number DE-NA0002374 (ECG).
-
