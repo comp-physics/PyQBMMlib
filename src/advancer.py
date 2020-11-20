@@ -92,7 +92,8 @@ class time_advancer:
         print('\t output_id       = %s'   % self.output_id)
         print('\t write_to        = %s'   % self.write_to)
 
-        self.max_time_step = 1.0
+        self.max_time_step = 1.e5
+        self.min_time_step = self.time_step
 
         self.file_name = self.output_dir + 'qbmm_state_' + self.output_id
         if self.write_to == 'txt':
@@ -113,6 +114,8 @@ class time_advancer:
         """
         
         self.state = init_state
+
+        print('state', self.state)
         
         return
 
@@ -198,20 +201,19 @@ class time_advancer:
         self.stage_state[0] = self.state.copy()
         time = self.time
         self.qbmm_mgr.compute_rhs( self.stage_state[0], self.stage_k[0] )
+        self.stage_state[1] = self.stage_state[0] + self.time_step * self.stage_k[0]
 
         # Stage 2: { y_2, k_2 } = f( t_n, y_1 + dt * k_1 )
-        self.stage_state[1] = self.stage_state[0] + self.time_step * self.stage_k[0]
         time = self.time + self.time_step
         self.qbmm_mgr.compute_rhs( self.stage_state[1], self.stage_k[1] )
+        test_state = 0.5 * ( self.stage_state[0] + ( self.stage_state[1] + self.time_step * self.stage_k[1] ) )
 
         # Stage 3: { y_3, k_3 } = f( t_n + 0.5 * dt, ... )
         self.stage_state[2] = 0.75 * self.stage_state[0] + 0.25 * ( self.stage_state[1] + self.time_step * self.stage_k[1] )
         self.qbmm_mgr.compute_rhs( self.stage_state[2], self.stage_k[2] )
 
         # Updates
-        test_state = 0.5 * ( self.stage_state[0] + ( self.stage_state[1] + self.time_step * self.stage_k[1] ) )
         self.state = ( self.stage_state[0] + 2.0 * ( self.stage_state[2] + self.time_step * self.stage_k[2] ) ) / 3.0 
-        
         self.rk_error = np.linalg.norm( self.state - test_state ) / np.linalg.norm( self.state )
 
     def adapt_time_step(self):
@@ -222,7 +224,7 @@ class time_advancer:
         error_fraction   = np.sqrt( 0.5 * self.error_tol / self.rk_error )
         time_step_factor = min( max( error_fraction, 0.3 ), 2.0 )
         new_time_step    = time_step_factor * self.time_step
-        new_time_step    = min( max( 0.9 * new_time_step, self.time_step ), self.max_time_step )
+        new_time_step    = min( max( 0.9 * new_time_step, self.min_time_step ), self.max_time_step )
         self.time_step   = new_time_step        
         return
         

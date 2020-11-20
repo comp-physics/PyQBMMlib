@@ -392,3 +392,4 @@ class qbmm_manager:
             moments[i_moment] = projected_moments[i_moment]               
         #
         return
+

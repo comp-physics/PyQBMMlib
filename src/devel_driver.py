@@ -155,16 +155,6 @@ if __name__ == '__main__':
         ### 5. If argv does not match case, then exit
     else:
         print('devel_driver: no config file supplied')
-        exit
+
+    exit()
         
-    
-    # case = 'example_2D'
-
-    # if case == 'example_1D':
-    #     advance_example1d()
-    # elif case == 'example_2D':
-    #     advance_example2d()
-    # elif case == 'flow':
-    #     flow_example()
-
-    exit
