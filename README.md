@@ -2,6 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Documentation Status](https://readthedocs.org/projects/pyqbmmlib/badge/?version=latest)](https://pyqbmmlib.readthedocs.io/en/latest/?badge=latest)
+[![DOI](https://zenodo.org/badge/doi/10.1016/j.softx.2020.100615.svg)](http://dx.doi.org/10.1016/j.softx.2020.100615)
 
 
 PyQBMMlib is a Python fork of [QBMMlib](https://github.com/sbryngelson/QBMMlib), which was developed by Dr. Spencer Bryngelson, Prof. Rodney Fox, and Prof. Tim Colonius. 
