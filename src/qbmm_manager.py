@@ -24,7 +24,10 @@ except:
     from quad import *
 
 class qbmm_manager:
-    """This class manages the computation of moment-transport RHS. It is meant to be called from within :class:`time_advancer`, with which it interfaces through :func:`compute_rhs`. The ``config`` dictionary carries values for the following variables:  
+    """
+    This class manages the computation of moment-transport RHS. 
+    It is meant to be called from within :class:`time_advancer`, with which it interfaces through :func:`compute_rhs`. 
+    The ``config`` dictionary carries values for the following variables:  
 
     :ivar governing dynamics: Governing internal dynamics
     :ivar num_internal_coords: Number of internal coordinates    
@@ -35,7 +38,8 @@ class qbmm_manager:
     """
 
     def __init__(self, config):
-        """Constructor
+        """
+        Constructor
 
         :param config: Configuration
         :type config: dict
@@ -51,6 +55,8 @@ class qbmm_manager:
         # if self.poly:
         #     self.num_poly_nodes = config['qbmm']['num_poly_nodes']
         #     self.poly_symbol    = config['qbmm']['poly_symbol']
+
+
 
         iret = self.set_inversion( config )
         if iret == 1:
@@ -90,6 +96,10 @@ class qbmm_manager:
         :type config: dict
         """        
         qbmm_config = config['qbmm']
+
+        self.checks = True
+        if 'checks' in qbmm_config:
+            self.checks = qbmm_config['checks']
         
         if self.num_internal_coords == 1:
             #
@@ -132,6 +142,7 @@ class qbmm_manager:
                     self.permutation = qbmm_config['permutation']
                 self.inversion_option = self.max_skewness
                 self.inversion_option = self.permutation
+                self.inversion_option = self.checks
                 #
         elif self.num_internal_coords == 3:
             #
@@ -145,6 +156,7 @@ class qbmm_manager:
                 if 'max_skewness' in qbmm_config:
                     self.max_skewness = qbmm_config['max_skewness']
                 self.inversion_option = self.max_skewness
+                self.inversion_option = self.checks
                 #
         else:
             message = 'qbmm_mgr: set_inversion: Error: dimensionality %i unsupported'

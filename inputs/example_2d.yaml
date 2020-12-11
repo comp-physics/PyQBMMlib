@@ -11,15 +11,16 @@ qbmm:
     method:               "chyqmom"
     adaptive:             no
     max_skewness:         30
+    chekcs:               yes
 
 advancer:
     method:          "RK23"
     time_step:       1.0e-5
-    final_time:      30.0
-    error_tol:       1.0e-9
-    num_steps:       20000
-    num_steps_print: 1000
-    num_steps_write: 1000
+    final_time:      15.0
+    error_tol:       1.0e-5
+    num_steps:       10000
+    num_steps_print: 10
+    num_steps_write: 10
     output_dir:      "D/"
     output_id:       "example_2D"
     write_to:        "txt"

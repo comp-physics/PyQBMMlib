@@ -21,7 +21,9 @@ import csv
 class time_advancer:
     """This class advances the moment transport equations in time.
     
-    To use this class, you'll need a ``config`` dictionary. Example files are provided in ``inputs/``. The dictionary is used to set the following variables:
+    A ``config`` dictionary is required to usethis class. 
+    Example files are provided in ``inputs/``. 
+    The dictionary is used to set the following variables:
 
     :ivar method: Time integration scheme (``euler`` or ``RK23``)
     :ivar time_step: Time integration time step 

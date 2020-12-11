@@ -21,7 +21,9 @@ from pretty_print_util import *
 import cProfile
 
 def flow_example(): 
-    """This driver solves a flow-coupled problem. Currently, it only computes moment fluxes, but work is underway to solve the compressible flow equations.
+    """
+    This driver solves a flow-coupled problem. 
+    Currently, it only computes moment fluxes, but work is underway to solve the compressible flow equations.
     """
     # In development
     config = {}
@@ -67,7 +69,11 @@ def flow_example():
     return
 
 def advance_example(config):
-    """ This driver solves the moments transport equations. It is independent of governing dynamics, which are specified in the ``config`` dictionary. It is constrained to problems with 1 and 2 internal coordinates by the initial condition. The initial condition is Gaussian.    
+    """
+    This driver solves the moments transport equations. 
+    It is independent of governing dynamics, which are specified in the ``config`` dictionary. 
+    It is constrained to problems with 1 and 2 internal coordinates by the initial condition. 
+    The initial condition is Gaussian.    
 
     :param config: Configuration dictionary
     :type config: dict    
