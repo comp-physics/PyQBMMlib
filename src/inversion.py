@@ -215,13 +215,14 @@ def hyqmom3(moments, max_skewness = 30, checks = True):
     c2 = d2 - bx**2 
     c3 = d3 - 3*bx*d2 + 2*bx**3 
     c4 = d4 - 4*bx*d3 + 6*(bx**2)*d2 - 3*bx**4
-    realizable = c2*c4 - c2**3 - c3**2 
+
     if checks:
         if c2 < 0: 
             if c2 < -verysmall:
                 print("Error: c2 negative in three node HYQMOM")
                 return
         else:
+            realizable = c2*c4 - c2**3 - c3**2 
             if realizable < 0:
                 if c2 >= etasmall:
                     q = c3/math.sqrt(c2)/c2 
@@ -249,10 +250,9 @@ def hyqmom3(moments, max_skewness = 30, checks = True):
                     c4 = c2**2.
 
     scale = math.sqrt(c2)
-    if checks:
-        if c2 < etasmall:
-            q = 0 
-            eta = 1
+    if checks and c2 < etasmall:
+        q = 0 
+        eta = 1
     else:
         q = c3/math.sqrt(c2)/c2 
         eta = c4/c2/c2
@@ -264,9 +264,10 @@ def hyqmom3(moments, max_skewness = 30, checks = True):
         else:
             q = -max_skewness
         eta = 3 + slope*q 
-        realizable = eta - 1 - q**2 
-        if realizable < 0 and checks:
-            eta = 1 + q**2
+        if checks:
+            realizable = eta - 1 - q**2 
+            if realizable < 0:
+                eta = 1 + q**2
 
     xps[0] = (q - math.sqrt(4*eta-3*q**2))/2.
     xps[1] = 0. 
@@ -435,20 +436,19 @@ def chyqmom9(moments, indices, max_skewness = 30, checks = True):
 
     M1 = np.array([1, 0, c20, c30, c40])
     xp, rho = hyqmom3(M1,max_skewness,checks)
-    if checks:
-        if c20 < csmall:
-            rho[0] = 0.
-            rho[1] = 1.
-            rho[2] = 0.
-            yf = 0*xp 
-            M2 = np.array([1, 0, c02, c03, c04])
-            xp2, rho2 = hyqmom3(M2,max_skewness,checks)
-            yp21 = xp2[0] 
-            yp22 = xp2[1] 
-            yp23 = xp2[2] 
-            rho21 = rho2[0] 
-            rho22 = rho2[1] 
-            rho23 = rho2[2]
+    if checks and c20 < csmall:
+        rho[0] = 0.
+        rho[1] = 1.
+        rho[2] = 0.
+        yf = 0*xp 
+        M2 = np.array([1, 0, c02, c03, c04])
+        xp2, rho2 = hyqmom3(M2,max_skewness,checks)
+        yp21 = xp2[0] 
+        yp22 = xp2[1] 
+        yp23 = xp2[2] 
+        rho21 = rho2[0] 
+        rho22 = rho2[1] 
+        rho23 = rho2[2]
     else:
         yf = c11*xp/c20 
         mu2avg = c02 - np.sum(rho*(yf**2.))
@@ -586,31 +586,30 @@ def chyqmom27(moments, indices, max_skewness = 30, checks = True):
     by  = m010/m000 
     bz  = m001/m000 
 
-    if checks:
-        if m000 <= isosmall: 
-            d200 = m200/m000
-            d020 = m020/m000
-            d002 = m002/m000
-            d300 = m300/m000
-            d030 = m030/m000
-            d003 = m003/m000
-            d400 = m400/m000
-            d040 = m040/m000
-            d004 = m004/m000
+    if checks and m000 <= isosmall: 
+        d200 = m200/m000
+        d020 = m020/m000
+        d002 = m002/m000
+        d300 = m300/m000
+        d030 = m030/m000
+        d003 = m003/m000
+        d400 = m400/m000
+        d040 = m040/m000
+        d004 = m004/m000
 
-            c200 = d200 - bx**2
-            c020 = d020 - by**2
-            c002 = d002 - bz**2
-            c300 = d300 - 3*bx*d200 + 2*bx**3
-            c030 = d030 - 3*by*d020 + 2*by**3
-            c003 = d003 - 3*bz*d002 + 2*bz**3
-            c400 = d400 - 4*bx*d300 + 6*(bx**2)*d200 - 3*bx**4
-            c040 = d040 - 4*by*d030 + 6*(by**2)*d020 - 3*by**4
-            c004 = d004 - 4*bz*d003 + 6*(bz**2)*d002 - 3*bz**4
+        c200 = d200 - bx**2
+        c020 = d020 - by**2
+        c002 = d002 - bz**2
+        c300 = d300 - 3*bx*d200 + 2*bx**3
+        c030 = d030 - 3*by*d020 + 2*by**3
+        c003 = d003 - 3*bz*d002 + 2*bz**3
+        c400 = d400 - 4*bx*d300 + 6*(bx**2)*d200 - 3*bx**4
+        c040 = d040 - 4*by*d030 + 6*(by**2)*d020 - 3*by**4
+        c004 = d004 - 4*bz*d003 + 6*(bz**2)*d002 - 3*bz**4
 
-            c110 = 0
-            c101 = 0 
-            c011 = 0
+        c110 = 0
+        c101 = 0 
+        c011 = 0
     else:
         d200 = m200/m000
         d110 = m110/m000
@@ -638,99 +637,98 @@ def chyqmom27(moments, indices, max_skewness = 30, checks = True):
         c040 = d040 - 4*by*d030 + 6*by**2*d020 - 3*by**4
         c004 = d004 - 4*bz*d003 + 6*bz**2*d002 - 3*bz**4
 
-    if checks:
-        if c200 <= 0:
-            c200 = 0
-            c300 = 0
-            c400 = 0
+    if c200 <= 0 and checks:
+        c200 = 0
+        c300 = 0
+        c400 = 0
 
-        if c200*c400 < (c200**3 + c300**2):
-            q = c300/c200**(3./2.)
-            eta = c400/c200**2
-            if abs(q) > verysmall:
-                slope = (eta - 3.)/q
-                det   = 8 + slope**2
-                qp    = 0.5*( slope + math.sqrt(det) )
-                qm    = 0.5*( slope - math.sqrt(det) )
-                if q > 0:
-                    q = qp
-                else:
-                    q = qm
+    if c200*c400 < (c200**3 + c300**2) and checks:
+        q = c300/c200**(3./2.)
+        eta = c400/c200**2
+        if abs(q) > verysmall:
+            slope = (eta - 3.)/q
+            det   = 8 + slope**2
+            qp    = 0.5*( slope + math.sqrt(det) )
+            qm    = 0.5*( slope - math.sqrt(det) )
+            if q > 0:
+                q = qp
             else:
-                q = 0
+                q = qm
+        else:
+            q = 0
 
-            eta  = q**2 + 1
-            c300 = q*c200**(3./2.)
-            c400 = eta*c200**2.
+        eta  = q**2 + 1
+        c300 = q*c200**(3./2.)
+        c400 = eta*c200**2.
 
-        if c020 <= 0:
-            c020 = 0
-            c030 = 0
-            c040 = 0
+    if c020 <= 0 and checks:
+        c020 = 0
+        c030 = 0
+        c040 = 0
 
-        if c200*c400 < (c200**3 + c300**2):
-            q = c300/c200**(3/2) 
-            eta = c400/c200**2 
-            if abs(q) > verysmall:
-                slope = (eta - 3)/q 
-                det   = 8 + slope**2 
-                qp    = 0.5*( slope + math.sqrt(det) ) 
-                qm    = 0.5*( slope - math.sqrt(det) ) 
-                if sign(q) == 1:
-                    q = qp 
-                else:
-                    q = qm 
+    if c200*c400 < (c200**3 + c300**2) and checks:
+        q = c300/c200**(3/2) 
+        eta = c400/c200**2 
+        if abs(q) > verysmall:
+            slope = (eta - 3)/q 
+            det   = 8 + slope**2 
+            qp    = 0.5*( slope + math.sqrt(det) ) 
+            qm    = 0.5*( slope - math.sqrt(det) ) 
+            if sign(q) == 1:
+                q = qp 
             else:
-                q = 0 
-            eta  = q**2 + 1 
-            c300 = q*c200**(3/2) 
-            c400 = eta*c200**2 
+                q = qm 
+        else:
+            q = 0 
+        eta  = q**2 + 1 
+        c300 = q*c200**(3/2) 
+        c400 = eta*c200**2 
 
-        if c020 <= 0:
-            c020 = 0 
-            c030 = 0 
-            c040 = 0 
+    if c020 <= 0 and checks:
+        c020 = 0 
+        c030 = 0 
+        c040 = 0 
 
-        if c020*c040 < (c020**3 + c030**2):
-            q   = c030/c020**(3/2) 
-            eta = c040/c020**2 
-            if abs(q) > verysmall:
-                slope = (eta - 3)/q 
-                det   = 8 + slope**2 
-                qp    = 0.5*( slope + math.sqrt(det) ) 
-                qm    = 0.5*( slope - math.sqrt(det) ) 
-                if sign(q) == 1:
-                    q = qp 
-                else:
-                    q = qm 
+    if c020*c040 < (c020**3 + c030**2) and checks:
+        q   = c030/c020**(3/2) 
+        eta = c040/c020**2 
+        if abs(q) > verysmall:
+            slope = (eta - 3)/q 
+            det   = 8 + slope**2 
+            qp    = 0.5*( slope + math.sqrt(det) ) 
+            qm    = 0.5*( slope - math.sqrt(det) ) 
+            if sign(q) == 1:
+                q = qp 
             else:
-                q = 0 
-            eta  = q**2 + 1 
-            c030 = q*c020**(3/2) 
-            c040 = eta*c020**2 
+                q = qm 
+        else:
+            q = 0 
+        eta  = q**2 + 1 
+        c030 = q*c020**(3/2) 
+        c040 = eta*c020**2 
 
-        if c002 <= 0:
-            c002 = 0 
-            c003 = 0 
-            c004 = 0 
+    if c002 <= 0 and checks:
+        c002 = 0 
+        c003 = 0 
+        c004 = 0 
 
-        if c002*c004 < (c002**3 + c003**2):
-            q   = c003/c002**(3/2) 
-            eta = c004/c002**2 
-            if abs(q) > verysmall:
-                slope = (eta - 3)/q 
-                det   = 8 + slope**2 
-                qp    = 0.5*( slope + math.sqrt(det) ) 
-                qm    = 0.5*( slope - math.sqrt(det) ) 
-                if sign(q) == 1:
-                    q = qp 
-                else:
-                    q = qm 
+    if c002*c004 < (c002**3 + c003**2) and checks:
+        q   = c003/c002**(3/2) 
+        eta = c004/c002**2 
+        if abs(q) > verysmall:
+            slope = (eta - 3)/q 
+            det   = 8 + slope**2 
+            qp    = 0.5*( slope + math.sqrt(det) ) 
+            qm    = 0.5*( slope - math.sqrt(det) ) 
+            if sign(q) == 1:
+                q = qp 
             else:
-                q = 0 
-            eta = q**2 + 1 
-            c003 = q*c002**(3/2) 
-            c004 = eta*c002**2 
+                q = qm 
+        else:
+            q = 0 
+        eta = q**2 + 1 
+        c003 = q*c002**(3/2) 
+        c004 = eta*c002**2 
 
     M1 = np.array([ 1, 0, c200, c300, c400 ])
     xp, rho = hyqmom3(M1,max_skewness,checks)
@@ -814,138 +812,137 @@ def chyqmom27(moments, indices, max_skewness = 30, checks = True):
 
     Zf = np.zeros((3,3)) 
 
-    if checks:
-        if c200 <= csmall:
-            if c020 <= csmall: 
-                M0 = np.array([ 1, 0, c002, c003, c004])
-                Z0, W0 = hyqmom3(M0,max_skewness,checks) 
+    if c200 <= csmall and checks:
+        if c020 <= csmall: 
+            M0 = np.array([ 1, 0, c002, c003, c004])
+            Z0, W0 = hyqmom3(M0,max_skewness,checks) 
 
-                rho[0] = 0 
-                rho[1] = 1 
-                rho[2] = 0 
-                rho22 = 1 
-                rho221 = W0[0] 
-                rho222 = W0[1] 
-                rho223 = W0[2] 
-                xp = 0*xp 
-                zp221 = Z0[0] 
-                zp222 = Z0[1] 
-                zp223 = Z0[2] 
-            else:
-                M1 = np.array([ 
-                    1, 0, 0, 
-                    c020, c011, c002, 
-                    c030, c003, 
-                    c040, c004
-                    ])
-                Q1, W1 = chyqmom9(M1,RF_idx,max_skewness,checks) 
-                Y1 = Q1[0]
-                Z1 = Q1[1]
-
-                rho[0] = 0 
-                rho[1] = 1 
-                rho[2] = 0 
-                rho12 = 0 
-                rho21 = 1 
-                rho22 = 1 
-                rho23 = 1 
-                rho31 = 0 
-                rho211 = W1[0] 
-                rho212 = W1[1] 
-                rho213 = W1[2] 
-                rho221 = W1[3] 
-                rho222 = W1[4] 
-                rho223 = W1[5] 
-                rho231 = W1[6] 
-                rho232 = W1[7] 
-                rho233 = W1[8] 
-
-                xp = 0*xp 
-                yp21 = Y1[0] 
-                yp22 = Y1[4] 
-                yp23 = Y1[8] 
-                zp211 = Z1[0] 
-                zp212 = Z1[1] 
-                zp213 = Z1[2] 
-                zp221 = Z1[3] 
-                zp222 = Z1[4] 
-                zp223 = Z1[5] 
-                zp231 = Z1[6] 
-                zp232 = Z1[7] 
-                zp233 = Z1[8] 
-        elif c020 <= csmall:
-            M2 = np.array([ 
-                1, 0, 0, 
-                c200, c101, c002, 
-                c300, c003, 
-                c400, c004
-                ])
-            Q2, W2 = chyqmom9(M2,RF_idx,max_skewness,checks)
-            X2 = Q2[0]
-            Z2 = Q2[1]
-
-            rho[0] = 1 
+            rho[0] = 0 
             rho[1] = 1 
-            rho[2] = 1 
-            rho12  = 1 
-            rho22  = 1 
-            rho32  = 1 
-            rho121 = W2[0] 
-            rho122 = W2[1] 
-            rho123 = W2[2] 
-            rho221 = W2[3] 
-            rho222 = W2[4] 
-            rho223 = W2[5] 
-            rho321 = W2[6] 
-            rho322 = W2[7] 
-            rho323 = W2[8] 
-            xp[0] = X2[0] 
-            xp[1] = X2[4] 
-            xp[2] = X2[8] 
-            zp121 = Z2[0] 
-            zp122 = Z2[1] 
-            zp123 = Z2[2] 
-            zp221 = Z2[3] 
-            zp222 = Z2[4] 
-            zp223 = Z2[5] 
-            zp321 = Z2[6] 
-            zp322 = Z2[7] 
-            zp323 = Z2[8] 
-        elif c002 <= csmall:
-            M3 = np.array([ 
+            rho[2] = 0 
+            rho22 = 1 
+            rho221 = W0[0] 
+            rho222 = W0[1] 
+            rho223 = W0[2] 
+            xp = 0*xp 
+            zp221 = Z0[0] 
+            zp222 = Z0[1] 
+            zp223 = Z0[2] 
+        else:
+            M1 = np.array([ 
                 1, 0, 0, 
-                c200, c110, c020, 
-                c300, c030, 
-                c400, c040
+                c020, c011, c002, 
+                c030, c003, 
+                c040, c004
                 ])
-            Q3, W3 = chyqmom9(M3,RF_idx,max_skewness,checks)
-            X3 = Q3[0]
-            Y3 = Q3[1]
+            Q1, W1 = chyqmom9(M1,RF_idx,max_skewness,checks) 
+            Y1 = Q1[0]
+            Z1 = Q1[1]
 
-            rho[0] = 1 
+            rho[0] = 0 
             rho[1] = 1 
-            rho[2] = 1 
-            rho11 = W3[0] 
-            rho12 = W3[1] 
-            rho13 = W3[2] 
-            rho21 = W3[3] 
-            rho22 = W3[4] 
-            rho23 = W3[5] 
-            rho31 = W3[6] 
-            rho32 = W3[7] 
-            rho33 = W3[8]
-            xp[0] = X3[0] 
-            xp[1] = X3[4] 
-            xp[2] = X3[8] 
-            yp11 = Y3[0] 
-            yp12 = Y3[1] 
-            yp13 = Y3[2] 
-            yp21 = Y3[3] 
-            yp22 = Y3[4] 
-            yp23 = Y3[5] 
-            yp31 = Y3[6] 
-            yp32 = Y3[7] 
-            yp33 = Y3[8] 
+            rho[2] = 0 
+            rho12 = 0 
+            rho21 = 1 
+            rho22 = 1 
+            rho23 = 1 
+            rho31 = 0 
+            rho211 = W1[0] 
+            rho212 = W1[1] 
+            rho213 = W1[2] 
+            rho221 = W1[3] 
+            rho222 = W1[4] 
+            rho223 = W1[5] 
+            rho231 = W1[6] 
+            rho232 = W1[7] 
+            rho233 = W1[8] 
+
+            xp = 0*xp 
+            yp21 = Y1[0] 
+            yp22 = Y1[4] 
+            yp23 = Y1[8] 
+            zp211 = Z1[0] 
+            zp212 = Z1[1] 
+            zp213 = Z1[2] 
+            zp221 = Z1[3] 
+            zp222 = Z1[4] 
+            zp223 = Z1[5] 
+            zp231 = Z1[6] 
+            zp232 = Z1[7] 
+            zp233 = Z1[8] 
+    elif c020 <= csmall and checks:
+        M2 = np.array([ 
+            1, 0, 0, 
+            c200, c101, c002, 
+            c300, c003, 
+            c400, c004
+            ])
+        Q2, W2 = chyqmom9(M2,RF_idx,max_skewness,checks)
+        X2 = Q2[0]
+        Z2 = Q2[1]
+
+        rho[0] = 1 
+        rho[1] = 1 
+        rho[2] = 1 
+        rho12  = 1 
+        rho22  = 1 
+        rho32  = 1 
+        rho121 = W2[0] 
+        rho122 = W2[1] 
+        rho123 = W2[2] 
+        rho221 = W2[3] 
+        rho222 = W2[4] 
+        rho223 = W2[5] 
+        rho321 = W2[6] 
+        rho322 = W2[7] 
+        rho323 = W2[8] 
+        xp[0] = X2[0] 
+        xp[1] = X2[4] 
+        xp[2] = X2[8] 
+        zp121 = Z2[0] 
+        zp122 = Z2[1] 
+        zp123 = Z2[2] 
+        zp221 = Z2[3] 
+        zp222 = Z2[4] 
+        zp223 = Z2[5] 
+        zp321 = Z2[6] 
+        zp322 = Z2[7] 
+        zp323 = Z2[8] 
+    elif c002 <= csmall and checks:
+        M3 = np.array([ 
+            1, 0, 0, 
+            c200, c110, c020, 
+            c300, c030, 
+            c400, c040
+            ])
+        Q3, W3 = chyqmom9(M3,RF_idx,max_skewness,checks)
+        X3 = Q3[0]
+        Y3 = Q3[1]
+
+        rho[0] = 1 
+        rho[1] = 1 
+        rho[2] = 1 
+        rho11 = W3[0] 
+        rho12 = W3[1] 
+        rho13 = W3[2] 
+        rho21 = W3[3] 
+        rho22 = W3[4] 
+        rho23 = W3[5] 
+        rho31 = W3[6] 
+        rho32 = W3[7] 
+        rho33 = W3[8]
+        xp[0] = X3[0] 
+        xp[1] = X3[4] 
+        xp[2] = X3[8] 
+        yp11 = Y3[0] 
+        yp12 = Y3[1] 
+        yp13 = Y3[2] 
+        yp21 = Y3[3] 
+        yp22 = Y3[4] 
+        yp23 = Y3[5] 
+        yp31 = Y3[6] 
+        yp32 = Y3[7] 
+        yp33 = Y3[8] 
     else:
         M4 = np.array([ 
             1, 0, 0, 
