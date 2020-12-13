@@ -1,0 +1,20 @@
+name: CI
+on:
+    push:
+        branches:
+        - master
+    pull_request:
+    schedule:
+        - cron:  '17 3 ** 0'
+    
+jobs:
+    pytest:
+        name: Pytest
+        runs-on: ubuntu-latest
+        
+        steps:
+        -   uses: actions/checkout@v2
+        with:
+          python-version: '3.x'
+        -   name: "Test QBMM"
+            run: pytest test_qbmm.py
