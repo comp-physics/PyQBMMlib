@@ -6,17 +6,17 @@ qbmm:
     flow: no
     governing_dynamics:   " - x - xdot"
     num_internal_coords:  2
-    num_quadrature_nodes: 9
+    num_quadrature_nodes: 4
     method:               "chyqmom"
     adaptive:             no
     max_skewness:         30
     checks:               no
 
 advancer:
-    method:          "RK23"
+    method:          "RK3"
     time_step:       1.0e-5
     final_time:      15.0
-    error_tol:       1.0e-7
+    error_tol:       1.0e-6
     num_steps:       10000
     num_steps_print: 100
     num_steps_write: 100
