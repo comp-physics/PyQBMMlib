@@ -4,8 +4,6 @@ on:
         branches:
         - master
     pull_request:
-    schedule:
-        - cron:  '17 3 ** 0'
     
 jobs:
     pytest:
