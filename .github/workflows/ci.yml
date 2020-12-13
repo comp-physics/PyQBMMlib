@@ -18,7 +18,8 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install pytest
-        if [ -f requirements.txt]; then pip install -r requirements.txt; fi
+        pip freeze > requirements.txt
+        pip install -r requirements.txt
     - name: Test QBMM
       run: cd test && pytest test_qbmm.py
 
