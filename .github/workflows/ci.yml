@@ -12,5 +12,9 @@ jobs:
         
         steps:
         -   uses: actions/checkout@v2
+        -   name: Install dependencis
+            run: |
+              python -m pip install --upgrade pip
+              pip install pytest
         -   name: "Test QBMM"
             run: pytest test_qbmm.py
