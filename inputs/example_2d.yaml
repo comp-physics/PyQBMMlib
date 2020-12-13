@@ -10,7 +10,7 @@ qbmm:
     method:               "chyqmom"
     adaptive:             no
     max_skewness:         30
-    checks:               yes
+    checks:               no
 
 advancer:
     method:          "RK23"

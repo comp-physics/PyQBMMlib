@@ -44,19 +44,36 @@ class qbmm_manager:
         :param config: Configuration
         :type config: dict
         """
-        self.flow                 = config['qbmm']['flow']
-        self.governing_dynamics   = config['qbmm']['governing_dynamics']
-        self.num_internal_coords  = config['qbmm']['num_internal_coords'] 
-        self.num_quadrature_nodes = config['qbmm']['num_quadrature_nodes']
-        self.method               = config['qbmm']['method']
-        self.adaptive             = config['qbmm']['adaptive']
-        # self.poly                 = config['qbmm']['polydisperse']
 
+        qbmm_config = config['qbmm']
+        self.governing_dynamics   = qbmm_config['governing_dynamics']
+        self.num_internal_coords  = qbmm_config['num_internal_coords'] 
+        self.num_quadrature_nodes = qbmm_config['num_quadrature_nodes']
+
+        # self.poly                 = config['qbmm']['polydisperse']
         # if self.poly:
         #     self.num_poly_nodes = config['qbmm']['num_poly_nodes']
         #     self.poly_symbol    = config['qbmm']['poly_symbol']
 
+        if 'flow' in qbmm_config:
+            self.flow = qbmm_config['flow']
+        else:
+            self.flow = False
 
+        if 'adaptive' in qbmm_config:
+            self.adaptive = qbmm_config['adaptive']
+        else:
+            self.adaptive = False
+
+        if 'method' in qbmm_config:
+            self.method = qbmm_config['method']
+        else: 
+            if self.num_internal_coords == 1:
+                self.method = 'hyqmom'
+            elif (self.num_internal_coords == 2 
+                  or
+                  self.num_internal_coords == 3):
+                self.method = 'chyqmom'
 
         iret = self.set_inversion( config )
         if iret == 1:
@@ -280,6 +297,13 @@ class qbmm_manager:
         self.num_coefficients = len( self.coefficients )
         self.num_exponents    = len( self.exponents    )
 
+        message = 'qbmm_mgr: transport_terms: '
+        for i in range( total_num_terms ):
+            sym_array_pretty_print( message, 'exponents', self.exponents[i,:] )
+
+        message = 'qbmm_mgr: transport_terms: '
+        sym_array_pretty_print( message, 'coefficients', self.coefficients )
+
         for i in range( self.num_coefficients ):
             if self.num_internal_coords == 1:
                 self.coefficients[i] = smp.lambdify([l],self.coefficients[i])
@@ -289,13 +313,6 @@ class qbmm_manager:
                 self.coefficients[i] = smp.lambdify([l,m],self.coefficients[i])
                 for j in range(self.num_internal_coords):
                     self.exponents[i,j] = smp.lambdify([l,m],self.exponents[i,j])
-
-        message = 'qbmm_mgr: transport_terms: '
-        for i in range( total_num_terms ):
-            sym_array_pretty_print( message, 'exponents', self.exponents[i,:] )
-
-        message = 'qbmm_mgr: transport_terms: '
-        sym_array_pretty_print( message, 'coefficients', self.coefficients )
 
         return
     

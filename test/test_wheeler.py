@@ -28,7 +28,7 @@ def generate_gaussian_moments(mu, sigma):
     
     return moments
 
-def test_wheeler(test, mu, sigma, qbmm_mgr):
+def test_wheeler(test, mu, sigma, qbmm_mgr, tol):
     """
     This function tests QBMM Wheeler inversion by comparing
     against numpy's Gauss-Hermite for given mu and sigma
@@ -36,8 +36,8 @@ def test_wheeler(test, mu, sigma, qbmm_mgr):
     ###
     ### Reference solution
     num_nodes = 4
-    sqrt_pi   = sqrt( np.pi )
-    sqrt_two  = sqrt( 2.0 )
+    sqrt_pi   = np.sqrt( np.pi )
+    sqrt_two  = np.sqrt( 2.0 )
     h_abs, h_wts = gauss_hermite( num_nodes )
     g_abs = sqrt_two * sigma * h_abs + mu
     g_wts = h_wts / sqrt_pi
@@ -55,20 +55,23 @@ def test_wheeler(test, mu, sigma, qbmm_mgr):
     error_abs = np.sqrt( np.dot( diff_abs, diff_abs ) )
     error_wts = np.sqrt( np.dot( diff_wts, diff_wts ) )
 
-    print('test_wheeler: Test(%i): Moments = [{:s}]'.format( ', '.join( [ '{:.4e}'.format(p) for p in moments ] ) ) % test ) 
-    print('test_wheeler: Test(%i): Reference solution:' % test)
-    print('\t abscissas = [{:s}]'.format( ', '.join( [ '{:.4e}'.format(p) for p in g_abs ] ) ) )
-    print('\t weights   = [{:s}]'.format( ', '.join( [ '{:.4e}'.format(p) for p in g_wts ] ) ) )
+    success = ( error_abs < tol and error_wts < tol )
 
-    print('test_wheeler: Test(%i): QBMM solution:' % test)
-    print('\t abscissas = [{:s}]'.format( ', '.join( [ '{:.4e}'.format(p) for p in my_abs ] ) ) )
-    print('\t weights   = [{:s}]'.format( ', '.join( [ '{:.4e}'.format(p) for p in my_wts ] ) ) )
+    if not success:
+        print('test_wheeler: Test(%i): Moments = [{:s}]'.format( ', '.join( [ '{:.4e}'.format(p) for p in moments ] ) ) % test ) 
+        print('test_wheeler: Test(%i): Reference solution:' % test)
+        print('\t abscissas = [{:s}]'.format( ', '.join( [ '{:.4e}'.format(p) for p in g_abs ] ) ) )
+        print('\t weights   = [{:s}]'.format( ', '.join( [ '{:.4e}'.format(p) for p in g_wts ] ) ) )
 
-    print('test_wheeler: Test(%i): Errors:' % test)    
-    print('\t abscissas: error = %.4E' % error_abs )
-    print('\t weights:   error = %.4E' % error_wts )
+        print('test_wheeler: Test(%i): QBMM solution:' % test)
+        print('\t abscissas = [{:s}]'.format( ', '.join( [ '{:.4e}'.format(p) for p in my_abs ] ) ) )
+        print('\t weights   = [{:s}]'.format( ', '.join( [ '{:.4e}'.format(p) for p in my_wts ] ) ) )
 
-    return error_abs, error_wts
+        print('test_wheeler: Test(%i): Errors:' % test)    
+        print('\t abscissas: error = %.4E' % error_abs )
+        print('\t weights:   error = %.4E' % error_wts )
+
+    return success 
 
 if __name__ == '__main__':
 
@@ -81,42 +84,40 @@ if __name__ == '__main__':
     ###
     ### QBMM Configuration
     print('test_wheeler: Configuring and initializing qbmm')
-    
-    config = {}
-    config['governing_dynamics']   = ' dx + x = 1'
-    config['num_internal_coords']  = 1
-    config['num_quadrature_nodes'] = 4
-    config['method']       = 'qmom'
-    config['adaptive']     = False
-    config['max_skewness'] = 30
+   
+    nnodes = [ 1, 2, 3, 4, 5 ]
+    for n in nnodes:
+        config = {}
+        config['qbmm'] = {}
+        config['qbmm']['governing_dynamics']   = '4*x - 2*x**2'
+        config['qbmm']['num_internal_coords']  = 1
+        config['qbmm']['num_quadrature_nodes'] = n
+        config['qbmm']['method']       = 'qmom'
 
-    ###
-    ### QBMM
-    qbmm_mgr = qbmm_manager( config )
+        ###
+        ### QBMM
+        qbmm_mgr = qbmm_manager( config )
 
-    ###
-    ### Tests
+        ###
+        ### Tests
 
-    # Anticipate success
-    tol = 1.0e-13  # Why?
-    success = True
-    
-    # Test 1
-    mu    = 0.0
-    sigma = 1.0
-    error_abs, error_wts = test_wheeler( 1, mu, sigma, qbmm_mgr )
-    success *= ( error_abs < tol and error_wts < tol )
-    
-    ###
-    ### Test 2
-    mu = 5.0
-    error_abs, error_wts = test_wheeler( 2, mu, sigma, qbmm_mgr )
-    success *= ( error_abs < tol and error_wts < tol )
+        # Anticipate success
+        tol = 1.0e-13  # Why?
+        success = True
+        
+        # Test 1
+        mu    = 0.0
+        sigma = 1.0
+        success *= test_wheeler( 1, mu, sigma, qbmm_mgr, tol )
+        
+        ### Test 2
+        mu = 5.0
+        success *= test_wheeler( 2, mu, sigma, qbmm_mgr, tol )
 
     if success == True:
         color = '\033[92m'
         print('test_wheeler: ' + '\033[92m' + 'test passed' + '\033[0m')
     else:
-        print('test_wheeler: ' + '\033[91m' + 'test failed ' + '\033[0m' + '... check Wheeler!')
+        print('test_wheeler: ' + '\033[91m' + 'test failed ' + '\033[0m')
         
-    exit
+    exit()
