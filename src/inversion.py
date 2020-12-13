@@ -283,12 +283,12 @@ def hyqmom3(moments, max_skewness = 30, checks = True):
 
     srho = np.sum(rho)
     rho = rho/srho
-    if min(rho) < 0 :
+    if min(rho) < 0:
         print("Error: Negative weight in HYQMOM")
         return
+
     scales = np.sum(rho*xps**2)/np.sum(rho)
-    for i in range(n):
-        xp[i] = xps[i]*scale/math.sqrt(scales)
+    xp = xps*scale/math.sqrt(scales)
 
     w = moments[0]*rho
     x = xp

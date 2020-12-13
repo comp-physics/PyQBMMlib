@@ -371,13 +371,13 @@ class qbmm_manager:
         """
         abscissas = np.array(abscissas)
         moments = np.zeros( len(indices) )
-        for i_index in range( len(indices) ):
+        for i in range( len(indices) ):
             if self.num_internal_coords == 3:
-                moments[i_index] = quadrature_3d(weights, abscissas, indices[i_index], self.num_quadrature_nodes)
+                moments[i] = quadrature_3d(weights, abscissas, indices[i], self.num_quadrature_nodes)
             if self.num_internal_coords == 2:
-                moments[i_index] = quadrature_2d(weights, abscissas, indices[i_index], self.num_quadrature_nodes)
+                moments[i] = quadrature_2d(weights, abscissas, indices[i], self.num_quadrature_nodes)
             elif self.num_internal_coords == 1:
-                moments[i_index] = quadrature_1d(weights, abscissas, indices[i_index])
+                moments[i] = quadrature_1d(weights, abscissas, indices[i])
         return moments
 
     def compute_rhs(self, moments, rhs):
