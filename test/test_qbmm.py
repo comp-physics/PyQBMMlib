@@ -4,6 +4,7 @@ sys.path.append('../utils/')
 from qbmm_manager import *
 from stats_util import *
 import numpy.polynomial.hermite as hermite_poly
+import pytest
 
 def test_wheeler():
     """
