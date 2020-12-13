@@ -14,7 +14,5 @@ jobs:
         
         steps:
         -   uses: actions/checkout@v2
-        with:
-          python-version: '3.x'
         -   name: "Test QBMM"
             run: pytest test_qbmm.py
