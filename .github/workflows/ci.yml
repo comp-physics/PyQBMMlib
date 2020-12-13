@@ -20,7 +20,7 @@ jobs:
         pip install pytest
         if [ -f requirements.txt]; then pip install -r requirements.txt; fi
     - name: Test QBMM
-      run: pytest test/test_qbmm.py
+      run: cd test && pytest test_qbmm.py
 
 
 
