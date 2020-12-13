@@ -15,6 +15,7 @@ from inversion import *
 from pretty_print_util import *
 import numpy as np
 import sympy as smp
+from sympy.parsing.sympy_parser import parse_expr
 
 try:
     import numba
@@ -99,6 +100,8 @@ class qbmm_manager:
         # Determine coefficients & exponents from governing dynamics
         if self.num_internal_coords < 3:
             self.transport_terms() 
+
+
 
         # RHS buffer
         self.rhs = np.zeros( self.num_moments )
@@ -211,6 +214,9 @@ class qbmm_manager:
                 else :
                     print( 'qbmm_mgr: moment_indices: Error: incorrect number of quadrature nodes (not 4 or 9), aborting... %i' % self.num_quadrature_nodes )
                     quit()
+            else:
+                    print( 'qbmm_mgr: moment_indices: Error: method is not chyqmom for 2 internal coordinates, aborting... %i' % self.method )
+                    quit()
 
             #
             self.num_moments = self.indices.shape[0]
@@ -250,7 +256,7 @@ class qbmm_manager:
         if self.num_internal_coords == 1:
             x = smp.symbols( 'x' )
             l = smp.symbols( 'l', real = True )
-            xdot = smp.parse_expr( self.governing_dynamics )
+            xdot = parse_expr( self.governing_dynamics )
             integrand = xdot * ( x ** ( l - 1 ) )
             self.symbolic_indices = l
         elif self.num_internal_coords == 2:
@@ -258,7 +264,7 @@ class qbmm_manager:
             #     r0 = smp.symbols( self.poly_symbol )
             x,xdot = smp.symbols( 'x xdot' )
             l,m    = smp.symbols( 'l m', real = True )
-            xddot  = smp.parse_expr( self.governing_dynamics )
+            xddot  = parse_expr( self.governing_dynamics )
             integrand = xddot * ( x ** l ) * ( xdot ** ( m - 1 ) )
             self.symbolic_indices = [l,m]
 

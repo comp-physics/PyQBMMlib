@@ -49,11 +49,9 @@ def test_wheeler(test, mu, sigma, qbmm_mgr, tol):
 
     ###
     ### Errors & Report
-    diff_abs = my_abs - g_abs
-    diff_wts = my_wts - g_wts
 
-    error_abs = np.sqrt( np.dot( diff_abs, diff_abs ) )
-    error_wts = np.sqrt( np.dot( diff_wts, diff_wts ) )
+    error_abs = np.linalg.norm( my_abs - g_abs )
+    error_wts = np.linalg.norm( my_wts - g_wts )
 
     success = ( error_abs < tol and error_wts < tol )
 
@@ -115,7 +113,6 @@ if __name__ == '__main__':
         success *= test_wheeler( 2, mu, sigma, qbmm_mgr, tol )
 
     if success == True:
-        color = '\033[92m'
         print('test_wheeler: ' + '\033[92m' + 'test passed' + '\033[0m')
     else:
         print('test_wheeler: ' + '\033[91m' + 'test failed ' + '\033[0m')
