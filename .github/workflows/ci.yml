@@ -18,7 +18,7 @@ jobs:
             python-version: 3.8
         - name: Install dependencis
             run: |
-            python -m pip install --upgrade pip
-            pip install -r requirements.txt
+              python -m pip install --upgrade pip
+              pip install -r requirements.txt
         - name: "Test QBMM"
             run: pytest test/test_qbmm.py
