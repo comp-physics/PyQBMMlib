@@ -1,6 +1,4 @@
 import numpy as np
-from scipy import sqrt, zeros
-from scipy.linalg import eig
 import math
 
 # from numba import jit
@@ -124,8 +122,8 @@ def wheeler(moments, adaptive=False):
 
         # Adaptive conditions. When both satisfied, return the results.
         if adaptive:
-            dab = zeros(n1)
-            mab = zeros(n1)
+            dab = np.zeros(n1)
+            mab = np.zeros(n1)
 
             for i in range(n1 - 1, 0, -1):
                 dab[i] = min(abs(x[i] - x[0:i]))
@@ -594,9 +592,10 @@ def chyqmom27(moments, indices, max_skewness=30, checks=True):
 
     n = 27
     w = np.zeros(n)
-    x = np.zeros(n)
-    y = np.zeros(n)
-    z = np.zeros(n)
+    abscissas = np.zeros((n, 3))
+    Yf = np.zeros(3)
+    Zf = np.zeros((3, 3))
+    W = np.zeros(n)
 
     if m000 <= verysmall and checks:
         w[12] = m000
@@ -772,8 +771,6 @@ def chyqmom27(moments, indices, max_skewness=30, checks=True):
     yp32 = 0
     yp33 = 0
 
-    Yf = np.zeros(3)
-
     rho111 = 0
     rho112 = 1
     rho113 = 0
@@ -829,8 +826,6 @@ def chyqmom27(moments, indices, max_skewness=30, checks=True):
     zp331 = 0
     zp332 = 0
     zp333 = 0
-
-    Zf = np.zeros((3, 3))
 
     if c200 <= csmall and checks:
         if c020 <= csmall:
@@ -1133,7 +1128,6 @@ def chyqmom27(moments, indices, max_skewness=30, checks=True):
         zp332 = xp33[1]
         zp333 = xp33[2]
 
-    W = np.zeros(27)
     W[0] = rho[0] * rho11 * rho111
     W[1] = rho[0] * rho11 * rho112
     W[2] = rho[0] * rho11 * rho113
@@ -1163,7 +1157,6 @@ def chyqmom27(moments, indices, max_skewness=30, checks=True):
     W[26] = rho[2] * rho33 * rho333
     W = m000 * W
 
-    abscissas = np.zeros((27, 3))
     abscissas[0, 0] = xp[0]
     abscissas[1, 0] = xp[0]
     abscissas[2, 0] = xp[0]

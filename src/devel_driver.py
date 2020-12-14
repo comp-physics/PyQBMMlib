@@ -21,7 +21,6 @@ from jets_util import *
 from pretty_print_util import *
 import cProfile
 
-
 def flow_example():
     """
     This driver solves a flow-coupled problem.

@@ -9,9 +9,7 @@
 """
 
 import sys
-
 sys.path.append("../utils/")
-
 from inversion import *
 from pretty_print_util import *
 import numpy as np
