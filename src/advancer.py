@@ -149,7 +149,7 @@ class time_advancer:
         :param sig3: Standard deviation of coordinate 3
         :type mu1: float
         :type mu2: float
-        :type mu3: floag
+        :type mu3: float
         :type sig1: float
         :type sig2: float
         :type sig3: float
