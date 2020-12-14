@@ -9,7 +9,8 @@
 """
 
 import sys
-sys.path.append('../utils/')
+
+sys.path.append("../utils/")
 
 from inversion import *
 from pretty_print_util import *
@@ -21,17 +22,18 @@ try:
     import numba
     from nquad import *
 except:
-    print('Did not find numba! Install it for significant speedups.')
+    print("Did not find numba! Install it for significant speedups.")
     from quad import *
+
 
 class qbmm_manager:
     """
-    This class manages the computation of moment-transport RHS. 
-    It is meant to be called from within :class:`time_advancer`, with which it interfaces through :func:`compute_rhs`. 
-    The ``config`` dictionary carries values for the following variables:  
+    This class manages the computation of moment-transport RHS.
+    It is meant to be called from within :class:`time_advancer`, with which it interfaces through :func:`compute_rhs`.
+    The ``config`` dictionary carries values for the following variables:
 
     :ivar governing dynamics: Governing internal dynamics
-    :ivar num_internal_coords: Number of internal coordinates    
+    :ivar num_internal_coords: Number of internal coordinates
     :ivar num_quadrature_nodes: Number of quadrature nodes
     :ivar method: Inversion method (``qmom``, ``hyqmom``, ``chyqmom``)
     :ivar adaptive: Adaptivity flag for ``method = qmom`` (Wheeler)
@@ -46,65 +48,61 @@ class qbmm_manager:
         :type config: dict
         """
 
-        qbmm_config = config['qbmm']
-        self.governing_dynamics   = qbmm_config['governing_dynamics']
-        self.num_internal_coords  = qbmm_config['num_internal_coords'] 
-        self.num_quadrature_nodes = qbmm_config['num_quadrature_nodes']
+        qbmm_config = config["qbmm"]
+        self.governing_dynamics = qbmm_config["governing_dynamics"]
+        self.num_internal_coords = qbmm_config["num_internal_coords"]
+        self.num_quadrature_nodes = qbmm_config["num_quadrature_nodes"]
 
         # self.poly                 = config['qbmm']['polydisperse']
         # if self.poly:
         #     self.num_poly_nodes = config['qbmm']['num_poly_nodes']
         #     self.poly_symbol    = config['qbmm']['poly_symbol']
 
-        if 'flow' in qbmm_config:
-            self.flow = qbmm_config['flow']
+        if "flow" in qbmm_config:
+            self.flow = qbmm_config["flow"]
         else:
             self.flow = False
 
-        if 'adaptive' in qbmm_config:
-            self.adaptive = qbmm_config['adaptive']
+        if "adaptive" in qbmm_config:
+            self.adaptive = qbmm_config["adaptive"]
         else:
             self.adaptive = False
 
-        if 'method' in qbmm_config:
-            self.method = qbmm_config['method']
-        else: 
+        if "method" in qbmm_config:
+            self.method = qbmm_config["method"]
+        else:
             if self.num_internal_coords == 1:
-                self.method = 'hyqmom'
-            elif (self.num_internal_coords == 2 
-                  or
-                  self.num_internal_coords == 3):
-                self.method = 'chyqmom'
+                self.method = "hyqmom"
+            elif self.num_internal_coords == 2 or self.num_internal_coords == 3:
+                self.method = "chyqmom"
 
-        iret = self.set_inversion( config )
+        iret = self.set_inversion(config)
         if iret == 1:
-            print('qbmm_mgr: init: Configuration failed')
+            print("qbmm_mgr: init: Configuration failed")
             return
 
         # Report config
-        print('qbmm_mgr: init: Configuration options ready:')
-        print('\t flow                = %s' % self.flow )
-        print('\t governing_dynamics  = %s' % self.governing_dynamics)
-        print('\t num_internal_coords = %i' % self.num_internal_coords)
-        print('\t method              = %s' % self.method)
+        print("qbmm_mgr: init: Configuration options ready:")
+        print("\t flow                = %s" % self.flow)
+        print("\t governing_dynamics  = %s" % self.governing_dynamics)
+        print("\t num_internal_coords = %i" % self.num_internal_coords)
+        print("\t method              = %s" % self.method)
         # Report method-specific config
-        if self.method == 'qmom':
-            print( '\t adaptive            = %s' % str( self.adaptive ) ) 
-        if self.method == 'hyqmom' or self.method == 'chyqmom':
-            print( '\t max_skewness        = %i' % self.max_skewness )
+        if self.method == "qmom":
+            print("\t adaptive            = %s" % str(self.adaptive))
+        if self.method == "hyqmom" or self.method == "chyqmom":
+            print("\t max_skewness        = %i" % self.max_skewness)
 
         # Determine moment indices
         self.moment_indices()
-        print( '\t num_moments         = %i' % self.num_moments )
+        print("\t num_moments         = %i" % self.num_moments)
 
         # Determine coefficients & exponents from governing dynamics
         if self.num_internal_coords < 3:
-            self.transport_terms() 
-
-
+            self.transport_terms()
 
         # RHS buffer
-        self.rhs = np.zeros( self.num_moments )
+        self.rhs = np.zeros(self.num_moments)
 
         return
 
@@ -114,52 +112,52 @@ class qbmm_manager:
 
         :param config: Configuration
         :type config: dict
-        """        
-        qbmm_config = config['qbmm']
+        """
+        qbmm_config = config["qbmm"]
 
         self.checks = True
-        if 'checks' in qbmm_config:
-            self.checks = qbmm_config['checks']
-        
+        if "checks" in qbmm_config:
+            self.checks = qbmm_config["checks"]
+
         if self.num_internal_coords == 1:
             #
             self.moment_invert = self.moment_invert_1D
             #
-            if self.method == 'qmom':
+            if self.method == "qmom":
                 #
                 self.inversion_algorithm = wheeler
-                self.adaptive      = False
-                if 'adaptive' in qbmm_config:
-                    self.adaptive = qbmm_config['adaptive']
+                self.adaptive = False
+                if "adaptive" in qbmm_config:
+                    self.adaptive = qbmm_config["adaptive"]
                 self.inversion_option = self.adaptive
                 #
-            elif self.method == 'hyqmom':
+            elif self.method == "hyqmom":
                 #
                 self.inversion_algorithm = hyperbolic
-                self.max_skewness  = 30
-                if 'max_skewness' in qbmm_config:
-                    self.max_skewness = qbmm_config['max_skewness']
+                self.max_skewness = 30
+                if "max_skewness" in qbmm_config:
+                    self.max_skewness = qbmm_config["max_skewness"]
                 self.inversion_option = self.max_skewness
                 #
             else:
-                message = 'qbmm_mgr: set_inversion: Error: No method %s for num_internal_coords = 1'
-                print( message % self.method )
-                return(1)
+                message = "qbmm_mgr: set_inversion: Error: No method %s for num_internal_coords = 1"
+                print(message % self.method)
+                return 1
             #
         elif self.num_internal_coords == 2:
             #
             self.moment_invert = self.moment_invert_2PD
             #
-            if self.method == 'chyqmom':
+            if self.method == "chyqmom":
                 #
                 self.moment_invert = conditional_hyperbolic
                 self.inversion_algorithm = conditional_hyperbolic
                 self.max_skewness = 30
-                self.permutation  = 12
-                if 'max_skewness' in qbmm_config:
-                    self.max_skewness = qbmm_config['max_skewness']
-                if 'permutation' in qbmm_config:
-                    self.permutation = qbmm_config['permutation']
+                self.permutation = 12
+                if "max_skewness" in qbmm_config:
+                    self.max_skewness = qbmm_config["max_skewness"]
+                if "permutation" in qbmm_config:
+                    self.permutation = qbmm_config["permutation"]
                 self.inversion_option = self.max_skewness
                 self.inversion_option = self.permutation
                 self.inversion_option = self.checks
@@ -168,75 +166,123 @@ class qbmm_manager:
             #
             self.moment_invert = self.moment_invert_2PD
             #
-            if self.method == 'chyqmom':
+            if self.method == "chyqmom":
                 #
                 self.moment_invert = conditional_hyperbolic
                 self.inversion_algorithm = conditional_hyperbolic
                 self.max_skewness = 30
-                if 'max_skewness' in qbmm_config:
-                    self.max_skewness = qbmm_config['max_skewness']
+                if "max_skewness" in qbmm_config:
+                    self.max_skewness = qbmm_config["max_skewness"]
                 self.inversion_option = self.max_skewness
                 self.inversion_option = self.checks
                 #
         else:
-            message = 'qbmm_mgr: set_inversion: Error: dimensionality %i unsupported'
-            print( message % self.num_internal_coords )
-            return(1)
+            message = "qbmm_mgr: set_inversion: Error: dimensionality %i unsupported"
+            print(message % self.num_internal_coords)
+            return 1
 
-        return(0)
-    
+        return 0
+
     def moment_indices(self):
         """
         This function sets moment indices according to dimensionality (num_coords and num_nodes) and method.
         """
-        
+
         ###
         self.num_moments = 0
         #
         if self.num_internal_coords == 1:
             #
-            if self.method == 'qmom':
-                self.indices = np.arange( 2 * self.num_quadrature_nodes )
-            elif self.method == 'hyqmom':
-                self.indices = np.arange( 2 * ( self.num_quadrature_nodes - 1 ) + 1 )
+            if self.method == "qmom":
+                self.indices = np.arange(2 * self.num_quadrature_nodes)
+            elif self.method == "hyqmom":
+                self.indices = np.arange(2 * (self.num_quadrature_nodes - 1) + 1)
             #
-            self.num_moments = len( self.indices )
+            self.num_moments = len(self.indices)
             #
-            message = 'qbmm_mgr: moment_indices: '
-            f_array_pretty_print( message, 'indices', self.indices )
-        elif self.num_internal_coords == 2: 
+            message = "qbmm_mgr: moment_indices: "
+            f_array_pretty_print(message, "indices", self.indices)
+        elif self.num_internal_coords == 2:
             #
-            if self.method == 'chyqmom':
+            if self.method == "chyqmom":
                 if self.num_quadrature_nodes == 4:
-                    self.indices = np.array( [ [0,0], [1,0], [0,1], [2,0], [1,1], [0,2] ] )
+                    self.indices = np.array(
+                        [[0, 0], [1, 0], [0, 1], [2, 0], [1, 1], [0, 2]]
+                    )
                 elif self.num_quadrature_nodes == 9:
-                    self.indices = np.array( [ [0,0], [1,0], [0,1], [2,0], [1,1], [0,2], [3,0], [0,3], [4,0], [0,4] ] )
-                else :
-                    print( 'qbmm_mgr: moment_indices: Error: incorrect number of quadrature nodes (not 4 or 9), aborting... %i' % self.num_quadrature_nodes )
+                    self.indices = np.array(
+                        [
+                            [0, 0],
+                            [1, 0],
+                            [0, 1],
+                            [2, 0],
+                            [1, 1],
+                            [0, 2],
+                            [3, 0],
+                            [0, 3],
+                            [4, 0],
+                            [0, 4],
+                        ]
+                    )
+                else:
+                    print(
+                        "qbmm_mgr: moment_indices: Error: incorrect number of quadrature nodes (not 4 or 9), aborting... %i"
+                        % self.num_quadrature_nodes
+                    )
                     quit()
             else:
-                    print( 'qbmm_mgr: moment_indices: Error: method is not chyqmom for 2 internal coordinates, aborting... %i' % self.method )
-                    quit()
+                print(
+                    "qbmm_mgr: moment_indices: Error: method is not chyqmom for 2 internal coordinates, aborting... %i"
+                    % self.method
+                )
+                quit()
 
             #
             self.num_moments = self.indices.shape[0]
             #
-        elif self.num_internal_coords == 3: 
+        elif self.num_internal_coords == 3:
             #
-            if self.method == 'chyqmom':
-                if self.num_quadrature_nodes == 27:                    
-                    self.indices = np.array( [ [0,0,0], [1,0,0], [0,1,0], [0,0,1], [2,0,0], [1,1,0], [1,0,1], [0,2,0], [0,1,1], [0,0,2], [3,0,0], [0,3,0], [0,0,3], [4,0,0], [0,4,0], [0,0,4] ] )
-                else :
-                    print( 'qbmm_mgr: moment_indices: Error: incorrect number of quadrature nodes (not 27), aborting... %i' % self.num_quadrature_nodes )
+            if self.method == "chyqmom":
+                if self.num_quadrature_nodes == 27:
+                    self.indices = np.array(
+                        [
+                            [0, 0, 0],
+                            [1, 0, 0],
+                            [0, 1, 0],
+                            [0, 0, 1],
+                            [2, 0, 0],
+                            [1, 1, 0],
+                            [1, 0, 1],
+                            [0, 2, 0],
+                            [0, 1, 1],
+                            [0, 0, 2],
+                            [3, 0, 0],
+                            [0, 3, 0],
+                            [0, 0, 3],
+                            [4, 0, 0],
+                            [0, 4, 0],
+                            [0, 0, 4],
+                        ]
+                    )
+                else:
+                    print(
+                        "qbmm_mgr: moment_indices: Error: incorrect number of quadrature nodes (not 27), aborting... %i"
+                        % self.num_quadrature_nodes
+                    )
                     quit()
-            else :
-                print( 'qbmm_mgr: moment_indices: Error: Unsupported method, aborting...' )
+            else:
+                print(
+                    "qbmm_mgr: moment_indices: Error: Unsupported method, aborting..."
+                )
                 quit()
 
             self.num_moments = self.indices.shape[0]
         else:
             #
-            print('qbmm_mgr: moment_indices: Error: dimensionality %i unsupported' % self.num_internal_coords )
+            print(
+                "qbmm_mgr: moment_indices: Error: dimensionality %i unsupported"
+                % self.num_internal_coords
+            )
             quit()
         #
         # # Todo: append indices for polydisperse direction r0
@@ -246,7 +292,7 @@ class qbmm_manager:
         #     for j in range( num_poly_nodes ):
         #         for i in range( len(orig_idx) ):
         #             self.indices[i] = np.append( orig_idx[i], j )
-        return 
+        return
 
     def transport_terms(self):
         """
@@ -254,22 +300,22 @@ class qbmm_manager:
         """
 
         if self.num_internal_coords == 1:
-            x = smp.symbols( 'x' )
-            l = smp.symbols( 'l', real = True )
-            xdot = parse_expr( self.governing_dynamics )
-            integrand = xdot * ( x ** ( l - 1 ) )
+            x = smp.symbols("x")
+            l = smp.symbols("l", real=True)
+            xdot = parse_expr(self.governing_dynamics)
+            integrand = xdot * (x ** (l - 1))
             self.symbolic_indices = l
         elif self.num_internal_coords == 2:
             # if self.poly:
             #     r0 = smp.symbols( self.poly_symbol )
-            x,xdot = smp.symbols( 'x xdot' )
-            l,m    = smp.symbols( 'l m', real = True )
-            xddot  = parse_expr( self.governing_dynamics )
-            integrand = xddot * ( x ** l ) * ( xdot ** ( m - 1 ) )
-            self.symbolic_indices = [l,m]
+            x, xdot = smp.symbols("x xdot")
+            l, m = smp.symbols("l m", real=True)
+            xddot = parse_expr(self.governing_dynamics)
+            integrand = xddot * (x ** l) * (xdot ** (m - 1))
+            self.symbolic_indices = [l, m]
 
-        terms     = smp.powsimp( smp.expand( integrand ) ).args
-        num_terms = len( terms )
+        terms = smp.powsimp(smp.expand(integrand)).args
+        num_terms = len(terms)
 
         # Add constant term for 2+D problems
         total_num_terms = num_terms
@@ -277,31 +323,33 @@ class qbmm_manager:
             total_num_terms += 1
 
         # Initialize exponents and coefficients (weird, but works)
-        self.exponents    = [[smp.symbols('a') for i in range(total_num_terms)]
-                             for j in range(self.num_internal_coords)]
-        self.coefficients = [smp.symbols('a') for i in range(total_num_terms)]
+        self.exponents = [
+            [smp.symbols("a") for i in range(total_num_terms)]
+            for j in range(self.num_internal_coords)
+        ]
+        self.coefficients = [smp.symbols("a") for i in range(total_num_terms)]
 
         # Everything is simpler if now transferred into numpy arrays
-        self.exponents    = np.array(self.exponents).T
+        self.exponents = np.array(self.exponents).T
         self.coefficients = np.array(self.coefficients).T
 
         # Loop over terms
-        for i in range( num_terms ):
-            self.exponents[i,0] = terms[i].as_coeff_exponent(x)[1]
+        for i in range(num_terms):
+            self.exponents[i, 0] = terms[i].as_coeff_exponent(x)[1]
             if self.num_internal_coords == 1:
-                self.coefficients[i] = l * smp.poly( terms[i]).coeffs()[0]
+                self.coefficients[i] = l * smp.poly(terms[i]).coeffs()[0]
             else:
-                self.exponents[i,1] = terms[i].as_coeff_exponent(xdot)[1]
-                self.coefficients[i] = m * smp.poly( terms[i] ).coeffs()[0]
+                self.exponents[i, 1] = terms[i].as_coeff_exponent(xdot)[1]
+                self.coefficients[i] = m * smp.poly(terms[i]).coeffs()[0]
 
         # Add extra constant term if in 2D
         if self.num_internal_coords == 2:
-            self.exponents[ num_terms, 0 ] = l - 1
-            self.exponents[ num_terms, 1 ] = m + 1
-            self.coefficients[ num_terms ] = l
+            self.exponents[num_terms, 0] = l - 1
+            self.exponents[num_terms, 1] = m + 1
+            self.coefficients[num_terms] = l
 
-        self.num_coefficients = len( self.coefficients )
-        self.num_exponents    = len( self.exponents    )
+        self.num_coefficients = len(self.coefficients)
+        self.num_exponents = len(self.exponents)
 
         # message = 'qbmm_mgr: transport_terms: '
         # for i in range( total_num_terms ):
@@ -310,18 +358,18 @@ class qbmm_manager:
         # message = 'qbmm_mgr: transport_terms: '
         # sym_array_pretty_print( message, 'coefficients', self.coefficients )
 
-        for i in range( self.num_coefficients ):
+        for i in range(self.num_coefficients):
             if self.num_internal_coords == 1:
-                self.coefficients[i] = smp.lambdify([l],self.coefficients[i])
+                self.coefficients[i] = smp.lambdify([l], self.coefficients[i])
                 for j in range(self.num_internal_coords):
-                    self.exponents[i,j] = smp.lambdify([l],self.exponents[i,j])
+                    self.exponents[i, j] = smp.lambdify([l], self.exponents[i, j])
             elif self.num_internal_coords == 2:
-                self.coefficients[i] = smp.lambdify([l,m],self.coefficients[i])
+                self.coefficients[i] = smp.lambdify([l, m], self.coefficients[i])
                 for j in range(self.num_internal_coords):
-                    self.exponents[i,j] = smp.lambdify([l,m],self.exponents[i,j])
+                    self.exponents[i, j] = smp.lambdify([l, m], self.exponents[i, j])
 
         return
-    
+
     def moment_invert_1D(self, moments):
         """
         This function inverts tracked moments into a quadrature rule in 1D
@@ -337,7 +385,7 @@ class qbmm_manager:
 
         and qbmm_manager automatically selects moment_invert_1D based if ``num_internal_coords = 1``
         """
-        return self.inversion_algorithm( moments, self.inversion_option )
+        return self.inversion_algorithm(moments, self.inversion_option)
 
     def moment_invert_2PD(self, moments):
         """
@@ -354,7 +402,7 @@ class qbmm_manager:
 
         and qbmm_manager automatically selects moment_invert_2PD based if ``num_internal_coords > 1``
         """
-        return self.inversion_algorithm( moments, self.indices, self.inversion_option )
+        return self.inversion_algorithm(moments, self.indices, self.inversion_option)
 
     def projection(self, weights, abscissas, indices):
         """
@@ -370,12 +418,16 @@ class qbmm_manager:
         :rtype: array like
         """
         abscissas = np.array(abscissas)
-        moments = np.zeros( len(indices) )
-        for i in range( len(indices) ):
+        moments = np.zeros(len(indices))
+        for i in range(len(indices)):
             if self.num_internal_coords == 3:
-                moments[i] = quadrature_3d(weights, abscissas, indices[i], self.num_quadrature_nodes)
+                moments[i] = quadrature_3d(
+                    weights, abscissas, indices[i], self.num_quadrature_nodes
+                )
             if self.num_internal_coords == 2:
-                moments[i] = quadrature_2d(weights, abscissas, indices[i], self.num_quadrature_nodes)
+                moments[i] = quadrature_2d(
+                    weights, abscissas, indices[i], self.num_quadrature_nodes
+                )
             elif self.num_internal_coords == 1:
                 moments[i] = quadrature_1d(weights, abscissas, indices[i])
         return moments
@@ -390,41 +442,62 @@ class qbmm_manager:
         """
         # Compute abscissas and weights from moments
         if self.num_internal_coords == 1:
-            abscissas, weights = self.moment_invert( moments )      
+            abscissas, weights = self.moment_invert(moments)
         else:
-            abscissas, weights = self.moment_invert( moments,self.indices )      
+            abscissas, weights = self.moment_invert(moments, self.indices)
 
         # Loop over moments
-        for i_moment in range( self.num_moments ):
+        for i_moment in range(self.num_moments):
             # Evalue RHS terms
             if self.num_internal_coords == 1:
-                exponents    = [np.double(self.exponents[j,0](self.indices[i_moment])) 
-                                for j in range(self.num_exponents)]
-                coefficients = [np.double(self.coefficients[j](self.indices[i_moment]) )
-                                for j in range(self.num_coefficients)]
+                exponents = [
+                    np.double(self.exponents[j, 0](self.indices[i_moment]))
+                    for j in range(self.num_exponents)
+                ]
+                coefficients = [
+                    np.double(self.coefficients[j](self.indices[i_moment]))
+                    for j in range(self.num_coefficients)
+                ]
             elif self.num_internal_coords == 2:
-                exponents    = [ [ \
-                        np.double(self.exponents[j,0](self.indices[i_moment][0],self.indices[i_moment][1])), \
-                        np.double(self.exponents[j,1](self.indices[i_moment][0],self.indices[i_moment][1]))  \
-                        ] for j in range(self.num_exponents)]
-                coefficients = [ \
-                        np.double(self.coefficients[j](self.indices[i_moment][0],self.indices[i_moment][1])) 
-                        for j in range(self.num_coefficients)]
-            else :
-                print('num_internal_coords',self.num_internal_coords,'not supported yet')
+                exponents = [
+                    [
+                        np.double(
+                            self.exponents[j, 0](
+                                self.indices[i_moment][0], self.indices[i_moment][1]
+                            )
+                        ),
+                        np.double(
+                            self.exponents[j, 1](
+                                self.indices[i_moment][0], self.indices[i_moment][1]
+                            )
+                        ),
+                    ]
+                    for j in range(self.num_exponents)
+                ]
+                coefficients = [
+                    np.double(
+                        self.coefficients[j](
+                            self.indices[i_moment][0], self.indices[i_moment][1]
+                        )
+                    )
+                    for j in range(self.num_coefficients)
+                ]
+            else:
+                print(
+                    "num_internal_coords", self.num_internal_coords, "not supported yet"
+                )
                 quit()
 
             # Put them in numpy arrays
-            np_exponents    = np.array( exponents )
-            np_coefficients = np.array( coefficients )
+            np_exponents = np.array(exponents)
+            np_coefficients = np.array(coefficients)
             # Project back to moments
-            rhs_moments = self.projection( weights, abscissas, np_exponents )
+            rhs_moments = self.projection(weights, abscissas, np_exponents)
             # Compute RHS
-            rhs[i_moment] = np.dot( np_coefficients, rhs_moments )            
+            rhs[i_moment] = np.dot(np_coefficients, rhs_moments)
         #
-        projected_moments = self.projection( weights, abscissas, self.indices )
-        for i_moment in range( self.num_moments ):
-            moments[i_moment] = projected_moments[i_moment]               
+        projected_moments = self.projection(weights, abscissas, self.indices)
+        for i_moment in range(self.num_moments):
+            moments[i_moment] = projected_moments[i_moment]
         #
         return
-
