@@ -1,0 +1,10 @@
+[tool.black]
+exclude = '''
+/(
+    \.git
+  | \.github
+  | docs
+  | inputs
+  | notebooks
+)/
+'''

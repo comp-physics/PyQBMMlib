@@ -10,7 +10,8 @@
 """
 
 import sys
-sys.path.append('../utils/')
+
+sys.path.append("../utils/")
 
 from stats_util import *
 from pretty_print_util import *
@@ -18,13 +19,16 @@ from qbmm_manager import *
 import numpy as np
 import csv
 
+
 class time_advancer:
     """This class advances the moment transport equations in time.
-    
-    To use this class, you'll need a ``config`` dictionary. Example files are provided in ``inputs/``. The dictionary is used to set the following variables:
 
-    :ivar method: Time integration scheme (``euler`` or ``RK23``)
-    :ivar time_step: Time integration time step 
+    A ``config`` dictionary is required to usethis class.
+    Example files are provided in ``inputs/``.
+    The dictionary is used to set the following variables:
+
+    :ivar method: Time integration scheme (``euler`` or ``RK3``)
+    :ivar time_step: Time integration time step
     :ivar final_time: Final integration time
     :ivar num_steps: Number of integration steps
     :ivar num_steps_print: Report-status frequency
@@ -32,8 +36,8 @@ class time_advancer:
     :ivar output_dir: Directory to which output is written
     :ivar output_id: An ID for each run's output file
 
-    Create an advancer object simply by typing 
-    
+    Create an advancer object simply by typing
+
     >>> advancer = time_advancer( config )
 
     Before running, you'll need to initialize the state. One way you may do this is through:
@@ -42,69 +46,83 @@ class time_advancer:
 
     for a 1D problem, where ``mu`` and ``sigma`` are user-specified. Now all you have to do is:
 
-    >>> advancer.run()    
+    >>> advancer.run()
     """
 
     def __init__(self, config):
         """Constructor
-                
+
         :param config: Configuration
         :type config: dict
 
         """
-        
-        
-        self.method          = config['advancer']['method']
-        self.time_step       = config['advancer']['time_step']
-        self.final_time      = config['advancer']['final_time']
-        self.error_tol       = config['advancer']['error_tol']
-        self.num_steps       = config['advancer']['num_steps']
-        self.num_steps_print = config['advancer']['num_steps_print']
-        self.num_steps_write = config['advancer']['num_steps_write']
-        self.output_dir      = config['advancer']['output_dir']
-        self.output_id       = config['advancer']['output_id']
-        self.write_to        = config['advancer']['write_to']
-        
-        self.qbmm_mgr = qbmm_manager( config )
 
-        self.num_dim  = self.qbmm_mgr.num_moments
-        self.indices  = self.qbmm_mgr.indices
+        self.method = config["advancer"]["method"]
+        self.time_step = config["advancer"]["time_step"]
+        self.final_time = config["advancer"]["final_time"]
+        self.num_steps = config["advancer"]["num_steps"]
+        self.num_steps_print = config["advancer"]["num_steps_print"]
+        self.num_steps_write = config["advancer"]["num_steps_write"]
+        self.output_dir = config["advancer"]["output_dir"]
+        self.output_id = config["advancer"]["output_id"]
+        self.write_to = config["advancer"]["write_to"]
 
-        self.state    = np.zeros( self.num_dim )
-        self.rhs      = np.zeros( self.num_dim )
+        self.qbmm_mgr = qbmm_manager(config)
 
-        self.stage_state = np.zeros( [3, self.num_dim] )
-        self.stage_k     = np.zeros( [3, self.num_dim] )
-        
-        if self.method == 'Euler':
+        self.num_dim = self.qbmm_mgr.num_moments
+        self.indices = self.qbmm_mgr.indices
+
+        self.state = np.zeros(self.num_dim)
+        self.rhs = np.zeros(self.num_dim)
+
+        if "error_tol" in config["advancer"]:
+            self.adaptive = True
+            self.error_tol = config["advancer"]["error_tol"]
+            if self.method == "Euler":
+                print("Euler method is non-adaptive. Ignoring error_tol.")
+                self.adaptive = False
+        else:
+            self.adaptive = False
+
+        if self.method == "Euler":
             self.advance = self.advance_euler
-        elif self.method == 'RK23':
-            self.advance = self.advance_RK23
+            self.n_stages = 1
+        elif self.method == "RK3":
+            self.advance = self.advance_RK3
+            self.n_stages = 3
+        else:
+            print("Advancer method is not supported: ", self.method, "...Aborting...")
+            exit()
 
-        print('advancer: init: Configuration options ready')
-        print('\t method          = %s'   % self.method)
-        print('\t time_step       = %.4E' % self.time_step)
-        print('\t final_time      = %.4E' % self.final_time)
-        print('\t error_tol       = %.4E' % self.error_tol)
-        print('\t num_steps_print = %i'   % self.num_steps_print)
-        print('\t num_steps_write = %i'   % self.num_steps_write)
-        print('\t output_dir      = %s'   % self.output_dir)
-        print('\t output_id       = %s'   % self.output_id)
-        print('\t write_to        = %s'   % self.write_to)
+        self.stage_state = np.zeros([self.n_stages, self.num_dim])
+        self.stage_k = np.zeros([self.n_stages, self.num_dim])
 
-        self.max_time_step = 1.e5
+        print("advancer: init: Configuration options ready")
+        print("\t method          = %s" % self.method)
+        print("\t time_step       = %.4E" % self.time_step)
+        print("\t final_time      = %.4E" % self.final_time)
+        print("\t adaptivity      = %r" % self.adaptive)
+        print("\t num_steps_print = %i" % self.num_steps_print)
+        print("\t num_steps_write = %i" % self.num_steps_write)
+        print("\t output_dir      = %s" % self.output_dir)
+        print("\t output_id       = %s" % self.output_id)
+        print("\t write_to        = %s" % self.write_to)
+        if self.adaptive:
+            print("\t error_tol       = %.4E" % self.error_tol)
+
+        self.max_time_step = 1.0e5
         self.min_time_step = self.time_step
 
-        self.file_name = self.output_dir + 'qbmm_state_' + self.output_id
-        if self.write_to == 'txt':
-            self.file_name += '.dat'
+        self.file_name = self.output_dir + "qbmm_state_" + self.output_id
+        if self.write_to == "txt":
+            self.file_name += ".dat"
             self.write_to_file = self.write_to_txt
-        elif self.write_to == 'h5':
-            self.file_name += '.h5'
+        elif self.write_to == "h5":
+            self.file_name += ".h5"
             self.write_to_file = self.write_to_h5
-        
+
         return
-    
+
     def initialize_state(self, init_state):
         """
         This function initializes the advancer state
@@ -112,11 +130,11 @@ class time_advancer:
         :param init_state: Initial condition
         :type init_state: array like
         """
-        
+
         self.state = init_state
 
-        print('state', self.state)
-        
+        print("state", self.state)
+
         return
 
     def initialize_state_gaussian_trivar(self, mu1, mu2, mu3, sig1, sig2, sig3):
@@ -131,18 +149,18 @@ class time_advancer:
         :param sig3: Standard deviation of coordinate 3
         :type mu1: float
         :type mu2: float
-        :type mu3: floag
+        :type mu3: float
         :type sig1: float
         :type sig2: float
         :type sig3: float
         """
 
-        
-        self.state  = raw_gaussian_moments_trivar( self.indices, mu1, mu2, mu3, sig1, sig2, sig3 )
-        message = 'advancer: initialize_trigaussian: '
-        f_array_pretty_print( message, 'state', self.state )
+        self.state = raw_gaussian_moments_trivar(
+            self.indices, mu1, mu2, mu3, sig1, sig2, sig3
+        )
+        message = "advancer: initialize_trigaussian: "
+        f_array_pretty_print(message, "state", self.state)
         return
-
 
     def initialize_state_gaussian_bivar(self, mu1, mu2, sigma1, sigma2):
         """
@@ -157,11 +175,10 @@ class time_advancer:
         :type sig1: float
         :type sig2: float
         """
-        
-        
-        self.state  = raw_gaussian_moments_bivar( self.indices, mu1, mu2, sigma1, sigma2 )
-        message = 'advancer: initialize_bigaussian: '
-        f_array_pretty_print( message, 'state', self.state )
+
+        self.state = raw_gaussian_moments_bivar(self.indices, mu1, mu2, sigma1, sigma2)
+        message = "advancer: initialize_bigaussian: "
+        f_array_pretty_print(message, "state", self.state)
         return
 
     def initialize_state_gaussian_univar(self, mu, sigma):
@@ -172,81 +189,92 @@ class time_advancer:
         :param sigma: Standard deviation
         """
 
-        self.state = raw_gaussian_moments_univar( self.num_dim, mu, sigma)
-        message = 'advancer: initialize_gaussian: '
-        f_array_pretty_print( message, 'state', self.state )
+        self.state = raw_gaussian_moments_univar(self.num_dim, mu, sigma)
+        message = "advancer: initialize_gaussian: "
+        f_array_pretty_print(message, "state", self.state)
         return
-    
+
     def advance_euler(self):
         """
         This function advances the state with an explicit Euler scheme
         """
-        # self.rhs += self.qbmm_mgr.evaluate_rhs( self.state )
 
-        print('advancer: advance: Euler time advancer')
-        
-        self.rhs = self.qbmm_mgr.compute_rhs( self.state )
+        # Stage 1: { y_1, k_1 } = f( t_n, y_0 )
+        self.stage_state[0] = self.state.copy()
+        self.qbmm_mgr.compute_rhs(self.stage_state[0], self.stage_k[0])
 
-        ### state_{n+1} = proj_{n} + rhs_{n}
-        self.state += self.time_step * self.rhs
-        
+        # Updates
+        self.state = self.stage_state[0] + self.time_step * self.stage_k[0]
+
         return
 
-    def advance_RK23(self):
+    def advance_RK3(self):
         """
         This function advances the state with a Runge--Kutta 2/3 scheme
         """
 
         # Stage 1: { y_1, k_1 } = f( t_n, y_0 )
         self.stage_state[0] = self.state.copy()
-        time = self.time
-        self.qbmm_mgr.compute_rhs( self.stage_state[0], self.stage_k[0] )
+        self.qbmm_mgr.compute_rhs(self.stage_state[0], self.stage_k[0])
         self.stage_state[1] = self.stage_state[0] + self.time_step * self.stage_k[0]
 
         # Stage 2: { y_2, k_2 } = f( t_n, y_1 + dt * k_1 )
-        time = self.time + self.time_step
-        self.qbmm_mgr.compute_rhs( self.stage_state[1], self.stage_k[1] )
-        test_state = 0.5 * ( self.stage_state[0] + ( self.stage_state[1] + self.time_step * self.stage_k[1] ) )
+        self.qbmm_mgr.compute_rhs(self.stage_state[1], self.stage_k[1])
+        test_state = 0.5 * (
+            self.stage_state[0]
+            + (self.stage_state[1] + self.time_step * self.stage_k[1])
+        )
 
         # Stage 3: { y_3, k_3 } = f( t_n + 0.5 * dt, ... )
-        self.stage_state[2] = 0.75 * self.stage_state[0] + 0.25 * ( self.stage_state[1] + self.time_step * self.stage_k[1] )
-        self.qbmm_mgr.compute_rhs( self.stage_state[2], self.stage_k[2] )
+        self.stage_state[2] = 0.75 * self.stage_state[0] + 0.25 * (
+            self.stage_state[1] + self.time_step * self.stage_k[1]
+        )
+        self.qbmm_mgr.compute_rhs(self.stage_state[2], self.stage_k[2])
 
         # Updates
-        self.state = ( self.stage_state[0] + 2.0 * ( self.stage_state[2] + self.time_step * self.stage_k[2] ) ) / 3.0 
-        self.rk_error = np.linalg.norm( self.state - test_state ) / np.linalg.norm( self.state )
+        self.state = (
+            self.stage_state[0]
+            + 2.0 * (self.stage_state[2] + self.time_step * self.stage_k[2])
+        ) / 3.0
+
+        if self.adaptive:
+            self.ts_error = np.linalg.norm(self.state - test_state) / np.linalg.norm(
+                self.state
+            )
 
     def adapt_time_step(self):
         """
         This function adapts the time step according to user-specified tolerance
         """
 
-        error_fraction   = np.sqrt( 0.5 * self.error_tol / self.rk_error )
-        time_step_factor = min( max( error_fraction, 0.3 ), 2.0 )
-        new_time_step    = time_step_factor * self.time_step
-        new_time_step    = min( max( 0.9 * new_time_step, self.min_time_step ), self.max_time_step )
-        self.time_step   = new_time_step        
+        error_fraction = np.sqrt(0.5 * self.error_tol / self.ts_error)
+        time_step_factor = min(max(error_fraction, 0.3), 2.0)
+        new_time_step = time_step_factor * self.time_step
+        new_time_step = min(
+            max(0.9 * new_time_step, self.min_time_step), self.max_time_step
+        )
+        self.time_step = new_time_step
         return
-        
+
     def run(self):
         """
         Advancer driver
         """
 
-        print('advancer: run: Preparing to step')
-        
+        print("advancer: run: Preparing to step")
+
         self.time = 0.0
 
         self.report_step(0)
         self.write_step(0)
 
         i_step = 0
-        step   = True
+        step = True
         while step == True:
 
             self.advance()
 
-            i_step    += 1
+            i_step += 1
             self.time += self.time_step
 
             if i_step % self.num_steps_print == 0:
@@ -254,15 +282,16 @@ class time_advancer:
 
             if i_step % self.num_steps_write == 0:
                 self.write_step(i_step)
-                
-            self.adapt_time_step()
+
+            if self.adaptive:
+                self.adapt_time_step()
 
             if self.time > self.final_time or i_step >= self.num_steps:
                 step = False
-                
-        print('advancer: run: stepping ends')
-        print('advancer: Number of steps:',i_step)
-            
+
+        print("advancer: run: stepping ends")
+        print("advancer: Number of steps:", i_step)
+
         return
 
     def report_step(self, i_step):
@@ -273,8 +302,16 @@ class time_advancer:
         :type i_step: int
         """
 
-        message = 'advancer: step = ' + str(i_step) + ' ... time = ' + '{:.16E}'.format(self.time) + ' ... time_step = ' + '{:.16E}'.format(self.time_step) + ' ... '
-        f_array_pretty_print( message, 'state', self.state )
+        message = (
+            "advancer: step = "
+            + str(i_step)
+            + " ... time = "
+            + "{:.16E}".format(self.time)
+            + " ... time_step = "
+            + "{:.16E}".format(self.time_step)
+            + " ... "
+        )
+        f_array_pretty_print(message, "state", self.state)
 
     def write_step(self, i_step):
         """
@@ -284,10 +321,10 @@ class time_advancer:
         :type i_step: int
         """
 
-        message = 'advancer: step = ' + str(i_step) + ' ... Writing to file'
+        message = "advancer: step = " + str(i_step) + " ... Writing to file"
         # print(message)
-        self.write_to_file( i_step )
-        
+        self.write_to_file(i_step)
+
     def write_to_txt(self, i_step):
         """
         This function writes the current state to a txt file
@@ -295,19 +332,21 @@ class time_advancer:
         :param i_step: Current step
         :type i_step: int
         """
-        write_flag = 'a'
+        write_flag = "a"
         if i_step == 0:
-            write_flag = 'w'
-            
-        with open( self.file_name, write_flag ) as file_id:
-           # csv.writer( file_id, delimiter=' ' ).writerow( self.state )
-           csv.writer( file_id, delimiter=' ' ).writerow( [self.time] + self.state.tolist() )
-           
+            write_flag = "w"
+
+        with open(self.file_name, write_flag) as file_id:
+            # csv.writer( file_id, delimiter=' ' ).writerow( self.state )
+            csv.writer(file_id, delimiter=" ").writerow(
+                [self.time] + self.state.tolist()
+            )
+
         return
-        
+
     def write_to_h5(self):
         """
-        This function writes the current state to a h5 file, but is not implemented yet.        
+        This function writes the current state to a h5 file, but is not implemented yet.
         """
-        print('advancer: write_to_h5: not implemented yet')
+        print("advancer: write_to_h5: not implemented yet")
         return
