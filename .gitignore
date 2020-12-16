@@ -6,3 +6,10 @@ tags
 D
 _build
 __pycache__
+
+# virtual environment
+env
+
+# build results 
+build
+*.egg-info

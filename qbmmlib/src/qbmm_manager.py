@@ -8,20 +8,18 @@
 
 """
 
-import sys
-sys.path.append("../utils/")
-from inversion import *
-from pretty_print_util import *
+from qbmmlib.src.inversion import *
+from qbmmlib.utils.pretty_print_util import *
 import numpy as np
 import sympy as smp
 from sympy.parsing.sympy_parser import parse_expr
 
 try:
     import numba
-    from nquad import *
+    from qbmmlib.utils.nquad import *
 except:
     print("Did not find numba! Install it for significant speedups.")
-    from quad import *
+    from qbmmlib.utils.quad import *
 
 
 class qbmm_manager:

@@ -2,7 +2,6 @@ import scipy.stats as stats
 import scipy.special as sc
 import math
 import numpy as np
-from stats_util import *
 
 
 def raw_gaussian_moments_univar(num_moments, mu, sigma):

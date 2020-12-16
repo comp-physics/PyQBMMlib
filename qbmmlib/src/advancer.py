@@ -11,11 +11,10 @@
 
 import sys
 
-sys.path.append("../utils/")
+from qbmmlib.utils.stats_util import *
 
-from stats_util import *
-from pretty_print_util import *
-from qbmm_manager import *
+from qbmmlib.utils.pretty_print_util import *
+from qbmmlib.src.qbmm_manager import *
 import numpy as np
 import csv
 
