@@ -4,3 +4,7 @@ scipy==1.5.4
 numba==0.52.0
 pytest==6.2.0
 PyYAML==5.3.1
+
+# dependency of pycuda
+six
+pycuda

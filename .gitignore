@@ -13,3 +13,4 @@ env
 # build results 
 build
 *.egg-info
+*.egg
