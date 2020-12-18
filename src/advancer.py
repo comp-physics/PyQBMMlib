@@ -67,22 +67,38 @@ class time_advancer:
         self.output_id       = config['advancer']['output_id']
         self.write_to        = config['advancer']['write_to']
         
-        self.qbmm_mgr = qbmm_manager( config )
-
-        self.num_dim  = self.qbmm_mgr.num_moments
-        self.indices  = self.qbmm_mgr.indices
-
-        self.state    = np.zeros( self.num_dim )
-        self.rhs      = np.zeros( self.num_dim )
-
-        self.stage_state = np.zeros( [3, self.num_dim] )
-        self.stage_k     = np.zeros( [3, self.num_dim] )
+        self.domain = simulation_domain(config)
+        self.qbmm_mgr = self.domain.qbmm_mgr  # This is fine for now... will change
         
+        # Flow problems
+        if 'flow' in config['advancer']['flow']:
+            self.flow = config['advancer']['flow']
+            if self.flow:
+                self.compute_rhs = self.domain.compute_rhs
+                self.state = np.zeros([self.domain.num_points, self.qbmm_mgr.num_moments])
+                self.rhs = np.zeros([self.domain.num_points, self.qbmm_mgr.num_moments])
+                if self.method != 'Euler':
+                    print('advancer: Flow problems need Euler time-stepping, cannot continue')
+                    return                    
+            else:
+                self.compute_rhs = self.qbmm_mgr.compute_rhs
+                self.num_dim  = self.qbmm_mgr.num_moments
+                self.state    = np.zeros( self.num_dim )
+                self.rhs      = np.zeros( self.num_dim )                
+        else:
+            self.flow = False
+
         if self.method == 'Euler':
             self.advance = self.advance_euler
         elif self.method == 'RK23':
             self.advance = self.advance_RK23
+            self.stage_state = np.zeros( [3, self.num_dim] )
+            self.stage_k     = np.zeros( [3, self.num_dim] )
 
+        self.max_time_step = 1.e5
+        self.min_time_step = self.time_step
+            
+        # Report
         print('advancer: init: Configuration options ready')
         print('\t method          = %s'   % self.method)
         print('\t time_step       = %.4E' % self.time_step)
@@ -94,9 +110,7 @@ class time_advancer:
         print('\t output_id       = %s'   % self.output_id)
         print('\t write_to        = %s'   % self.write_to)
 
-        self.max_time_step = 1.e5
-        self.min_time_step = self.time_step
-
+        # Output options
         self.file_name = self.output_dir + 'qbmm_state_' + self.output_id
         if self.write_to == 'txt':
             self.file_name += '.dat'
@@ -104,7 +118,7 @@ class time_advancer:
         elif self.write_to == 'h5':
             self.file_name += '.h5'
             self.write_to_file = self.write_to_h5
-        
+            
         return
     
     def initialize_state(self, init_state):
@@ -121,6 +135,13 @@ class time_advancer:
         
         return
 
+    def initialize_state_jets(self):
+        """
+        This function intializes the advancer state to R.O. Fox's jet conditions
+        """
+        self.domain.initialize_state_jets(self.state)
+        return
+    
     def initialize_state_gaussian_trivar(self, mu1, mu2, mu3, sig1, sig2, sig3):
         """
         This function initializes the state to the raw moments of a trivariate Gaussian distribution.
@@ -140,7 +161,7 @@ class time_advancer:
         """
 
         
-        self.state  = raw_gaussian_moments_trivar( self.indices, mu1, mu2, mu3, sig1, sig2, sig3 )
+        self.state  = raw_gaussian_moments_trivar( self.qbmm_mgr.indices, mu1, mu2, mu3, sig1, sig2, sig3 )
         message = 'advancer: initialize_trigaussian: '
         f_array_pretty_print( message, 'state', self.state )
         return
@@ -161,7 +182,7 @@ class time_advancer:
         """
         
         
-        self.state  = raw_gaussian_moments_bivar( self.indices, mu1, mu2, sigma1, sigma2 )
+        self.state  = raw_gaussian_moments_bivar( self.qbmm_mgr.indices, mu1, mu2, sigma1, sigma2 )
         message = 'advancer: initialize_bigaussian: '
         f_array_pretty_print( message, 'state', self.state )
         return
@@ -178,6 +199,13 @@ class time_advancer:
         message = 'advancer: initialize_gaussian: '
         f_array_pretty_print( message, 'state', self.state )
         return
+
+    def initialize_flow(self):
+        """
+        This function initializes flow
+        """
+        self.simulation_domain
+        return
     
     def advance_euler(self):
         """
@@ -187,7 +215,7 @@ class time_advancer:
 
         print('advancer: advance: Euler time advancer')
         
-        self.rhs = self.qbmm_mgr.compute_rhs( self.state )
+        self.rhs = self.compute_rhs( self.state )
 
         ### state_{n+1} = proj_{n} + rhs_{n}
         self.state += self.time_step * self.rhs

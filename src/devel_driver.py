@@ -12,6 +12,7 @@ These are example drivers that you may use as templates for your application.
 
 from advancer import *
 from config_manager import *
+from simulation_domain import *
 import sys
 sys.path.append('../utils/')
 from stats_util import *
@@ -26,9 +27,15 @@ def flow_example():
     Currently, it only computes moment fluxes, but work is underway to solve the compressible flow equations.
     """
     # In development
+
+    cfl = 0.9
+    dx = 1/400
+    U_max = 0.01
+    
     config = {}
     config['qbmm'] = {}
     config['advancer'] = {}
+    config['domain'] = {}
 
     config['qbmm']['flow'] = True
     config['qbmm']['governing_dynamics']   = ''
@@ -38,33 +45,32 @@ def flow_example():
     config['qbmm']['adaptive']             = False
     config['qbmm']['max_skewness']         = 30
 
-    qbmm_mgr = qbmm_manager( config )
-    indices  = qbmm_mgr.indices
-
-    # Initial condition
-    # mu1    = 1.0
-    # mu2    = 1.0
-    # mu3    = 1.0
-    # sigma1 = 0.1
-    # sigma2 = 0.1
-    # sigma3 = 0.1
-    # moments = raw_gaussian_moments_trivar( indices, mu1, mu2, mu3,
-    #                                        sigma1, sigma2, sigma3 )
-
-    moments_left, moments_right =  jet_initialize_moments( qbmm_mgr )
-
-    xi_left,  wts_left  = qbmm_mgr.moment_invert( moments_left,  indices )
-    xi_right, wts_right = qbmm_mgr.moment_invert( moments_right, indices )
-
-    print(wts_left)
-    print(wts_right)
+    config['domain']['num_dim'] = 1
+    config['domain']['num_points'] = 402
+    config['domain']['grid_extents'] = [0, 1]
     
-    print(xi_left)
-    print(xi_right)
+    config['advancer']['method'] = 'Euler'
+    config['advancer']['time_step'] = cfl * dx / U_max
+    config['advancer']['final_time'] = 0.6
+    config['advancer']['num_steps'] = 10000
 
-    flux = moment_fluxes( indices, wts_left, wts_right, xi_left, xi_right )
+    advancer = time_advancer(config)
+    advancer.initialize_state_jets()
+    advancer.run()    
+    
+    
+    # xi_left,  wts_left  = qbmm_mgr.moment_invert( moments_left,  indices )
+    # xi_right, wts_right = qbmm_mgr.moment_invert( moments_right, indices )
+    # print(wts_left)
+    # print(wts_right)
+    # print(xi_left)
+    # print(xi_right)
+    # flux = moment_fluxes( indices, wts_left, wts_right, xi_left, xi_right )
+    #print(flux)
 
-    print(flux)
+
+    domain = simulation_domain(config)
+    domain.initialize_state_uniform(0.1, 1.0)
     
     return
 
@@ -160,7 +166,8 @@ if __name__ == '__main__':
         ### 4. If argv matches case, run, then stop
         ### 5. If argv does not match case, then exit
     else:
-        print('devel_driver: no config file supplied')
+        flow_example()
+        #print('devel_driver: no config file supplied')
 
     exit()
         

@@ -56,11 +56,6 @@ class qbmm_manager:
         #     self.num_poly_nodes = config['qbmm']['num_poly_nodes']
         #     self.poly_symbol    = config['qbmm']['poly_symbol']
 
-        if 'flow' in qbmm_config:
-            self.flow = qbmm_config['flow']
-        else:
-            self.flow = False
-
         if 'adaptive' in qbmm_config:
             self.adaptive = qbmm_config['adaptive']
         else:
