@@ -162,31 +162,45 @@ float qmom_cuda(float moments[], int num_moments, float* result) {
     // thread block is set to be 1D,
     int num_threads = 1024;
 
+    // set up three streams for concurrent kernels
+    cudaStream_t stream1, stream2, stream3;
+    cudaStreamCreateWithFlags(&stream1, cudaStreamNonBlocking);
+    cudaStreamCreateWithFlags(&stream2, cudaStreamNonBlocking);
+    cudaStreamCreateWithFlags(&stream3, cudaStreamNonBlocking);
+
     //// Calculating 
     printf("[CUDA] starting calculation. Timer on ... \n");
     cudaEventRecord(start); //start the timer
 
     // Central moments set_M_kernel
-    c11_kernel<<<1, num_threads>>>(moments_gpu, c11, num_moments);
-    c20_kernel<<<1, num_threads>>>(moments_gpu, c20, num_moments);
-    c02_kernel<<<1, num_threads>>>(moments_gpu, c02, num_moments);
+    c11_kernel<<<1, num_threads, 0, stream1>>>(moments_gpu, c11, num_moments);
+    c20_kernel<<<1, num_threads, 0, stream2>>>(moments_gpu, c20, num_moments);
+    c02_kernel<<<1, num_threads, 0, stream3>>>(moments_gpu, c02, num_moments);
+    cudaStreamSynchronize(stream1);
+    cudaStreamSynchronize(stream2);
+    cudaStreamSynchronize(stream3);
+
 
     // first hyqmom2
-    init_M<<<1, num_threads>>>(c02, M_inter, num_moments);
-    hyqmom2_kernel<<<1, num_threads>>>(M_inter, w_inter_1, x_inter_1, num_moments);
+    init_M<<<1, num_threads, 0, stream1>>>(c02, M_inter, num_moments);
+    hyqmom2_kernel<<<1, num_threads, 0, stream1>>>(M_inter, w_inter_1, x_inter_1, num_moments);
     
     // intermediate values 
-    nu_kernel<<<1, num_threads>>>(c11, c20, x_inter_1, nu, num_moments);
-    mu_kernel<<<1, num_threads>>>(c02, nu, w_inter_1, mu, num_moments);
+    nu_kernel<<<1, num_threads, 0, stream1>>>(c11, c20, x_inter_1, nu, num_moments);
+    mu_kernel<<<1, num_threads, 0, stream1>>>(c02, nu, w_inter_1, mu, num_moments);
 
     // second hyqmom2
-    init_M<<<1, num_threads>>>(mu, M_inter, num_moments);
-    hyqmom2_kernel<<<1, num_threads>>>(M_inter, w_inter_2, x_inter_2, num_moments);
+    init_M<<<1, num_threads, 0, stream1>>>(mu, M_inter, num_moments);
+    hyqmom2_kernel<<<1, num_threads, 0, stream1>>>(M_inter, w_inter_2, x_inter_2, num_moments);
+    cudaStreamSynchronize(stream1);
 
     // final results
-    weight_kernel<<<1, num_threads>>>(moments_gpu, w_inter_1, w_inter_2, w_final_gpu, num_moments);
-    x_kernel<<<1, num_threads>>>(moments_gpu, x_inter_1, x_final_gpu, num_moments);
-    y_kernel<<<1, num_threads>>>(moments_gpu, nu, x_inter_2, y_final_gpu, num_moments);
+    weight_kernel<<<1, num_threads, 0, stream1>>>(moments_gpu, w_inter_1, w_inter_2, w_final_gpu, num_moments);
+    x_kernel<<<1, num_threads, 0, stream2>>>(moments_gpu, x_inter_1, x_final_gpu, num_moments);
+    y_kernel<<<1, num_threads, 0, stream3>>>(moments_gpu, nu, x_inter_2, y_final_gpu, num_moments);
+    cudaStreamSynchronize(stream1);
+    cudaStreamSynchronize(stream2);
+    cudaStreamSynchronize(stream3);
     cudaEventRecord(stop); //stop the timer
     printf("[CUDA] Finished calculation. Timer off... \n");
 
