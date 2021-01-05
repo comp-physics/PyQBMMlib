@@ -27,21 +27,49 @@ int main(int argc, char **argv) {
     int num_thread = atoi(argv[2]);
 
     float *input_moments = new float[6*num_moments];
-    float *result_weight_cuda = new float[4*num_moments];
-    float *result_weight_omp = new float[4*num_moments];
-    float *result_weight_naive = new float[4*num_moments];
+    float *x_out_cuda = new float[4*num_moments];
+    float *x_out_omp = new float[4*num_moments];
+    float *x_out_naive = new float[4*num_moments];
+    float *y_out_cuda = new float[4*num_moments];
+    float *y_out_omp = new float[4*num_moments];
+    float *y_out_naive = new float[4*num_moments];
+    float *w_out_cuda = new float[4*num_moments];
+    float *w_out_omp = new float[4*num_moments];
+    float *w_out_naive = new float[4*num_moments];
     init_input(input_moments, num_moments);
 
-    float cuda_time = qmom_cuda(input_moments, num_moments, result_weight_cuda);
-    float omp_time = qmom_openmp(input_moments, num_moments, result_weight_omp, num_thread);
-    float naive_time = qmom_naive(input_moments, num_moments, result_weight_naive);
+    float cuda_time = qmom_cuda(input_moments, num_moments, x_out_cuda, y_out_cuda, w_out_cuda);
+    float omp_time = qmom_openmp(input_moments, num_moments, num_thread, x_out_omp, y_out_omp, w_out_omp);
+    float naive_time = qmom_naive(input_moments, num_moments, x_out_naive, y_out_naive, w_out_naive);
 
-    // verify results
-    for (int i = 0; i < num_moments*4; i++) {
-        assert(result_weight_cuda[i] == result_weight_omp[i]);
+    for (int i = 0; i < num_moments; i++) {
+        // printf(" %f ", x_out_cuda[i]);
+        // printf(" %f ", x_out_omp[i]);
+        // printf(" %f ", y_out_cuda[i]);
+        // printf(" %f ", y_out_omp[i]);
+        // printf(" %f ", w_out_cuda[i]);
+        // printf(" %f ", w_out_omp[i]);
+        // printf(" \n");
+        assert(x_out_cuda[i] == x_out_omp[i]);
+        assert(y_out_cuda[i] == y_out_omp[i]);
+        assert(w_out_cuda[i] == w_out_omp[i]);
+
     }
 
     printf("[CUDA]    Took %f ms \n", cuda_time);
     printf("[OPEN_MP] Took %f ms \n", omp_time);
     printf("[NAIVE]   Took %f ms \n", naive_time);
+
+    delete[] input_moments;
+    delete[] x_out_cuda;
+    delete[] x_out_omp;
+    delete[] x_out_naive;
+    delete[] y_out_cuda;
+    delete[] y_out_omp;
+    delete[] y_out_naive;
+    delete[] w_out_cuda;
+    delete[] w_out_omp;
+    delete[] w_out_naive;
+
+    return 0;
 }

@@ -111,7 +111,8 @@ __global__ void y_kernel(float* M, float* nu, float* x2, float* y_final, int N) 
     };
 };
 
-float qmom_cuda(float moments[], int num_moments, float* result) {
+float qmom_cuda(float moments[], int num_moments,
+    float xout[], float yout[], float wout[]) {
 
     // timer for measuring kernel execution time
     // measurement done in miliseconds
@@ -125,13 +126,7 @@ float qmom_cuda(float moments[], int num_moments, float* result) {
     float *c20, *c11, *c02; 
     float *M_inter, *w_inter_1, *w_inter_2, *x_inter_1, *x_inter_2;
     float *nu, *mu;
-    float *w_final_gpu, *x_final_gpu, *y_final_gpu;
-    float *w_final_cpu, *x_final_cpu, *y_final_cpu;
-    
-    //// allocate host memory
-    w_final_cpu = new float[num_moments*4];
-    x_final_cpu = new float[num_moments*4];
-    y_final_cpu = new float[num_moments*4];
+    float *w_final_gpu, *x_final_gpu, *y_final_gpu;    
 
     //// allocate device memory 
     // input
@@ -191,9 +186,9 @@ float qmom_cuda(float moments[], int num_moments, float* result) {
     printf("[CUDA] Finished calculation. Timer off... \n");
 
     // copy result from device to host 
-    gpuErrchk(cudaMemcpy(result, w_final_gpu, sizeof(float)*num_moments*4, cudaMemcpyDeviceToHost));
-    gpuErrchk(cudaMemcpy(x_final_cpu, x_final_gpu, sizeof(float)*num_moments*4, cudaMemcpyDeviceToHost));
-    gpuErrchk(cudaMemcpy(y_final_cpu, y_final_gpu, sizeof(float)*num_moments*4, cudaMemcpyDeviceToHost));
+    gpuErrchk(cudaMemcpy(wout, w_final_gpu, sizeof(float)*num_moments*4, cudaMemcpyDeviceToHost));
+    gpuErrchk(cudaMemcpy(xout, x_final_gpu, sizeof(float)*num_moments*4, cudaMemcpyDeviceToHost));
+    gpuErrchk(cudaMemcpy(yout, y_final_gpu, sizeof(float)*num_moments*4, cudaMemcpyDeviceToHost));
     // --TODO-- verify the result somehow? 
 
     float calc_duration; 
@@ -213,7 +208,6 @@ float qmom_cuda(float moments[], int num_moments, float* result) {
     cudaFree(w_final_gpu);
     cudaFree(x_final_gpu);
     cudaFree(y_final_gpu);
-    delete[] w_final_cpu, x_final_cpu, y_final_cpu;
 
     return calc_duration;
 }

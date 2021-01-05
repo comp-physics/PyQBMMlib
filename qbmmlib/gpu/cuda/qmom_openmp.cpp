@@ -77,10 +77,10 @@ void chyqmom4(float mom[], float xout[], float yout[], float wout[]) {
     wout[2] = mom00 * rho[1] * rho21;
     wout[3] = mom00 * rho[1] * rho22;
 
-    xout[0] = bx * xp[0];
-    xout[1] = bx * xp[0];
-    xout[2] = bx * xp[1];
-    xout[3] = bx * xp[1];
+    xout[0] = bx + xp[0];
+    xout[1] = bx + xp[0];
+    xout[2] = bx + xp[1];
+    xout[3] = bx + xp[1];
 
     yout[0] = by + yf[0] + yp21;
     yout[1] = by + yf[0] + yp22;
@@ -90,10 +90,9 @@ void chyqmom4(float mom[], float xout[], float yout[], float wout[]) {
     return;
 }
 
-float qmom_openmp(float moments[], int num_moments, float* weight_result, int nthread) {
-
-    float* x2D = new float[4*num_moments];
-    float* y2D = new float[4*num_moments];
+float qmom_openmp(float moments[], int num_moments, int nthread, 
+                    float xout[], float yout[], float wout[])
+{
     omp_set_num_threads(nthread);
 
     printf("[OPEN_MP] starting %d thread(s) \n", omp_get_max_threads());
@@ -102,29 +101,25 @@ float qmom_openmp(float moments[], int num_moments, float* weight_result, int nt
     double tic = omp_get_wtime();
     #pragma omp parallel for
     for (int i=0; i<num_moments; i++) {
-        chyqmom4(&moments[6*i], &x2D[4*i], &y2D[4*i], &weight_result[4*i]);
+        chyqmom4(&moments[6*i], &xout[4*i], &yout[4*i], &wout[4*i]);
     }
     double toc = omp_get_wtime();
 
     printf("[OPEN_MP] Finished loop. Timer off... \n");
-
-    delete[] x2D;
-    delete[] y2D;
     return (toc - tic)*1e3; // convert to miliseconds 
 }
 
-float qmom_naive(float moments[], int num_moments, float* weight_result) {
-    float* x2D = new float[4*num_moments];
-    float* y2D = new float[4*num_moments];
+float qmom_naive(float moments[], int num_moments,
+                    float xout[], float yout[], float wout[])
+{
+
     printf("[NAIVE] starting loop. Timer on... \n");
 
     double tic = omp_get_wtime();
     for (int i=0; i<num_moments; i++) {
-        chyqmom4(&moments[6*i], &x2D[4*i], &y2D[4*i], &weight_result[4*i]);
+        chyqmom4(&moments[6*i], &xout[4*i], &yout[4*i], &wout[4*i]);
     }
     double toc = omp_get_wtime();
     printf("[NAIVE] Finished loop. Timer off... \n");
-    delete[] x2D;
-    delete[] y2D;
     return (toc - tic)*1e3;
 }
