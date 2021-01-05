@@ -65,6 +65,14 @@ __global__ void mu_kernel(float* c02, float* nu, float* w, float* mu, int N) {
     };
 };
 
+__global__ void mu_kernel2(float* c02, float* c11, float* c20, float* mu, int N) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    while (idx < N) {
+        mu[idx] = c02[idx] - c11[idx]*c11[idx]/c20[idx];
+        idx += blockDim.x;
+    };
+};
+
 __global__ void hyqmom2_kernel(float* M, float* w, float* x, int N) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     while (idx < N) {
@@ -176,23 +184,23 @@ float qmom_cuda(float moments[], int num_moments, float* result) {
     c11_kernel<<<1, num_threads, 0, stream1>>>(moments_gpu, c11, num_moments);
     c20_kernel<<<1, num_threads, 0, stream2>>>(moments_gpu, c20, num_moments);
     c02_kernel<<<1, num_threads, 0, stream3>>>(moments_gpu, c02, num_moments);
+    init_M<<<1, num_threads, 0, stream3>>>(c02, M_inter, num_moments);
+
+    hyqmom2_kernel<<<1, num_threads, 0, stream3>>>(M_inter, w_inter_1, x_inter_1, num_moments);
+    mu_kernel2<<<1, num_threads, 0, stream2>>>(c02, c11, c20, mu, num_moments);
+    init_M<<<1, num_threads, 0, stream2>>>(mu, M_inter, num_moments);
     cudaStreamSynchronize(stream1);
     cudaStreamSynchronize(stream2);
     cudaStreamSynchronize(stream3);
 
-
-    // first hyqmom2
-    init_M<<<1, num_threads, 0, stream1>>>(c02, M_inter, num_moments);
-    hyqmom2_kernel<<<1, num_threads, 0, stream1>>>(M_inter, w_inter_1, x_inter_1, num_moments);
     
     // intermediate values 
     nu_kernel<<<1, num_threads, 0, stream1>>>(c11, c20, x_inter_1, nu, num_moments);
-    mu_kernel<<<1, num_threads, 0, stream1>>>(c02, nu, w_inter_1, mu, num_moments);
+    cudaStreamSynchronize(stream1);
+    cudaStreamSynchronize(stream2);
 
     // second hyqmom2
-    init_M<<<1, num_threads, 0, stream1>>>(mu, M_inter, num_moments);
-    hyqmom2_kernel<<<1, num_threads, 0, stream1>>>(M_inter, w_inter_2, x_inter_2, num_moments);
-    cudaStreamSynchronize(stream1);
+    hyqmom2_kernel<<<1, num_threads, 0, stream2>>>(M_inter, w_inter_2, x_inter_2, num_moments);
 
     // final results
     weight_kernel<<<1, num_threads, 0, stream1>>>(moments_gpu, w_inter_1, w_inter_2, w_final_gpu, num_moments);
