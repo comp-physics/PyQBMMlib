@@ -126,8 +126,6 @@ float qmom_cuda(float moments[], int num_moments, float* result) {
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
-    
-    //// Setup memory 
     printf("[CUDA] Setting up memmory... \n");
     float *moments_gpu;
     float *c20, *c11, *c02; 
@@ -169,6 +167,7 @@ float qmom_cuda(float moments[], int num_moments, float* result) {
 
     // thread block is set to be 1D,
     int num_threads = 1024;
+    int num_blocks = 1;
 
     // set up three streams for concurrent kernels
     cudaStream_t stream1, stream2, stream3;
@@ -181,41 +180,32 @@ float qmom_cuda(float moments[], int num_moments, float* result) {
     cudaEventRecord(start); //start the timer
 
     // Central moments set_M_kernel
-    c11_kernel<<<1, num_threads, 0, stream1>>>(moments_gpu, c11, num_moments);
-    c20_kernel<<<1, num_threads, 0, stream2>>>(moments_gpu, c20, num_moments);
-    c02_kernel<<<1, num_threads, 0, stream3>>>(moments_gpu, c02, num_moments);
-    init_M<<<1, num_threads, 0, stream3>>>(c02, M_inter, num_moments);
+    c11_kernel<<<num_blocks, num_threads, 0, stream1>>>(moments_gpu, c11, num_moments);
+    c20_kernel<<<num_blocks, num_threads, 0, stream2>>>(moments_gpu, c20, num_moments);
+    c02_kernel<<<num_blocks, num_threads, 0, stream3>>>(moments_gpu, c02, num_moments);
+    init_M<<<num_blocks, num_threads, 0, stream3>>>(c02, M_inter, num_moments);
 
-    hyqmom2_kernel<<<1, num_threads, 0, stream3>>>(M_inter, w_inter_1, x_inter_1, num_moments);
-    mu_kernel2<<<1, num_threads, 0, stream2>>>(c02, c11, c20, mu, num_moments);
-    init_M<<<1, num_threads, 0, stream2>>>(mu, M_inter, num_moments);
-    cudaStreamSynchronize(stream1);
-    cudaStreamSynchronize(stream2);
-    cudaStreamSynchronize(stream3);
-
-    
-    // intermediate values 
-    nu_kernel<<<1, num_threads, 0, stream1>>>(c11, c20, x_inter_1, nu, num_moments);
-    cudaStreamSynchronize(stream1);
-    cudaStreamSynchronize(stream2);
+    hyqmom2_kernel<<<num_blocks, num_threads, 0, stream3>>>(M_inter, w_inter_1, x_inter_1, num_moments);
+    nu_kernel<<<num_blocks, num_threads, 0, stream3>>>(c11, c20, x_inter_1, nu, num_moments);
+    mu_kernel2<<<num_blocks, num_threads, 0, stream2>>>(c02, c11, c20, mu, num_moments);
+    init_M<<<num_blocks, num_threads, 0, stream2>>>(mu, M_inter, num_moments);
 
     // second hyqmom2
-    hyqmom2_kernel<<<1, num_threads, 0, stream2>>>(M_inter, w_inter_2, x_inter_2, num_moments);
-
-    // final results
-    weight_kernel<<<1, num_threads, 0, stream1>>>(moments_gpu, w_inter_1, w_inter_2, w_final_gpu, num_moments);
-    x_kernel<<<1, num_threads, 0, stream2>>>(moments_gpu, x_inter_1, x_final_gpu, num_moments);
-    y_kernel<<<1, num_threads, 0, stream3>>>(moments_gpu, nu, x_inter_2, y_final_gpu, num_moments);
+    hyqmom2_kernel<<<num_blocks, num_threads, 0, stream2>>>(M_inter, w_inter_2, x_inter_2, num_moments);
     cudaStreamSynchronize(stream1);
     cudaStreamSynchronize(stream2);
     cudaStreamSynchronize(stream3);
+    // final results
+    weight_kernel<<<num_blocks, num_threads, 0, stream1>>>(moments_gpu, w_inter_1, w_inter_2, w_final_gpu, num_moments);
+    x_kernel<<<num_blocks, num_threads, 0, stream2>>>(moments_gpu, x_inter_1, x_final_gpu, num_moments);
+    y_kernel<<<num_blocks, num_threads, 0, stream3>>>(moments_gpu, nu, x_inter_2, y_final_gpu, num_moments);
     cudaEventRecord(stop); //stop the timer
     printf("[CUDA] Finished calculation. Timer off... \n");
 
     // copy result from device to host 
-    gpuErrchk(cudaMemcpy(result, w_final_gpu, sizeof(float)*num_moments*4, cudaMemcpyDeviceToHost));
-    gpuErrchk(cudaMemcpy(x_final_cpu, x_final_gpu, sizeof(float)*num_moments*4, cudaMemcpyDeviceToHost));
-    gpuErrchk(cudaMemcpy(y_final_cpu, y_final_gpu, sizeof(float)*num_moments*4, cudaMemcpyDeviceToHost));
+    gpuErrchk(cudaMemcpyAsync(result, w_final_gpu, sizeof(float)*num_moments*4, cudaMemcpyDeviceToHost, stream1));
+    gpuErrchk(cudaMemcpyAsync(x_final_cpu, x_final_gpu, sizeof(float)*num_moments*4, cudaMemcpyDeviceToHost, stream2));
+    gpuErrchk(cudaMemcpyAsync(y_final_cpu, y_final_gpu, sizeof(float)*num_moments*4, cudaMemcpyDeviceToHost, stream3));
     // --TODO-- verify the result somehow? 
 
     float calc_duration; 
