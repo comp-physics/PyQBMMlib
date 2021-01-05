@@ -34,7 +34,6 @@ C_KERNEL = SourceModule('''
             idx += blockDim.x;
         };
     };
-
 ''')
 
 INTER_KERNEL = SourceModule('''
@@ -127,6 +126,7 @@ class TestGPU4Node:
         self.block_size = (block_size, 1, 1)
         self.cpu_bench = qbmm.TestInversion()
         self.input_moments = self.cpu_bench.init_batch_input(batch_size)
+        print(self.input_moments[0])
         self.input_moments = self.input_moments.astype(np.float32)
 
         self.w_final = np.empty(self.batch_size*4).astype(np.float32)
@@ -243,7 +243,7 @@ class TestGPU4Node:
         self.w_final = np.reshape(self.w_final, (-1, 4))
         self.x_final = np.reshape(self.x_final, (-1, 4))
         self.y_final = np.reshape(self.y_final, (-1, 4))
-
+        print(self.w_final)
         w_cpu, x_cpu, y_cpu = self.cpu_bench.compute_batch(
                                         self.input_moments, self.batch_size)
         assert(np.all(np.abs(self.w_final - self.w_cpu) <= 1e-7))
@@ -252,16 +252,20 @@ class TestGPU4Node:
 
 
 if __name__ == "__main__":
-    GPU = TestGPU4Node(100000, 256)
+    print("Initializing ...")
+    GPU = TestGPU4Node(2, 256)
+    print("Initialization finished")
     
     gpu_begin = time.perf_counter()
     GPU.setup_memory()
     GPU.setup_kernel()
     gpu_init_end = time.perf_counter()
     GPU.compute_gpu()
-    gpu_end = time.perf_counter()
+    gpu_end = time.perf_counter()#include <cuda>
+
     GPU.compute_cpu()
     cpu_end = time.perf_counter()
+    print("calculation finished, verifying results ...")
     GPU.verify()
 
     gpu_init_time = (gpu_init_end - gpu_begin) * 1e3

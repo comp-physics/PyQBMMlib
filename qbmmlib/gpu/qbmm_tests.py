@@ -17,8 +17,8 @@ class TestInversion:
 
     def test_one(self) -> None:
         # Initial condition
-        mu = [1.0, 1.0]
-        sig = [0.1, 0.1]
+        mu = np.random.rand(2) + 1
+        sig = np.random.rand(2)
         moments = stats.raw_gaussian_moments_bivar(self.indices, 
                     mu[0], mu[1],
                     sig[0], sig[1])    
@@ -46,7 +46,7 @@ class TestInversion:
         weight = np.zeros([n, 4])
         x = np.zeros([n, 4])
         y = np.zeros([n, 4])
-        for i in range(n): 
+        for i in range(n):
             xi, w = self.inversion(moments[i], self.indices)
             weight[i, :] = w
             x[i, :] = xi[0]
