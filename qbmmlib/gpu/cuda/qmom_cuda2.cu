@@ -87,36 +87,143 @@ __global__ void hyqmom2_kernel(float* M, float* w, float* x, int N) {
 };
 
 __global__ void weight_kernel(float* M, float* w1, float* w2, float* w_final, int N) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int idx = blockIdx.x * blockDim.x + threadIdx.x*2;
+
     while (idx < N) {
-        w_final[4*idx] = M[6*idx] * w1[2*idx] * w2[2*idx];
-        w_final[4*idx+1] = M[6*idx] * w1[2*idx] * w2[2*idx+1];
-        w_final[4*idx+2] = M[6*idx] * w1[2*idx+1] * w2[2*idx];
-        w_final[4*idx+3] = M[6*idx] * w1[2*idx+1] * w2[2*idx+1];
-        idx += blockDim.x;
+
+        float4 *w_final_4 = reinterpret_cast<float4*>(&(w_final[idx*4]));
+        float4 *w1_4 = reinterpret_cast<float4*>(&(w1[idx*2]));
+        float4 *w2_4 = reinterpret_cast<float4*>(&(w2[idx*2]));
+
+        float4 temp_final1;
+        float4 temp_final2;
+        float temp_M6_0 = M[idx*6];
+        float temp_M6_1 = M[(idx+1)*6];
+        float4 temp_w1 = w1_4[0];
+        float4 temp_w2 = w2_4[0];
+
+        temp_final1.x = temp_M6_0 * temp_w1.x * temp_w2.x;
+        temp_final1.y = temp_M6_0 * temp_w1.x * temp_w2.y;
+        temp_final1.z = temp_M6_0 * temp_w1.y * temp_w2.x;
+        temp_final1.w = temp_M6_0 * temp_w1.y * temp_w2.y;
+
+        temp_final2.x = temp_M6_1 * temp_w1.z * temp_w2.z;
+        temp_final2.y = temp_M6_1 * temp_w1.z * temp_w2.w;
+        temp_final2.z = temp_M6_1 * temp_w1.w * temp_w2.z;
+        temp_final2.w = temp_M6_1 * temp_w1.w * temp_w2.w;
+
+        w_final_4[0] = temp_final1;
+        w_final_4[1] = temp_final2;
+        
+        // printf("[thread %d] temp_x1: %f %f %f %f \n" , idx, temp_x1.x, temp_x1.y, temp_x1.z, temp_x1.w);
+        // printf("[thread %d] quotient: %f \n",idx, quotient2);
+        // printf("[thread %d] temp_final2: %f %f %f %f \n" , idx, temp_final2.x, temp_final2.y, temp_final2.z, temp_final2.w);
+        idx += 2*blockDim.x;
     };
+    // int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    // while (idx < N) {
+    //     w_final[4*idx] = M[6*idx] * w1[2*idx] * w2[2*idx];
+    //     w_final[4*idx+1] = M[6*idx] * w1[2*idx] * w2[2*idx+1];
+    //     w_final[4*idx+2] = M[6*idx] * w1[2*idx+1] * w2[2*idx];
+    //     w_final[4*idx+3] = M[6*idx] * w1[2*idx+1] * w2[2*idx+1];
+    //     idx += blockDim.x;
+    // };
 };
 
 __global__ void x_kernel(float* M, float* x1, float* x_final, int N) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int idx = blockIdx.x * blockDim.x + threadIdx.x*2;
+
     while (idx < N) {
-        x_final[4*idx] = M[6*idx+1]/M[6*idx] + x1[2*idx];
-        x_final[4*idx+1] = M[6*idx+1]/M[6*idx] + x1[2*idx];
-        x_final[4*idx+2] = M[6*idx+1]/M[6*idx] + x1[2*idx+1];
-        x_final[4*idx+3] = M[6*idx+1]/M[6*idx] + x1[2*idx+1];
-        idx += blockDim.x;
+
+        float4 *x_final4 = reinterpret_cast<float4*>(&(x_final[idx*4]));
+        float2 *M6_2 = reinterpret_cast<float2*>(&(M[idx*6]));
+        float4 *x1_4 = reinterpret_cast<float4*>(&(x1[idx*2]));
+
+        float4 temp_final1;
+        float4 temp_final2;
+        float2 temp_M6 = M6_2[0];
+        float2 temp_M12 = M6_2[3];
+        float4 temp_x1 = x1_4[0];
+
+        float quotient1 = temp_M6.y/temp_M6.x;
+        float quotient2 = temp_M12.y/temp_M12.x;
+
+        temp_final1.x = quotient1 + temp_x1.x;
+        temp_final1.y = temp_final1.x;
+        temp_final1.z = quotient1 + temp_x1.y;
+        temp_final1.w = temp_final1.z;
+        temp_final2.x = quotient2 + temp_x1.z;
+        temp_final2.y = temp_final2.x;
+        temp_final2.z = quotient2 + temp_x1.w;
+        temp_final2.w = temp_final2.z;
+
+        x_final4[0] = temp_final1;
+        x_final4[1] = temp_final2;
+        
+        // printf("[thread %d] temp_x1: %f %f %f %f \n" , idx, temp_x1.x, temp_x1.y, temp_x1.z, temp_x1.w);
+        // printf("[thread %d] quotient: %f \n",idx, quotient2);
+        // printf("[thread %d] temp_final2: %f %f %f %f \n" , idx, temp_final2.x, temp_final2.y, temp_final2.z, temp_final2.w);
+        // x_final[4*idx] = M[6*idx+1]/M[6*idx] + x1[2*idx];
+        // x_final[4*idx+1] = M[6*idx+1]/M[6*idx] + x1[2*idx];
+        // x_final[4*idx+2] = M[6*idx+1]/M[6*idx] + x1[2*idx+1];
+        // x_final[4*idx+3] = M[6*idx+1]/M[6*idx] + x1[2*idx+1];
+        idx += 2*blockDim.x;
     };
 };
 
 __global__ void y_kernel(float* M, float* nu, float* x2, float* y_final, int N) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+    int idx = blockIdx.x * blockDim.x + threadIdx.x*2;
+
     while (idx < N) {
-        y_final[4*idx] = M[6*idx+2]/M[6*idx] + nu[2*idx] + x2[2*idx];
-        y_final[4*idx+1] = M[6*idx+2]/M[6*idx] + nu[2*idx] + x2[2*idx+1];
-        y_final[4*idx+2] = M[6*idx+2]/M[6*idx] + nu[2*idx+1] + x2[2*idx];
-        y_final[4*idx+3] = M[6*idx+2]/M[6*idx] + nu[2*idx+1] + x2[2*idx+1];
-        idx += blockDim.x;
+
+        float4 *y_final_4 = reinterpret_cast<float4*>(&(y_final[idx*4]));
+        float2 *M6_2 = reinterpret_cast<float2*>(&(M[idx*6]));
+        float4 *x2_4 = reinterpret_cast<float4*>(&(x2[idx*2]));
+        float4 *nu_4 = reinterpret_cast<float4*>(&(nu[idx*2]));
+
+        float4 temp_final1;
+        float4 temp_final2;
+        float2 temp_M6_21 = M6_2[0];
+        float2 temp_M6_22 = M6_2[1];
+        float2 temp_M12_21 = M6_2[3];
+        float2 temp_M12_22 = M6_2[4];
+        float4 temp_x2 = x2_4[0];
+        float4 temp_nu = nu_4[0];
+
+        float quotient1 = temp_M6_22.x/temp_M6_21.x;
+        float quotient2 = temp_M12_22.x/temp_M12_21.x;
+
+        temp_final1.x = quotient1 + temp_nu.x + temp_x2.x;
+        // printf("temp_final1.x: %f\n", temp_final1.x);
+        temp_final1.y = quotient1 + temp_nu.x + temp_x2.y;
+        temp_final1.z = quotient1 + temp_nu.y + temp_x2.x;
+        temp_final1.w = quotient1 + temp_nu.y + temp_x2.y;
+
+        temp_final2.x = quotient2 + temp_nu.z + temp_x2.z;
+        temp_final2.y = quotient2 + temp_nu.z + temp_x2.w;
+        temp_final2.z = quotient2 + temp_nu.w + temp_x2.z;
+        temp_final2.w = quotient2 + temp_nu.w + temp_x2.w;
+
+        y_final_4[0] = temp_final1;
+        y_final_4[1] = temp_final2;
+        
+        // printf("[thread %d] M6: %f %f %f %f\n" , idx, temp_M6_21.x, temp_M6_21.y, temp_M6_22.x, temp_M6_22.y);
+        // printf("[thread %d] M12: %f %f %f %f\n" , idx, M[(idx+1)*6], M[(idx+1)*6+1], M[(idx+1)*6+2], M[(idx+1)*6+3]);
+        // printf("[thread %d] temp_x2: %f %f %f %f \n" , idx, temp_x2.x, temp_x2.y, temp_x2.z, temp_x2.w);
+        // printf("[thread %d] temp_nu: %f %f %f %f \n" , idx, temp_nu.x, temp_nu.y, temp_nu.z, temp_nu.w);
+        // printf("[thread %d] quotient: %f \n",idx, quotient2);
+        // printf("[thread %d] temp_final1: %f %f %f %f \n" , idx, temp_final1.x, temp_final1.y, temp_final1.z, temp_final1.w);
+        idx += 2*blockDim.x;
     };
+    // int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    // while (idx < N) {
+    //     y_final[4*idx] = M[6*idx+2]/M[6*idx] + nu[2*idx] + x2[2*idx];
+    //     y_final[4*idx+1] = M[6*idx+2]/M[6*idx] + nu[2*idx] + x2[2*idx+1];
+    //     y_final[4*idx+2] = M[6*idx+2]/M[6*idx] + nu[2*idx+1] + x2[2*idx];
+    //     y_final[4*idx+3] = M[6*idx+2]/M[6*idx] + nu[2*idx+1] + x2[2*idx+1];
+    //     idx += blockDim.x;
+    // };
 };
 
 float qmom_cuda(float moments[], int num_moments,

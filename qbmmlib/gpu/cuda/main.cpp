@@ -42,6 +42,19 @@ int main(int argc, char **argv) {
     float omp_time = qmom_openmp(input_moments, num_moments, num_thread, x_out_omp, y_out_omp, w_out_omp);
     float naive_time = qmom_naive(input_moments, num_moments, x_out_naive, y_out_naive, w_out_naive);
 
+    // for (int i = 0; i < num_moments; i++) {
+    //     // printf(" %f ", x_out_cuda[i]);
+    //     // printf(" %f ", x_out_omp[i]);
+    //     // printf(" %f ", y_out_cuda[i]);
+    //     // printf(" %f ", y_out_omp[i]);
+    //     // printf(" %f ", w_out_cuda[i]);
+    //     // printf(" %f ", w_out_omp[i]);
+    //     // printf(" \n");
+    //     assert(x_out_cuda[i] == x_out_omp[i]);
+    //     assert(y_out_cuda[i] == y_out_omp[i]);
+    //     assert(w_out_cuda[i] == w_out_omp[i]);
+
+    // }
     for (int i = 0; i < num_moments; i++) {
         // printf(" %f ", x_out_cuda[i]);
         // printf(" %f ", x_out_omp[i]);
@@ -50,12 +63,13 @@ int main(int argc, char **argv) {
         // printf(" %f ", w_out_cuda[i]);
         // printf(" %f ", w_out_omp[i]);
         // printf(" \n");
-        assert(x_out_cuda[i] == x_out_omp[i]);
-        assert(y_out_cuda[i] == y_out_omp[i]);
-        assert(w_out_cuda[i] == w_out_omp[i]);
-
+        if (y_out_cuda[i] != y_out_omp[i]) {
+            fprintf(stderr, "Error at index %d: ", i);
+            fprintf(stderr, " %f ", y_out_cuda[i]);
+            fprintf(stderr, " %f \n", y_out_omp[i]);    
+            // assert(false);
+        }
     }
-
     printf("[CUDA]    Took %f ms \n", cuda_time);
     printf("[OPEN_MP] Took %f ms \n", omp_time);
     printf("[NAIVE]   Took %f ms \n", naive_time);
