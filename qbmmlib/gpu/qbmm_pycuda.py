@@ -5,7 +5,7 @@ from pycuda.compiler import SourceModule
 import numpy as np
 import time
 
-import qbmmlib.pycuda.qbmm_tests as qbmm
+import qbmmlib.gpu.qbmm_tests as qbmm
 
 C_KERNEL = SourceModule('''
     __global__ void c20_kernel(float* M, float* c20, int N) {
@@ -34,6 +34,16 @@ C_KERNEL = SourceModule('''
             idx += blockDim.x;
         };
     };
+
+    __global__ void init_M(float* value, float* M, int N) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        while (idx < N) {
+            M[3*idx] = 1;
+            M[3*idx+1] = 0;
+            M[3*idx+2] = value[idx];
+            idx += blockDim.x;
+        };
+    }
 ''')
 
 INTER_KERNEL = SourceModule('''
@@ -253,27 +263,42 @@ class TestGPU4Node:
 
 if __name__ == "__main__":
     print("Initializing ...")
-    GPU = TestGPU4Node(2, 256)
+    N = int(1e8)
+    GPU = TestGPU4Node(N, 1024)
     print("Initialization finished")
     
+    start = pycuda.driver.Event()
+    done = pycuda.driver.Event()
+
     gpu_begin = time.perf_counter()
     GPU.setup_memory()
     GPU.setup_kernel()
+
+    start.record()
     gpu_init_end = time.perf_counter()
+    pycuda.driver.start_profiler()
     GPU.compute_gpu()
-    gpu_end = time.perf_counter()#include <cuda>
 
-    GPU.compute_cpu()
-    cpu_end = time.perf_counter()
+    done.record()
+    done.synchronize()
+    time_by_event = start.time_till(done)
+
+    gpu_end = time.perf_counter()
+    pycuda.driver.stop_profiler()
+
+    # GPU.compute_cpu()
+    # cpu_end = time.perf_counter()
     print("calculation finished, verifying results ...")
-    GPU.verify()
+    # GPU.verify()
 
-    gpu_init_time = (gpu_init_end - gpu_begin) * 1e3
-    gpu_compute_time = (gpu_end - gpu_begin) * 1e3
-    cpu_compute_time = (cpu_end - gpu_end) * 1e3
+    gpu_init_time = (gpu_init_end - gpu_begin)
+    gpu_compute_time = (gpu_end - gpu_init_end)
+    # cpu_compute_time = (cpu_end - gpu_end)
 
-    print("CPU compute time: {:3f} ms".format(cpu_compute_time))
-    print("GPU total time:   {:3f} ms".format(gpu_compute_time + gpu_init_time))
-    print("GPU compute time: {:3f} ms".format(gpu_compute_time))
-    print("GPU init time     {:3f} ms".format(gpu_init_time))
+    # print("CPU compute time: {:3e} s".format(cpu_compute_time/N))
+    print("GPU total time:   ", ((gpu_compute_time + gpu_init_time))/N)
+    print("GPU compute time: ", (gpu_compute_time/N))
+    print("GPU init time     ", (gpu_init_time/N))
+    print("Event time: ", time_by_event/N)
+
     

@@ -31,13 +31,13 @@ class TestInversion:
         initialize an Nx5 numpy array containing N moments
         All moments are the same, initialized with raw_gaussian_moments_bivar
         '''
-        moments = []
+        moments = []            
+        mu = [1.0, 1.0]
+        sig = [0.1, 0.1]
+        one_moment = stats.raw_gaussian_moments_bivar(self.indices,
+                mu[0], mu[1],
+                sig[0], sig[1])
         for i in range(n):
-            mu = [1.0, 1.0]
-            sig = [0.1, 0.1]
-            one_moment = stats.raw_gaussian_moments_bivar(self.indices,
-                    mu[0], mu[1],
-                    sig[0], sig[1])
             moments.append(one_moment)
 
         return np.asarray(moments)

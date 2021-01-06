@@ -70,9 +70,10 @@ int main(int argc, char **argv) {
             // assert(false);
         }
     }
-    printf("[CUDA]    Took %f ms \n", cuda_time);
-    printf("[OPEN_MP] Took %f ms \n", omp_time);
-    printf("[NAIVE]   Took %f ms \n", naive_time);
+    printf("Input size: %d \n", num_moments);
+    printf("[CUDA]    Took %e s \n", cuda_time/num_moments*1e-3);
+    printf("[OPEN_MP] Took %e s \n", omp_time/num_moments*1e-3);
+    printf("[NAIVE]   Took %e s \n", naive_time/num_moments*1e-3);
 
     delete[] input_moments;
     delete[] x_out_cuda;
