@@ -15,7 +15,6 @@ sys.path.append("../utils/")
 
 from stats_util import *
 from pretty_print_util import *
-from qbmm_manager import *
 from simulation_domain import *
 import numpy as np
 import csv
@@ -69,7 +68,6 @@ class time_advancer:
         self.write_to        = config['advancer']['write_to']
         
         self.domain = simulation_domain(config)
-        self.qbmm_mgr = self.domain.qbmm_mgr  # This is fine for now... will change
 
         if self.method == 'Euler':
             self.advance = self.advance_euler
@@ -77,30 +75,14 @@ class time_advancer:
         elif self.method == 'RK23':
             self.advance = self.advance_RK23
             self.num_stages = 3
+
+        num_points = self.domain.num_points
+        num_moments = self.domain.qbmm_mgr.num_moments
+        self.state = np.zeros([num_points, num_moments])
+        self.rhs = np.zeros([num_points, num_moments])
+        self.stage_state = np.zeros([self.num_stages, num_points, num_moments])
+        self.stage_k = np.zeros([self.num_stages, num_points, num_moments])
         
-        if 'flow' in config['advancer']:
-            self.flow = config['advancer']['flow']
-        else:
-            self.flow = False
-
-            
-        if self.flow:
-            self.compute_rhs = self.domain.compute_rhs
-            self.state = np.zeros([self.domain.num_points, self.qbmm_mgr.num_moments])
-            self.rhs = np.zeros([self.domain.num_points, self.qbmm_mgr.num_moments])
-            self.stage_state = np.zeros([self.num_stages, self.num_points, self.qbmm_mgr.num_moments])
-            self.stage_k = np.zeros([self.num_stages, self.num_points, self.qbmm_mgr.num_moments])
-            if self.method != 'Euler':
-                print('advancer: Flow problems need Euler time-stepping, cannot continue')
-                return            
-        else:
-            self.compute_rhs = self.qbmm_mgr.compute_rhs
-            self.num_dim  = self.qbmm_mgr.num_moments
-            self.state    = np.zeros( self.num_dim )                
-            self.rhs      = np.zeros( self.num_dim )
-            self.stage_state = np.zeros([self.num_stages, self.num_dim])
-            self.stage_k = np.zeros([self.num_stages, self.num_dim])
-
         self.max_time_step = 1.e5
         self.min_time_step = self.time_step
 
@@ -112,6 +94,11 @@ class time_advancer:
                 self.adaptive = False
         else:
             self.adaptive = False
+
+        if "cfl" in config["advancer"]:
+            self.cfl = config["advancer"]["cfl"]
+        else:
+            self.cfl = 1
             
         # Report
         print('advancer: init: Configuration options ready')
@@ -174,9 +161,9 @@ class time_advancer:
         :type sig3: float
         """
 
-        self.state  = raw_gaussian_moments_trivar( self.qbmm_mgr.indices, mu1, mu2, mu3, sig1, sig2, sig3 )
+        self.state[:] = raw_gaussian_moments_trivar(self.qbmm_mgr.indices, mu1, mu2, mu3, sig1, sig2, sig3)
         message = 'advancer: initialize_trigaussian: '
-        f_array_pretty_print( message, 'state', self.state )
+        f_array_pretty_print(message, 'state', self.state)
         return
 
     def initialize_state_gaussian_bivar(self, mu1, mu2, sigma1, sigma2):
@@ -192,9 +179,9 @@ class time_advancer:
         :type sig1: float
         :type sig2: float
         """
-        self.state  = raw_gaussian_moments_bivar( self.qbmm_mgr.indices, mu1, mu2, sigma1, sigma2 )
+        self.state[:] = raw_gaussian_moments_bivar(self.qbmm_mgr.indices, mu1, mu2, sigma1, sigma2)
         message = 'advancer: initialize_bigaussian: '
-        f_array_pretty_print( message, 'state', self.state )
+        f_array_pretty_print(message, 'state', self.state)
         return
 
     def initialize_state_gaussian_univar(self, mu, sigma):
@@ -205,7 +192,7 @@ class time_advancer:
         :param sigma: Standard deviation
         """
 
-        self.state = raw_gaussian_moments_univar(self.num_dim, mu, sigma)
+        self.state[:] = raw_gaussian_moments_univar(self.num_dim, mu, sigma)
         message = "advancer: initialize_gaussian: "
         f_array_pretty_print(message, "state", self.state)
         return
@@ -223,10 +210,13 @@ class time_advancer:
         """
         # Stage 1: { y_1, k_1 } = f( t_n, y_0 )
         self.stage_state[0] = self.state.copy()
-        self.qbmm_mgr.compute_rhs(self.stage_state[0], self.stage_k[0])
+        self.stage_k[0] = self.domain.compute_rhs(self.stage_state[0])
 
         # Updates
         self.state = self.stage_state[0] + self.time_step * self.stage_k[0]
+        self.domain.update_quadrature(self.state)
+        self.time_step = self.cfl * self.domain.grid_spacing / self.domain.max_abscissa()
+        print(self.domain.max_abscissa())
 
         return
 
@@ -333,7 +323,7 @@ class time_advancer:
             + "{:.16E}".format(self.time_step)
             + " ... "
         )
-        f_array_pretty_print(message, "state", self.state)
+        #f_array_pretty_print(message, "state", self.state)
 
     def write_step(self, i_step):
         """

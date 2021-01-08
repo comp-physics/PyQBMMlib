@@ -4,5 +4,6 @@ tags
 *.ipynb_checkpoints
 
 D
+src/output
 _build
 __pycache__

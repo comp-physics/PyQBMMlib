@@ -31,33 +31,33 @@ def flow_example():
 
     cfl = 0.9
     dx = 1/400
-    U_max = 0.01
+    U_max = 1
     
     config = {}
     config['qbmm'] = {}
-    config['advancer'] = {}
-    config['domain'] = {}
+    config["advancer"] = {}
+    config["domain"] = {}
 
-
-    config["qbmm"]["flow"] = True
-    config["qbmm"]["governing_dynamics"] = ""
-    config["qbmm"]["num_internal_coords"] = 3
-    config["qbmm"]["num_quadrature_nodes"] = 27
+    config["qbmm"]["internal_dynamics"] = ""
+    config["qbmm"]["num_coords"] = 3
+    config["qbmm"]["num_nodes"] = 27
     config["qbmm"]["method"] = "chyqmom"
     config["qbmm"]["adaptive"] = False
     config["qbmm"]["max_skewness"] = 30
 
-    config['domain']['num_dim'] = 1
-    config['domain']['num_points'] = 402
-    config['domain']['grid_extents'] = [0, 1]
+    config["domain"]["flow"] = True
+    config["domain"]["num_dim"] = 1
+    config["domain"]["num_points"] = 402
+    config["domain"]["grid_extents"] = [0, 1]
     
-    config['advancer']['method'] = 'Euler'
-    config['advancer']['time_step'] = cfl * dx / U_max
-    config['advancer']['final_time'] = 0.6
-    config['advancer']['num_steps'] = 10000
+    config["advancer"]["method"] = "Euler"    
+    config["advancer"]["time_step"] = cfl * dx / U_max
+    config["advancer"]["cfl"] = cfl
+    config["advancer"]["final_time"] = 0.6
+    config["advancer"]["num_steps"] = 10 #10000
     config["advancer"]["num_steps_print"] = 1000
     config["advancer"]["num_steps_write"] = 1000
-    config["advancer"]["output_dir"] = "D/"
+    config["advancer"]["output_dir"] = "output/"
     config["advancer"]["output_id"] = "example_2D"
     config["advancer"]["write_to"] = "txt"
 
@@ -76,8 +76,8 @@ def flow_example():
     #print(flux)
 
 
-    domain = simulation_domain(config)
-    domain.initialize_state_uniform(0.1, 1.0)
+    #domain = simulation_domain(config)
+    #domain.initialize_state_uniform(0.1, 1.0)
 
     return
 
@@ -96,7 +96,7 @@ def advance_example(config):
     advancer = time_advancer(config)
 
     # Initialize condition
-    num_dim = config["qbmm"]["num_internal_coords"]
+    num_dim = config["qbmm"]["num_coords"]
     mu = config["init_condition"]["mu"]
     sigma = config["init_condition"]["sigma"]
 
@@ -122,9 +122,9 @@ def advance_example2dp1():
     config["advancer"] = {}
 
     config["qbmm"]["flow"] = False
-    config["qbmm"]["governing_dynamics"] = " - x - xdot - r0"
-    config["qbmm"]["num_internal_coords"] = 2
-    config["qbmm"]["num_quadrature_nodes"] = 4
+    config["qbmm"]["internal_dynamics"] = " - x - xdot - r0"
+    config["qbmm"]["num_coords"] = 2
+    config["qbmm"]["num_nodes"] = 4
     config["qbmm"]["method"] = "chyqmom"
     config["qbmm"]["adaptive"] = False
     config["qbmm"]["max_skewness"] = 30

@@ -598,8 +598,8 @@ def chyqmom27(moments, indices, max_skewness=30, checks=True):
     W = np.zeros(n)
 
     if m000 <= verysmall and checks:
-        w[12] = m000
-        return
+        W[12] = m000
+        return abscissas, W
 
     bx = m100 / m000
     by = m010 / m000

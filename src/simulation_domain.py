@@ -3,6 +3,8 @@ sys.path.append('../utils/')
 
 from qbmm_manager import *
 from stats_util import *
+from jets_util import *
+from itertools import product
 
 class simulation_domain():
     """
@@ -15,34 +17,39 @@ class simulation_domain():
         :param config: Configuration
         :type config: dict
         """
+        # Create a qbmm manager
+        self.qbmm_mgr = qbmm_manager(config)
 
+        # Get config
         self.num_dim = config["domain"]["num_dim"]
         self.num_points = config["domain"]["num_points"]
         self.extents = config["domain"]["grid_extents"]
 
         self.grid_spacing = (self.extents[1] - self.extents[0]) / (self.num_points - 1)
 
-        print('domain: init: Configuration options ready:')
-        print('\t num_dim = %i' % self.num_dim)
-        print('\t num_points = %i' % self.num_points)
-        print('\t extents = [%.4E, %.4E]' % (self.extents[0], self.extents[1]))
-        print('\t grid spacing = %.4E' % self.grid_spacing)
-
-        # Create a qbmm manager
-        self.qbmm_mgr = qbmm_manager(config)
+        if "flow" in config["domain"]:
+            self.flow = config["domain"]["flow"]
+            self.flux = np.zeros([self.num_points, self.qbmm_mgr.num_moments])
+        else:
+            self.flow = False
         
-        # Initialize grid state
-        self.state = np.zeros([self.num_points,self.qbmm_mgr.num_moments])
+        print("domain: init: Configuration options ready:")
+        print("\t num_dim      = %i" % self.num_dim)
+        print("\t num_points   = %i" % self.num_points)
+        print("\t extents      = [%.4E, %.4E]" % (self.extents[0], self.extents[1]))
+        print("\t grid spacing = %.4E" % self.grid_spacing)
+        
+        # Initialize grid state & rhs
+        self.state = np.zeros([self.num_points, self.qbmm_mgr.num_moments])
+        self.rhs = np.zeros([self.num_points, self.qbmm_mgr.num_moments])
+
+        # Initialize weights and abscissas
+        self.weights = np.zeros([self.num_points, self.qbmm_mgr.num_nodes])
+        self.abscissas = np.zeros([self.num_points, self.qbmm_mgr.num_coords, self.qbmm_mgr.num_nodes])
         
         return
 
-    def create_grid(self):
-        """
-        Creates grid
-        """
-        self.X = np.linspace(self.extents[0], self.extents[1], self.num_points)
-        return
-
+    
     def initialize_state_uniform(self, mu, sigma):
         """
         Initialize grid state
@@ -55,40 +62,146 @@ class simulation_domain():
         print(self.state)
         return
 
+    
     def initialize_state_jets(self, state):
         """
-        Initialize grid state to R.O. Fox's jet conditions
+        Initialize grid state to 1D crossing-jets
+
+        :param state: domain moments
+        :type state: array like
         """
-        moments_left, moments_right = jet_initialize_momemts(self.qbmm_mgr)
-        state[0:self.num_points/2] = moments_left
-        state[1+self.num_points/2:self.num_points] = moments_right
+        wts_left, wts_right, xi_left, xi_right = jet_initialize_moments(self.qbmm_mgr)
+        # Populate state
+        moments_left = self.qbmm_mgr.projection(wts_left, xi_left, self.qbmm_mgr.indices)
+        moments_right = self.qbmm_mgr.projection(wts_right, xi_right, self.qbmm_mgr.indices)
+        state[:48] = moments_left
+        state[-48:] = moments_right
+        state[0] = moments_right
+        state[-1] = moments_left
+        # Populate weights
+        self.weights[:48] = wts_left
+        self.weights[-48:] = wts_right
+        # Populate abscissas
+        self.abscissas[:48] = xi_left
+        self.abscissas[-48:] = xi_right       
         return
-    
+
+
+    def max_abscissa(self):
+        """
+        Return the maximum value of the x-abscissa in the simulation domain
+        """
+        return self.abscissas[:,0,:].max()
+
+
+    def update_quadrature(self, state):
+        """
+        This function updates the quadrature weights and abscissas for a given state.
+
+        :param state: domain moments
+        :type state: array like
+        """
+        # Boundary conditions
+        xi, wts = self.qbmm_mgr.moment_invert(state[-1], self.qbmm_mgr.indices)
+        
+        # Loop over interior points
+        for i_point in range(self.num_points):
+            xi, wts = self.qbmm_mgr.moment_invert(state[i_point], self.qbmm_mgr.indices)
+            self.abscissas[i_point] = xi.T
+            self.weights[i_point] = wts
+        return
+
+
+    def local_flux(self, weight, abscissa, index):
+        """
+        Compute local moment flux for given quadrature weight and abscissa
+
+        :param weight: quadrature weight
+        :param abscissa: quadrature abscissa
+        :param index: moment index
+        :type weight: float
+        :type abscissa: array like
+        :type index: array like
+        """
+        return weight*(abscissa[0]**index[0])*(abscissa[1]**index[1])*(abscissa[2]**index[2])
+
+
+    def moment_fluxes(self, indices, wts_left, wts_right, xi_left, xi_right):
+        """
+        Computes moment fluxes
+        :param indices: domain moment indices
+        :param wts_left: quadrature weights on the left face of a grid cell
+        :param wts_right: quadrature weights on the right face of a grid cell
+        :param xi_left: quadrature abscissas on the left face of a grid cell
+        :param xi_right: quadrature abscissas on the right face of a grid cell
+        :type indices: array like
+        :type wts_left: array like
+        :type wts_right: array like
+        :type xi_left: array like
+        :type xi_right: array like
+        """
+        flux = np.zeros(self.qbmm_mgr.num_moments)
+        for m, n in product(range(self.qbmm_mgr.num_moments), range(self.qbmm_mgr.num_nodes)):
+            # compute local fluxes
+            flux_left = self.local_flux(wts_left[n], xi_left[:, n], indices[m, :])
+            flux_right = self.local_flux(wts_right[n], xi_right[:, n], indices[m, :])
+            # limiter
+            flux_left = flux_left * max(xi_left[0, n], 0)
+            flux_right = flux_right * min(xi_right[0, n], 0)
+            
+            # quadrature
+            flux[m] += flux_left + flux_right
+
+        return flux
+                
     def compute_fluxes(self, state):
         """
         Compute moment fluxes
+
+        :param state: domain moments
+        :type state: array like
         """
         for i_point in range(1,self.num_points-1):
 
             # Compute left flux
-            xi_left, wts_left = qbmm_mgr.moment_invert(state[i_point-1], self.qbmm_mgr.indices)
-            xi_right, wts_right = qbmm_mgr.moment_invert(state[i_point], self.qbmm_mgr.indices)
-            f_left = moment_fluxes(self.qbmm_mgr.indices, wts_left, wts_right, xi_left, x_right)
-
+            wts_left = self.weights[i_point-1]
+            wts_right = self.weights[i_point]
+            xi_left = self.abscissas[i_point-1]
+            xi_right = self.abscissas[i_point]
+            f_left = self.moment_fluxes(self.qbmm_mgr.indices, wts_left, wts_right,
+                                        xi_left, xi_right)
+            
             # Compute right flux
-            xi_left = xi_right
             wts_left = wts_right
-            xi_right, wts_right = qbmm_mgr.moment_invert(self.state[i_point+1], self.qbmm_mgr.indices)            
-            f_right = moment_fluxes(self.qbmm_mgr.indices, wts_left, wts_right, xi_left)
-
+            xi_left = xi_right
+            wts_right = self.weights[i_point+1]
+            xi_right = self.abscissas[i_point+1]
+            f_right = self.moment_fluxes(self.qbmm_mgr.indices, wts_left, wts_right,
+                                         xi_left, xi_right)
+            
             # Reconstruct flux
-            flux = f_left - f_right
+            self.flux[i_point] = f_left - f_right
+
+            if i_point == 1:
+                print(i_point, self.flux[i_point])
             
         return
 
+    
     def compute_rhs(self, state):
+        """
+        Compute moment transport fluxes, source terms.
 
-        flux = self.compute_flux(state)
-        rhs = flux / self.grid_spacing
-        return rhs
+        :param state: domain moments
+        :type state: array like
+        """
+        if self.flow:
+            self.compute_fluxes(state)
+            self.rhs += self.flux / self.grid_spacing
+        elif self.qbmm_mgr.internal_dynamics:
+            internal_rhs = np.zeros([self.num_points, self.qbmm_mgr.num_moments])
+            self.qbmm_mgr.compute_rhs(state, internal_rhs)
+            self.rhs += internal_rhs
+
+        return self.rhs
 
