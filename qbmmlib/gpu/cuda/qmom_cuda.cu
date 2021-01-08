@@ -173,46 +173,7 @@ float qmom_cuda(float moments[], int num_moments,
     // intermediate values 
     nu_kernel<<<1, num_threads>>>(c11, c20, x_inter_1, nu, num_moments);
     mu_kernel<<<1, num_threads>>>(c02, nu, w_inter_1, mu, num_moments);
-    __global__ void x_kernel(float* M, float* x1, float* x_final, int N) {
-        int idx = blockIdx.x * blockDim.x + threadIdx.x*2;
-    
-        while (idx < N) {
-    
-            float4 *x_final4 = reinterpret_cast<float4*>(&(x_final[idx*4]));
-            float2 *M6_2 = reinterpret_cast<float2*>(&(M[idx*6]));
-            float4 *x1_4 = reinterpret_cast<float4*>(&(x1[idx*2]));
-    
-            float4 temp_final1;
-            float4 temp_final2;
-            float2 temp_M6 = M6_2[0];
-            float2 temp_M12 = M6_2[3];
-            float4 temp_x1 = x1_4[0];
-    
-            float quotient1 = temp_M6.y/temp_M6.x;
-            float quotient2 = temp_M12.y/temp_M12.x;
-    
-            temp_final1.x = quotient1 + temp_x1.x;
-            temp_final1.y = temp_final1.x;
-            temp_final1.z = quotient1 + temp_x1.y;
-            temp_final1.w = temp_final1.z;
-            temp_final2.x = quotient2 + temp_x1.z;
-            temp_final2.y = temp_final2.x;
-            temp_final2.z = quotient2 + temp_x1.w;
-            temp_final2.w = temp_final2.z;
-    
-            x_final4[0] = temp_final1;
-            x_final4[1] = temp_final2;
-            
-            // printf("[thread %d] temp_x1: %f %f %f %f \n" , idx, temp_x1.x, temp_x1.y, temp_x1.z, temp_x1.w);
-            // printf("[thread %d] quotient: %f \n",idx, quotient2);
-            // printf("[thread %d] temp_final2: %f %f %f %f \n" , idx, temp_final2.x, temp_final2.y, temp_final2.z, temp_final2.w);
-            // x_final[4*idx] = M[6*idx+1]/M[6*idx] + x1[2*idx];
-            // x_final[4*idx+1] = M[6*idx+1]/M[6*idx] + x1[2*idx];
-            // x_final[4*idx+2] = M[6*idx+1]/M[6*idx] + x1[2*idx+1];
-            // x_final[4*idx+3] = M[6*idx+1]/M[6*idx] + x1[2*idx+1];
-            idx += 2*blockDim.x;
-        };
-    };eads>>>(M_inter, w_inter_2, x_inter_2, num_moments);
+    hyqmom2_kernel<<<1, num_threads>>>(M_inter, w_inter_2, x_inter_2, num_moments);
 
     // final results
     weight_kernel<<<1, num_threads>>>(moments_gpu, w_inter_1, w_inter_2, w_final_gpu, num_moments);

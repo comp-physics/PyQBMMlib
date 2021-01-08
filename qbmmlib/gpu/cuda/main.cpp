@@ -56,24 +56,26 @@ int main(int argc, char **argv) {
 
     // }
     for (int i = 0; i < num_moments; i++) {
-        // printf(" %f ", x_out_cuda[i]);
-        // printf(" %f ", x_out_omp[i]);
-        // printf(" %f ", y_out_cuda[i]);
-        // printf(" %f ", y_out_omp[i]);
-        // printf(" %f ", w_out_cuda[i]);
-        // printf(" %f ", w_out_omp[i]);
-        // printf(" \n");
         if (y_out_cuda[i] != y_out_omp[i]) {
+            fprintf(stderr, " \n");
+            fprintf(stderr, " x_cuda: %f ", x_out_cuda[i]);
+            fprintf(stderr, " x_omp: %f \n", x_out_omp[i]);
+            fprintf(stderr, " y_cuda: %f ", y_out_cuda[i]);
+            fprintf(stderr, " y_omp: %f \n", y_out_omp[i]);
+            fprintf(stderr, " w_cuda: %f ", w_out_cuda[i]);
+            fprintf(stderr, " w_omp: %f \n", w_out_omp[i]);
+
             fprintf(stderr, "Error at index %d: ", i);
             fprintf(stderr, " %f ", y_out_cuda[i]);
             fprintf(stderr, " %f \n", y_out_omp[i]);    
+            throw;
             // assert(false);
         }
     }
     printf("Input size: %d \n", num_moments);
-    printf("[CUDA]    Took %e s \n", cuda_time/num_moments*1e-3);
-    printf("[OPEN_MP] Took %e s \n", omp_time/num_moments*1e-3);
-    printf("[NAIVE]   Took %e s \n", naive_time/num_moments*1e-3);
+    printf("[CUDA]    Took %e s per input \n", cuda_time/num_moments*1e-3);
+    printf("[OPEN_MP] Took %e s per input \n", omp_time/num_moments*1e-3);
+    printf("[NAIVE]   Took %e s per input \n", naive_time/num_moments*1e-3);
 
     delete[] input_moments;
     delete[] x_out_cuda;

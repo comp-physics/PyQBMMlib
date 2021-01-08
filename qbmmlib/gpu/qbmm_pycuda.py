@@ -263,7 +263,7 @@ class TestGPU4Node:
 
 if __name__ == "__main__":
     print("Initializing ...")
-    N = int(1e8)
+    N = int(10000000)
     GPU = TestGPU4Node(N, 1024)
     print("Initialization finished")
     

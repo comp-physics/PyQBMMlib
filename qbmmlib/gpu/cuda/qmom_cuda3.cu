@@ -36,54 +36,57 @@ __global__ void c02_kernel(float* M, float* c02, int N) {
     };
 };
 
-__global__ void init_M(float* value, float* M, int N) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    while (idx < N) {
-        M[3*idx] = 1;
-        M[3*idx+1] = 0;
-        M[3*idx+2] = value[idx];
-        idx += blockDim.x;
-    };
-};
-
 __global__ void nu_kernel(float* c11, float* c20, float* xi, float* nu, int N) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int idx = blockIdx.x * blockDim.x + threadIdx.x*2;
     while (idx < N) {
-        float c = c11[idx]/c20[idx];
-        nu[2*idx] = c*xi[2*idx];
-        nu[2*idx+1] = c*xi[2*idx+1];
-        idx += blockDim.x;
-    };
-};
+        float2 *nu_2 = reinterpret_cast<float2*>(&nu[idx]);
+        float2 *x_2 = reinterpret_cast<float2*>(&xi[idx]);
+        float2 nu_final, temp_x2;
+        temp_x2 = x_2[0];
 
-__global__ void mu_kernel(float* c02, float* nu, float* w, float* mu, int N) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    while (idx < N) {
-        mu[idx] = c02[idx] - (w[2*idx]*nu[2*idx]*nu[2*idx] 
-                    + w[2*idx+1]*nu[2*idx+1]*nu[2*idx+1]);
-        idx += blockDim.x;
+        float c = c11[idx]/c20[idx];
+        nu_final.x = c*temp_x2.x;
+        nu_final.y = c*temp_x2.y;
+
+        nu_2[0] = nu_final;
+        idx += blockDim.x*2;
     };
 };
 
 __global__ void mu_kernel2(float* c02, float* c11, float* c20, float* mu, int N) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     while (idx < N) {
-        mu[idx] = c02[idx] - c11[idx]*c11[idx]/c20[idx];
+        float c02_i = c02[idx];
+        float c11_i = c11[idx];
+        float c20_i = c20[idx];
+        float res = c02_i - c11_i*c11_i/c20_i;
+        mu[idx] = res;
         idx += blockDim.x;
     };
 };
 
-__global__ void hyqmom2_kernel(float* M, float* w, float* x, int N) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+__global__ void hyqmom2_kernel(float *M3, float* w, float* x, int N) {
+    int M_idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int idx = blockIdx.x * blockDim.x + threadIdx.x*2;
     while (idx < N) {
-        float C2 = ((M[3*idx] * M[3*idx+2]) - (M[3*idx+1] * M[3*idx+1])) 
-                    / (M[3*idx] * M[3*idx]);
-        w[2*idx] = M[3*idx]/2;
-        w[2*idx+1] = M[3*idx]/2;
-        x[2*idx] = (M[3*idx+1]/M[3*idx]) - sqrt(C2);
-        x[2*idx+1] = (M[3*idx+1]/M[3*idx]) + sqrt(C2);
-        // printf("[hyqmom2] w: %f %f, x: %f %f \n", w[2*idx], w[2*idx+1], x[2*idx], x[2*idx+1]);
-        idx += blockDim.x;
+        float2 *w_2 = reinterpret_cast<float2*>(&(w[idx]));
+        float2 *x_2 = reinterpret_cast<float2*>(&(x[idx]));
+        float2 x_final, w_final;
+
+        float M = M3[M_idx];
+        w_final.x = 1.0/2.0;
+        w_final.y = 1.0/2.0;
+        x_final.x = 0.0 - sqrt(M);
+        x_final.y = 0.0 + sqrt(M);
+
+        x_2[0] = x_final;
+        w_2[0] = w_final;
+        // if (x[idx] != -0.1) {
+        //     printf("[hyqmom2] w: %f %f, x: %f %f M3: %f\n", w[idx], w[idx+1], x[idx], x[idx+1], M);
+        // }
+
+        idx += 2*blockDim.x;
+        M_idx += blockDim.x;
     };
 };
 
@@ -288,18 +291,17 @@ float qmom_cuda(float moments[], int num_moments,
     c11_kernel<<<num_blocks, num_threads, 0, stream1>>>(moments_gpu, c11, num_moments);
     c20_kernel<<<num_blocks, num_threads, 0, stream2>>>(moments_gpu, c20, num_moments);
     c02_kernel<<<num_blocks, num_threads, 0, stream3>>>(moments_gpu, c02, num_moments);
-    init_M<<<num_blocks, num_threads, 0, stream3>>>(c02, M_inter, num_moments);
 
-    hyqmom2_kernel<<<num_blocks, num_threads, 0, stream3>>>(M_inter, w_inter_1, x_inter_1, num_moments);
+    hyqmom2_kernel<<<num_blocks, num_threads, 0, stream3>>>(c02, w_inter_1, x_inter_1, num_moments);
     nu_kernel<<<num_blocks, num_threads, 0, stream3>>>(c11, c20, x_inter_1, nu, num_moments);
     mu_kernel2<<<num_blocks, num_threads, 0, stream2>>>(c02, c11, c20, mu, num_moments);
-    init_M<<<num_blocks, num_threads, 0, stream2>>>(mu, M_inter, num_moments);
 
     // second hyqmom2
-    hyqmom2_kernel<<<num_blocks, num_threads, 0, stream2>>>(M_inter, w_inter_2, x_inter_2, num_moments);
+    hyqmom2_kernel<<<num_blocks, num_threads, 0, stream2>>>(mu, w_inter_2, x_inter_2, num_moments);
 
     // final results
-    cudaStreamSynchronize(stream3);
+    cudaStreamSynchronize(stream2);
+    cudaStreamSynchronize(stream1);
     weight_kernel<<<num_blocks, num_threads, 0, stream2>>>(moments_gpu, w_inter_1, w_inter_2, w_final_gpu, num_moments);
     x_kernel<<<num_blocks, num_threads, 0, stream3>>>(moments_gpu, x_inter_1, x_final_gpu, num_moments);
     y_kernel<<<num_blocks, num_threads, 0, stream1>>>(moments_gpu, nu, x_inter_2, y_final_gpu, num_moments);
@@ -308,9 +310,9 @@ float qmom_cuda(float moments[], int num_moments,
     printf("[CUDA] Finished calculation. Timer off... \n");
 
     // copy result from device to host 
-    gpuErrchk(cudaMemcpyAsync(wout, w_final_gpu, sizeof(float)*num_moments*4, cudaMemcpyDeviceToHost, stream1));
-    gpuErrchk(cudaMemcpyAsync(xout, x_final_gpu, sizeof(float)*num_moments*4, cudaMemcpyDeviceToHost, stream2));
-    gpuErrchk(cudaMemcpyAsync(yout, y_final_gpu, sizeof(float)*num_moments*4, cudaMemcpyDeviceToHost, stream3));
+    gpuErrchk(cudaMemcpy(wout, w_final_gpu, sizeof(float)*num_moments*4, cudaMemcpyDeviceToHost));
+    gpuErrchk(cudaMemcpy(xout, x_final_gpu, sizeof(float)*num_moments*4, cudaMemcpyDeviceToHost));
+    gpuErrchk(cudaMemcpy(yout, y_final_gpu, sizeof(float)*num_moments*4, cudaMemcpyDeviceToHost));
     // --TODO-- verify the result somehow? 
 
     float calc_duration; 
