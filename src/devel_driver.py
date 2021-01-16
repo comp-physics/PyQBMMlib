@@ -50,16 +50,16 @@ def flow_example():
     config["domain"]["num_points"] = 402
     config["domain"]["grid_extents"] = [0, 1]
     
-    config["advancer"]["method"] = "Euler"    
+    config["advancer"]["method"] = "RK2"    
     config["advancer"]["time_step"] = cfl * dx / U_max
     config["advancer"]["cfl"] = cfl
     config["advancer"]["final_time"] = 0.6
-    config["advancer"]["num_steps"] = 10 #10000
-    config["advancer"]["num_steps_print"] = 1000
-    config["advancer"]["num_steps_write"] = 1000
+    config["advancer"]["num_steps"] = 10 #10 #10000
+    config["advancer"]["num_steps_print"] = 1 #1000
+    config["advancer"]["num_steps_write"] = 10 #1000
     config["advancer"]["output_dir"] = "output/"
-    config["advancer"]["output_id"] = "example_2D"
-    config["advancer"]["write_to"] = "txt"
+    config["advancer"]["output_id"] = "example_flow"
+    config["advancer"]["write_to"] = "h5"
 
     advancer = time_advancer(config)
     advancer.initialize_state_jets()

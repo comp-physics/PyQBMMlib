@@ -5,38 +5,36 @@ from qbmm_manager import *
 import numpy as np
 
 
-def jet_initialize_moments(qbmm_mgr):
-
-    num_nodes = qbmm_mgr.num_nodes
+def jet_initialize_moments(num_nodes):
 
     wts_left = np.zeros(num_nodes)
     wts_right = np.zeros(num_nodes)
     xi_left = np.zeros([3, num_nodes])
     xi_right = np.zeros([3, num_nodes])
 
-    num_left = 1
-    num_right = 0.5
+    w_left = 1
+    w_right = 0.5
 
     u_left = 0.01
     u_right = 1
 
-    wts_left[0] = 0.125 * num_left
-    wts_left[2] = 0.125 * num_left
-    wts_left[6] = 0.125 * num_left
-    wts_left[8] = 0.125 * num_left
-    wts_left[18] = 0.125 * num_left
-    wts_left[20] = 0.125 * num_left
-    wts_left[24] = 0.125 * num_left
-    wts_left[26] = 0.125 * num_left
+    wts_left[0] = 0.125 * w_left
+    wts_left[2] = 0.125 * w_left
+    wts_left[6] = 0.125 * w_left
+    wts_left[8] = 0.125 * w_left
+    wts_left[18] = 0.125 * w_left
+    wts_left[20] = 0.125 * w_left
+    wts_left[24] = 0.125 * w_left
+    wts_left[26] = 0.125 * w_left
 
-    wts_right[0] = 0.125 * num_right
-    wts_right[2] = 0.125 * num_right
-    wts_right[6] = 0.125 * num_right
-    wts_right[8] = 0.125 * num_right
-    wts_right[18] = 0.125 * num_right
-    wts_right[20] = 0.125 * num_right
-    wts_right[24] = 0.125 * num_right
-    wts_right[26] = 0.125 * num_right
+    wts_right[0] = 0.125 * w_right
+    wts_right[2] = 0.125 * w_right
+    wts_right[6] = 0.125 * w_right
+    wts_right[8] = 0.125 * w_right
+    wts_right[18] = 0.125 * w_right
+    wts_right[20] = 0.125 * w_right
+    wts_right[24] = 0.125 * w_right
+    wts_right[26] = 0.125 * w_right
 
     xi_left[0, 0] = u_left
     xi_left[0, 2] = u_left

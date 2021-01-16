@@ -18,6 +18,7 @@ from pretty_print_util import *
 from simulation_domain import *
 import numpy as np
 import csv
+import h5py
 
 
 class time_advancer:
@@ -27,7 +28,7 @@ class time_advancer:
     Example files are provided in ``inputs/``.
     The dictionary is used to set the following variables:
 
-    :ivar method: Time integration scheme (``euler`` or ``RK3``)
+    :ivar method: Time integration scheme (``euler``, ``RK2, or ``RK3``)
     :ivar time_step: Time integration time step
     :ivar final_time: Final integration time
     :ivar num_steps: Number of integration steps
@@ -69,10 +70,13 @@ class time_advancer:
         
         self.domain = simulation_domain(config)
 
-        if self.method == 'Euler':
+        if self.method == "Euler":
             self.advance = self.advance_euler
             self.num_stages = 1
-        elif self.method == 'RK23':
+        elif self.method == "RK2":
+            self.advance = self.advance_RK2
+            self.num_stages = 2
+        elif self.method == "RK23":
             self.advance = self.advance_RK23
             self.num_stages = 3
 
@@ -87,16 +91,26 @@ class time_advancer:
         self.min_time_step = self.time_step
 
         if "error_tol" in config["advancer"]:
-            self.adaptive = True
-            self.error_tol = config["advancer"]["error_tol"]
             if self.method == "Euler":
                 print("Euler method is non-adaptive. Ignoring error_tol.")
                 self.adaptive = False
+            elif self.method == "RK2":
+                print("To run RK2 adaptively, specify cfl, ignoring error_tol.")
+                self.adaptive = False
+            else:
+                self.adaptive = True
+                self.error_tol = config["advancer"]["error_tol"]
+                self.adapt_time_step = self.adapt_time_step_RK23
         else:
             self.adaptive = False
 
         if "cfl" in config["advancer"]:
-            self.cfl = config["advancer"]["cfl"]
+            if self.method == "RK23":
+                print("RK23 adapts time step per error_tol, ignoring cfl")
+            else:
+                self.cfl = config["advancer"]["cfl"]
+                self.adaptive = True
+                self.adapt_time_step = self.adapt_time_step_cfl
         else:
             self.cfl = 1
             
@@ -211,15 +225,39 @@ class time_advancer:
         # Stage 1: { y_1, k_1 } = f( t_n, y_0 )
         self.stage_state[0] = self.state.copy()
         self.stage_k[0] = self.domain.compute_rhs(self.stage_state[0])
-
+            
         # Updates
         self.state = self.stage_state[0] + self.time_step * self.stage_k[0]
         self.domain.update_quadrature(self.state)
         self.time_step = self.cfl * self.domain.grid_spacing / self.domain.max_abscissa()
-        print(self.domain.max_abscissa())
 
         return
 
+
+    def advance_RK2(self):
+        """
+        This function advances the state with a Runge--Kutta 2 scheme
+        """
+
+        # Stage 1:
+        self.stage_state[0] = self.state.copy()
+        self.stage_k[0] = self.domain.compute_rhs(self.stage_state[0])
+        self.stage_state[1] = self.stage_state[0] + self.time_step * self.stage_k[0]
+
+        # Update domain quadratures
+        self.domain.update_quadrature(self.stage_state[1])
+        
+        # Stage 2:
+        self.stage_k[1] = self.domain.compute_rhs(self.stage_state[0])
+        
+        # Update
+        self.state = 0.5*(self.stage_state[0] + self.time_step*self.stage_k[1])
+
+        # Update domain quadratures
+        self.domain.update_quadrature(self.state)
+
+        return
+    
     def advance_RK3(self):
         """
         This function advances the state with a Runge--Kutta 2/3 scheme
@@ -253,8 +291,19 @@ class time_advancer:
             self.ts_error = np.linalg.norm(self.state - test_state) / np.linalg.norm(
                 self.state
             )
+            
+        return
 
-    def adapt_time_step(self):
+
+    def adapt_time_step_cfl(self):
+        """
+        This function adapts the time step for flow problems based on the CFL condition
+        """
+        self.time_step = self.cfl*self.domain.grid_spacing/self.domain.max_abscissa()
+        return
+    
+            
+    def adapt_time_step_RK23(self):
         """
         This function adapts the time step according to user-specified tolerance
         """
@@ -323,6 +372,7 @@ class time_advancer:
             + "{:.16E}".format(self.time_step)
             + " ... "
         )
+        print(message)
         #f_array_pretty_print(message, "state", self.state)
 
     def write_step(self, i_step):
@@ -356,9 +406,17 @@ class time_advancer:
 
         return
 
-    def write_to_h5(self):
+    def write_to_h5(self, i_step):
         """
-        This function writes the current state to a h5 file, but is not implemented yet.
+        This function writes the current state to a h5 file. It is recommended for flow problems.
         """
-        print("advancer: write_to_h5: not implemented yet")
+        if i_step == 0:
+            write_flag = "w"
+        else:
+            write_flag = "a"
+        with h5py.File(self.file_name, write_flag) as f:
+            g = f.create_group("step_"+str(i_step))
+            g["time"] = self.time
+            g["time_step"] = self.time_step
+            g["state"] = self.state
         return
