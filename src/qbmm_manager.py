@@ -51,10 +51,10 @@ class qbmm_manager:
         self.num_internal_coords = qbmm_config["num_internal_coords"]
         self.num_quadrature_nodes = qbmm_config["num_quadrature_nodes"]
 
-        # self.poly                 = config['qbmm']['polydisperse']
-        # if self.poly:
-        #     self.num_poly_nodes = config['qbmm']['num_poly_nodes']
-        #     self.poly_symbol    = config['qbmm']['poly_symbol']
+        self.poly               = config['qbmm']['polydisperse']
+        if self.poly:
+            self.num_poly_nodes = config['qbmm']['num_poly_nodes']
+            self.poly_symbol    = config['qbmm']['poly_symbol']
 
         if "flow" in qbmm_config:
             self.flow = qbmm_config["flow"]
@@ -283,13 +283,16 @@ class qbmm_manager:
             )
             quit()
         #
-        # # Todo: append indices for polydisperse direction r0
-        # if self.num_internal_coords == 2 and self.poly:
-        #     orig_idx = self.indices
-        #     self.indices = np.zeros( num_poly_nodes * len(orig_idx) )
-        #     for j in range( num_poly_nodes ):
-        #         for i in range( len(orig_idx) ):
-        #             self.indices[i] = np.append( orig_idx[i], j )
+        # Get indices if we have polydisperse direction
+        if self.num_internal_coords == 2 and self.poly:
+            orig_idx = self.indices
+            self.indices = np.zeros( (self.num_poly_nodes * len(orig_idx), 3) )
+            for j in range( self.num_poly_nodes ):
+                for i in range( len(orig_idx) ):
+                    self.indices[j+i,0] = orig_idx[i,0]
+                    self.indices[j+i,1] = orig_idx[i,1]                
+                    self.indices[j+i,2] = j 
+            self.num_moments = len(self.indices)
         return
 
     def transport_terms(self):
@@ -304,8 +307,8 @@ class qbmm_manager:
             integrand = xdot * (x ** (l - 1))
             self.symbolic_indices = l
         elif self.num_internal_coords == 2:
-            # if self.poly:
-            #     r0 = smp.symbols( self.poly_symbol )
+            if self.poly:
+                r0 = smp.symbols( self.poly_symbol )
             x, xdot = smp.symbols("x xdot")
             l, m = smp.symbols("l m", real=True)
             xddot = parse_expr(self.governing_dynamics)
@@ -314,6 +317,10 @@ class qbmm_manager:
 
         terms = smp.powsimp(smp.expand(integrand)).args
         num_terms = len(terms)
+
+        print('terms = ', terms)
+        print('integrand = ', integrand)
+        exit()
 
         # Add constant term for 2+D problems
         total_num_terms = num_terms
@@ -349,22 +356,22 @@ class qbmm_manager:
         self.num_coefficients = len(self.coefficients)
         self.num_exponents = len(self.exponents)
 
-        # message = 'qbmm_mgr: transport_terms: '
-        # for i in range( total_num_terms ):
-        #     sym_array_pretty_print( message, 'exponents', self.exponents[i,:] )
+        message = 'qbmm_mgr: transport_terms: '
+        for i in range( total_num_terms ):
+            sym_array_pretty_print( message, 'exponents', self.exponents[i,:] )
 
-        # message = 'qbmm_mgr: transport_terms: '
-        # sym_array_pretty_print( message, 'coefficients', self.coefficients )
+        message = 'qbmm_mgr: transport_terms: '
+        sym_array_pretty_print( message, 'coefficients', self.coefficients )
 
-        for i in range(self.num_coefficients):
-            if self.num_internal_coords == 1:
-                self.coefficients[i] = smp.lambdify([l], self.coefficients[i])
-                for j in range(self.num_internal_coords):
-                    self.exponents[i, j] = smp.lambdify([l], self.exponents[i, j])
-            elif self.num_internal_coords == 2:
-                self.coefficients[i] = smp.lambdify([l, m], self.coefficients[i])
-                for j in range(self.num_internal_coords):
-                    self.exponents[i, j] = smp.lambdify([l, m], self.exponents[i, j])
+        # for i in range(self.num_coefficients):
+        #     if self.num_internal_coords == 1:
+        #         self.coefficients[i] = smp.lambdify([l], self.coefficients[i])
+        #         for j in range(self.num_internal_coords):
+        #             self.exponents[i, j] = smp.lambdify([l], self.exponents[i, j])
+        #     elif self.num_internal_coords == 2:
+        #         self.coefficients[i] = smp.lambdify([l, m], self.coefficients[i])
+        #         for j in range(self.num_internal_coords):
+        #             self.exponents[i, j] = smp.lambdify([l, m], self.exponents[i, j])
 
         return
 

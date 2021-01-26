@@ -117,10 +117,10 @@ def advance_example2dp1():
     config["qbmm"]["adaptive"] = False
     config["qbmm"]["max_skewness"] = 30
     config["qbmm"]["polydisperse"] = True
-    config["qbmm"]["num_poly_nodes"] = 5
+    config["qbmm"]["num_poly_nodes"] = 3
     config["qbmm"]["poly_symbol"] = "r0"
 
-    config["advancer"]["method"] = "RK23"
+    config["advancer"]["method"] = "RK3"
     config["advancer"]["time_step"] = 1.0e-5
     config["advancer"]["final_time"] = 30.0
     config["advancer"]["error_tol"] = 1.0e-5
@@ -132,6 +132,8 @@ def advance_example2dp1():
     config["advancer"]["write_to"] = "txt"
 
     advancer = time_advancer(config)
+
+    exit() 
 
     # Initial condition
     mu1 = 1.0
@@ -164,6 +166,6 @@ if __name__ == "__main__":
         ### 4. If argv matches case, run, then stop
         ### 5. If argv does not match case, then exit
     else:
-        print("devel_driver: no config file supplied")
+        advance_example2dp1()
+        # print("devel_driver: no config file supplied")
 
-    exit()
