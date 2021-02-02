@@ -6,6 +6,13 @@ from stats_util import *
 from jets_util import *
 from itertools import product
 
+try:
+    import numba
+    from nquad import *
+except:
+    print("Did not find numba! Install it for significant speedups.")
+    from quad import *
+
 class simulation_domain():
     """
     This class handles grid and state for flow problems
@@ -157,17 +164,29 @@ class simulation_domain():
         :type xi_right: array like
         """
         flux = np.zeros(self.qbmm_mgr.num_moments)
-        for m, n in product(range(self.qbmm_mgr.num_moments), range(self.qbmm_mgr.num_nodes)):
-            # compute local fluxes
-            flux_left = self.local_flux(wts_left[n], xi_left[:, n], indices[m, :])
-            flux_right = self.local_flux(wts_right[n], xi_right[:, n], indices[m, :])
-            # limiter
-            flux_left = flux_left * max(xi_left[0, n], 0)
-            flux_right = flux_right * min(xi_right[0, n], 0)
+        # for m, n in product(range(self.qbmm_mgr.num_moments), range(self.qbmm_mgr.num_nodes)):
+        #     # compute local fluxes
+        #     #flux_left = self.local_flux(wts_left[n], xi_left[:, n], indices[m, :])
+        #     #flux_right = self.local_flux(wts_right[n], xi_right[:, n], indices[m, :])
+        #     flux_left = quadrature_3d(wts_left[n], xi_left[:, n], indices[m, :],
+        #                               self.qbmm_mgr.num_nodes)
+        #     flux_right = quadrature_3d(wts_right[n], xi_right[:, n], indices[m, :],
+        #                                self.qbmm_mgr.num_nodes)
+        #     # limiter
+        #     flux_left = flux_left * max(xi_left[0, n], 0)
+        #     flux_right = flux_right * min(xi_right[0, n], 0)
             
-            # quadrature
-            flux[m] += flux_left + flux_right
+        #     # quadrature
+        #     flux[m] += flux_left + flux_right
 
+        for m in range(self.qbmm_mgr.num_moments):
+            flux_left = quadrature_3d(wts_left, xi_left, indices[m, :], self.qbmm_mgr.num_nodes)
+            flux_right = quadrature_3d(wts_right, xi_right, indices[m, :],
+                                       self.qbmm_mgr.num_nodes)
+            flux_left = flux_left * max(max(xi_left[0, :]), 0)
+            flux_right = flux_right * max(max(xi_right[0, :]), 0)
+            flux[m] += flux_left + flux_right
+            
         return flux
 
 
@@ -199,6 +218,7 @@ class simulation_domain():
             # Reconstruct flux
             self.flux[i_point] = f_left - f_right
             
+            
         return
 
     
@@ -211,11 +231,11 @@ class simulation_domain():
         """
         if self.flow:
             self.compute_fluxes(state)
-            self.rhs += self.flux / self.grid_spacing
+            self.rhs = self.flux / self.grid_spacing
         elif self.qbmm_mgr.internal_dynamics:
             internal_rhs = np.zeros([self.num_points, self.qbmm_mgr.num_moments])
             self.qbmm_mgr.compute_rhs(state, internal_rhs)
-            self.rhs += internal_rhs
+            self.rhs = internal_rhs
         else:
             return self.zeros(self.rhs.shape)
 

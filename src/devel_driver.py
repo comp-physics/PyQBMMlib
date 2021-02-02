@@ -54,9 +54,9 @@ def flow_example():
     config["advancer"]["time_step"] = cfl * dx / U_max
     config["advancer"]["cfl"] = cfl
     config["advancer"]["final_time"] = 0.6
-    config["advancer"]["num_steps"] = 10 #10 #10000
+    config["advancer"]["num_steps"] = 1000 #10 #10000
     config["advancer"]["num_steps_print"] = 1 #1000
-    config["advancer"]["num_steps_write"] = 10 #1000
+    config["advancer"]["num_steps_write"] = 100 #1000
     config["advancer"]["output_dir"] = "output/"
     config["advancer"]["output_id"] = "example_flow"
     config["advancer"]["write_to"] = "h5"

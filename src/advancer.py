@@ -248,10 +248,11 @@ class time_advancer:
         self.domain.update_quadrature(self.stage_state[1])
         
         # Stage 2:
-        self.stage_k[1] = self.domain.compute_rhs(self.stage_state[0])
+        self.stage_k[1] = self.domain.compute_rhs(self.stage_state[1])
         
         # Update
-        self.state = 0.5*(self.stage_state[0] + self.time_step*self.stage_k[1])
+        self.state = 0.5*(self.stage_state[0] + self.stage_state[1]
+                          + self.time_step*self.stage_k[1])
 
         # Update domain quadratures
         self.domain.update_quadrature(self.state)

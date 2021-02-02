@@ -27,7 +27,7 @@ def quadrature_2d(weights, abscissas, moment_index, num_quadrature_nodes):
         )
     return q
 
-
+@jit(nopython=True)
 def quadrature_3d(weights, abscissas, moment_index, num_quadrature_nodes):
     q = 0.0
     for i in range(num_quadrature_nodes):

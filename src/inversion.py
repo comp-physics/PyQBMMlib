@@ -1,9 +1,9 @@
 import numpy as np
 import math
 
-# from numba import jit
+from numba import jit
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def sign(q):
     if q > 0:
         return 1
@@ -193,7 +193,7 @@ def hyqmom2(moments):
     return x, w
 
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def hyqmom3(moments, max_skewness=30, checks=True):
     """
     This function inverts moments into a three-node quadrature rule.
@@ -398,7 +398,7 @@ def chyqmom4(moments, indices, max_skewness=30):
     return x, w
 
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def chyqmom9(moments, indices, max_skewness=30, checks=True):
 
     # normalidx = indices.tolist()
@@ -541,7 +541,7 @@ def chyqmom9(moments, indices, max_skewness=30, checks=True):
     return x, w
 
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def chyqmom27(moments, indices, max_skewness=30, checks=True):
 
     # Indices used for calling chyqmom9
