@@ -9,6 +9,7 @@ __global__ void test_kernel(int N) {
 }
 
 int main(int argc, char **argv) {
+    printf("A basic cuda example \n");
     int N = atoi(argv[1]);
     int num_threads = atoi(argv[2]);
     int num_blocks = atoi(argv[3]);

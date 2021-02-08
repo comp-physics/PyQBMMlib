@@ -94,9 +94,13 @@ float qmom_openmp(float moments[], int num_moments, int nthread,
                     float xout[], float yout[], float wout[])
 {
     omp_set_num_threads(nthread);
-
-    printf("[OPEN_MP] starting %d thread(s) \n", omp_get_max_threads());
-    printf("[OPEN_MP] starting loop. Timer on... \n");
+    float moment_col_major[num_moments*6];
+    printf("Reorganizing format \n");
+    for (int row = 0; row < 6; row++) {
+        for (int col = 0; col < num_moments; col ++) {
+            moment_col_major[col * 6 + row] = moments[row * num_moments + col];
+        }
+    }
 
     double tic = omp_get_wtime();
     #pragma omp parallel for
@@ -105,21 +109,5 @@ float qmom_openmp(float moments[], int num_moments, int nthread,
     }
     double toc = omp_get_wtime();
 
-    printf("[OPEN_MP] Finished loop. Timer off... \n");
-    return (toc - tic)*1e3; // convert to miliseconds 
-}
-
-float qmom_naive(float moments[], int num_moments,
-                    float xout[], float yout[], float wout[])
-{
-
-    printf("[NAIVE] starting loop. Timer on... \n");
-
-    double tic = omp_get_wtime();
-    for (int i=0; i<num_moments; i++) {
-        chyqmom4(&moments[6*i], &xout[4*i], &yout[4*i], &wout[4*i]);
-    }
-    double toc = omp_get_wtime();
-    printf("[NAIVE] Finished loop. Timer off... \n");
-    return (toc - tic)*1e3;
+    return (toc - tic) * 1e3; // covert to milliseconds 
 }

@@ -14,7 +14,7 @@ __global__ void c20_kernel(float* M, float* c20, int N) {
     while (idx < N) {
         c20[idx] = ((M[6*idx+3] * M[6*idx]) - (M[6*idx+1] * M[6*idx+1])) 
                     / (M[6*idx] * M[6*idx]);
-        idx += blockDim.x;
+        idx += blockDim.x*gridDim.x;
     };
 };
 
@@ -23,7 +23,7 @@ __global__ void c11_kernel(float* M, float* c11, int N) {
     while (idx < N) {
         c11[idx] = ((M[6*idx+4] * M[6*idx]) - (M[6*idx+1] * M[6*idx+2])) 
                     / (M[6*idx] * M[6*idx]);
-        idx += blockDim.x;
+        idx += blockDim.x*gridDim.x;
     };
 };
 
@@ -32,7 +32,7 @@ __global__ void c02_kernel(float* M, float* c02, int N) {
     while (idx < N) {
         c02[idx] = ((M[6*idx+5] * M[6*idx]) - (M[6*idx+2] * M[6*idx+2])) 
                     / (M[6*idx] * M[6*idx]);
-        idx += blockDim.x;
+        idx += blockDim.x*gridDim.x;
     };
 };
 
@@ -49,7 +49,7 @@ __global__ void nu_kernel(float* c11, float* c20, float* xi, float* nu, int N) {
         nu_final.y = c*temp_x2.y;
 
         nu_2[0] = nu_final;
-        idx += blockDim.x*2;
+        idx += blockDim.x*gridDim.x*2;
     };
 };
 
@@ -61,7 +61,7 @@ __global__ void mu_kernel2(float* c02, float* c11, float* c20, float* mu, int N)
         float c20_i = c20[idx];
         float res = c02_i - c11_i*c11_i/c20_i;
         mu[idx] = res;
-        idx += blockDim.x;
+        idx += blockDim.x*gridDim.x;
     };
 };
 
@@ -85,8 +85,8 @@ __global__ void hyqmom2_kernel(float *M3, float* w, float* x, int N) {
         //     printf("[hyqmom2] w: %f %f, x: %f %f M3: %f\n", w[idx], w[idx+1], x[idx], x[idx+1], M);
         // }
 
-        idx += 2*blockDim.x;
-        M_idx += blockDim.x;
+        idx += 2*blockDim.x*gridDim.x;
+        M_idx += blockDim.x*gridDim.x;
     };
 };
 
@@ -122,7 +122,7 @@ __global__ void weight_kernel(float* M, float* w1, float* w2, float* w_final, in
         // printf("[thread %d] temp_x1: %f %f %f %f \n" , idx, temp_x1.x, temp_x1.y, temp_x1.z, temp_x1.w);
         // printf("[thread %d] quotient: %f \n",idx, quotient2);
         // printf("[thread %d] temp_final2: %f %f %f %f \n" , idx, temp_final2.x, temp_final2.y, temp_final2.z, temp_final2.w);
-        idx += 2*blockDim.x;
+        idx += 2*blockDim.x*gridDim.x;
     };
     // int idx = blockIdx.x * blockDim.x + threadIdx.x;
     // while (idx < N) {
@@ -130,7 +130,7 @@ __global__ void weight_kernel(float* M, float* w1, float* w2, float* w_final, in
     //     w_final[4*idx+1] = M[6*idx] * w1[2*idx] * w2[2*idx+1];
     //     w_final[4*idx+2] = M[6*idx] * w1[2*idx+1] * w2[2*idx];
     //     w_final[4*idx+3] = M[6*idx] * w1[2*idx+1] * w2[2*idx+1];
-    //     idx += blockDim.x;
+    //     idx += blockDim.x*gridDim.x;
     // };
 };
 
@@ -171,7 +171,7 @@ __global__ void x_kernel(float* M, float* x1, float* x_final, int N) {
         // x_final[4*idx+1] = M[6*idx+1]/M[6*idx] + x1[2*idx];
         // x_final[4*idx+2] = M[6*idx+1]/M[6*idx] + x1[2*idx+1];
         // x_final[4*idx+3] = M[6*idx+1]/M[6*idx] + x1[2*idx+1];
-        idx += 2*blockDim.x;
+        idx += 2*blockDim.x*gridDim.x;
     };
 };
 
@@ -218,7 +218,7 @@ __global__ void y_kernel(float* M, float* nu, float* x2, float* y_final, int N) 
         // printf("[thread %d] temp_nu: %f %f %f %f \n" , idx, temp_nu.x, temp_nu.y, temp_nu.z, temp_nu.w);
         // printf("[thread %d] quotient: %f \n",idx, quotient2);
         // printf("[thread %d] temp_final1: %f %f %f %f \n" , idx, temp_final1.x, temp_final1.y, temp_final1.z, temp_final1.w);
-        idx += 2*blockDim.x;
+        idx += 2*blockDim.x*gridDim.x;
     };
     // int idx = blockIdx.x * blockDim.x + threadIdx.x;
     // while (idx < N) {
@@ -226,7 +226,7 @@ __global__ void y_kernel(float* M, float* nu, float* x2, float* y_final, int N) 
     //     y_final[4*idx+1] = M[6*idx+2]/M[6*idx] + nu[2*idx] + x2[2*idx+1];
     //     y_final[4*idx+2] = M[6*idx+2]/M[6*idx] + nu[2*idx+1] + x2[2*idx];
     //     y_final[4*idx+3] = M[6*idx+2]/M[6*idx] + nu[2*idx+1] + x2[2*idx+1];
-    //     idx += blockDim.x;
+    //     idx += blockDim.x*gridDim.x;
     // };
 };
 
@@ -273,8 +273,13 @@ float qmom_cuda(float moments[], int num_moments,
 
 
     // thread block is set to be 1D,
-    int num_threads = 1024;
-    int num_blocks = 1;
+    int minGridSize, num_blocks, num_threads;
+    gpuErrchk(cudaOccupancyMaxPotentialBlockSize(&minGridSize, &num_threads, c20_kernel, 0, num_moments));
+    num_blocks = (num_moments + num_threads - 1) / num_threads; 
+    printf("[CUDA] calculated grid size: %d Block_size %d \n", num_blocks, num_threads);
+
+    // int num_threads = 1024;
+    // int num_blocks = 1;
 
     // set up three streams for concurrent kernels
     cudaStream_t stream1, stream2, stream3;
@@ -315,10 +320,14 @@ float qmom_cuda(float moments[], int num_moments,
     gpuErrchk(cudaMemcpy(yout, y_final_gpu, sizeof(float)*num_moments*4, cudaMemcpyDeviceToHost));
     // --TODO-- verify the result somehow? 
 
+    cudaEventSynchronize(stop);
     float calc_duration; 
     cudaEventElapsedTime(&calc_duration, start, stop);
 
     cudaFree(moments_gpu);
+    cudaStreamDestroy(stream1);
+    cudaStreamDestroy(stream2);
+    cudaStreamDestroy(stream3);
     cudaFree(c20);
     cudaFree(c02);
     cudaFree(c11);

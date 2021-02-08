@@ -450,8 +450,18 @@ def chyqmom9(moments, indices, max_skewness=30, checks=True):
     c40 = d40 - 4.0 * bx * d30 + 6 * (bx ** 2.0) * d20 - 3.0 * bx ** (4)
     c04 = d04 - 4.0 * by * d03 + 6 * (by ** 2.0) * d02 - 3.0 * by ** (4)
 
+    print("C")
+    print(c02)
+    print(c11)
+    print(c20)
+    print(c30)
+    print(c03)
+    print(c40)
+    print(c04)
+
     M1 = np.array([1, 0, c20, c30, c40])
     xp, rho = hyqmom3(M1, max_skewness, checks)
+
     if checks and c20 < csmall:
         rho[0] = 0.0
         rho[1] = 1.0
@@ -473,12 +483,15 @@ def chyqmom9(moments, indices, max_skewness=30, checks=True):
         mu3 = 0 * mu2
         mu4 = mu2 ** 2.0
         if mu2 > csmall:
+            print("hello1")
             q = (c03 - np.sum(rho * (yf ** 3.0))) / mu2 ** (3.0 / 2.0)
             eta = (
                 c04 - np.sum(rho * (yf ** 4.0)) - 6 * np.sum(rho * (yf ** 2.0)) * mu2
             ) / mu2 ** 2.0
             if eta < (q ** 2 + 1):
+                print("hello2")
                 if abs(q) > verysmall:
+                    print("hello3")
                     slope = (eta - 3.0) / q
                     det = 8.0 + slope ** 2.0
                     qp = 0.5 * (slope + math.sqrt(det))
@@ -497,6 +510,9 @@ def chyqmom9(moments, indices, max_skewness=30, checks=True):
 
         M3 = np.array([1, 0, mu2, mu3, mu4])
         xp3, rh3 = hyqmom3(M3, max_skewness, checks)
+        print("rho")
+        print(rho)
+        print(rh3)
         yp21 = xp3[0]
         yp22 = xp3[1]
         yp23 = xp3[2]

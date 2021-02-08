@@ -12,19 +12,20 @@ class TestInversion:
     def __init__(self) -> None:
 
         self.inversion = inv.chyqmom4
+        # self.indices = np.array(
+        #     [[0, 0], [1, 0], [0, 1], [2, 0], [1, 1], [0, 2], [3, 0], [0, 3], [4, 0], [0, 4]])
         self.indices = np.array(
             [[0, 0], [1, 0], [0, 1], [2, 0], [1, 1], [0, 2]])
-
     def test_one(self) -> None:
         # Initial condition
-        mu = np.random.rand(2) + 1
-        sig = np.random.rand(2)
         moments = stats.raw_gaussian_moments_bivar(self.indices, 
-                    mu[0], mu[1],
-                    sig[0], sig[1])    
+                    1.00, 1.00,
+                    0.1, 0.1)    
         xi, weight = self.inversion(moments, self.indices)
-        print(xi)
+        print(moments)
         print(weight)
+        print(xi[1])
+    
     
     def init_batch_input(self, n: int) -> np.ndarray:
         '''
@@ -58,9 +59,9 @@ if __name__ == "__main__":
     N = 3
     moments = TI.init_batch_input(N)
     # print(moments)
-    # TI.test_one()
-    weight, x, y = TI.compute_batch(moments, N)
-    print(weight)
+    TI.test_one()
+    # weight, x, y = TI.compute_batch(moments, N)
+    # print(weight)
 
 
     
