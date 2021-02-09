@@ -4,6 +4,8 @@
 #include <string>
 #include <fstream>
 
+#include <omp.h>
+
 #include "hyqmom.hpp"
 #include "main.hpp"
 
@@ -52,6 +54,7 @@ int main(int argc, char **argv) {
         float *w_out_cuda = new float[4*num_moments];
         float *w_out_omp = new float[4*num_moments];
         init_input_6(input_moments, num_moments);
+        omp_set_num_threads(omp_n_threads);
 
         // output results in column major format
         float omp_time = qmom_openmp(input_moments, num_moments, omp_n_threads, x_out_omp, y_out_omp, w_out_omp);

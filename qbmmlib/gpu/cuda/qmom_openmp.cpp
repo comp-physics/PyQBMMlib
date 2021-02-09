@@ -93,14 +93,15 @@ void chyqmom4(float mom[], float xout[], float yout[], float wout[]) {
 float qmom_openmp(float moments[], int num_moments, int nthread, 
                     float xout[], float yout[], float wout[])
 {
-    omp_set_num_threads(nthread);
-    float moment_col_major[num_moments*6];
-    printf("Reorganizing format \n");
+    printf("starting\n");
+    float *moment_col_major = new float[num_moments*6];
+    fprintf(stderr, "Reorganizing format \n");
     for (int row = 0; row < 6; row++) {
         for (int col = 0; col < num_moments; col ++) {
             moment_col_major[col * 6 + row] = moments[row * num_moments + col];
         }
     }
+    printf("Done \n");
 
     double tic = omp_get_wtime();
     #pragma omp parallel for
@@ -108,6 +109,8 @@ float qmom_openmp(float moments[], int num_moments, int nthread,
         chyqmom4(&moments[6*i], &xout[4*i], &yout[4*i], &wout[4*i]);
     }
     double toc = omp_get_wtime();
+    
+    delete[] moment_col_major;
 
     return (toc - tic) * 1e3; // covert to milliseconds 
 }
