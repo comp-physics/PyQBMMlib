@@ -204,7 +204,6 @@ float chyqmom4(float moments[], const int size, float w[], float x[], float y[],
     // printf("[CHYQMOM9] streams: %d size: %d, size_per_batch: %d\n",num_streams, size, size_per_batch);
 
 
-    gpuErrchk(cudaEventRecord(start));
     for (int i=0; i<num_streams; i+=3) {
         // beginning location in memory 
         int loc = (i/3) * size_per_batch;
@@ -214,6 +213,7 @@ float chyqmom4(float moments[], const int size, float w[], float x[], float y[],
                                     size_per_batch * sizeof(float), 6, 
                                     cudaMemcpyHostToDevice, stream[i]));
         
+        gpuErrchk(cudaEventRecord(start));
         // Central moments
         chyqmom4_cmoments<<<gridSize, blockSize, 0, stream[i]>>>(&moments_d[loc], &c_moments[loc], size_per_batch, size);
         // setup first hyqmom2
@@ -235,27 +235,30 @@ float chyqmom4(float moments[], const int size, float w[], float x[], float y[],
 
         // compute weight and copy data to host 
         chyqmom4_wout<<<gridSize, blockSize, 0, stream[i]>>>(&moments_d[loc], &w1[loc], &w2[loc], &w_out_d[loc], size_per_batch, size);
-        gpuErrchk(cudaMemcpy2DAsync(&w[loc], size*sizeof(float), 
-                                    &w_out_d[loc], size*sizeof(float),
-                                    size_per_batch * sizeof(float), 4, 
-                                    cudaMemcpyDeviceToHost, stream[i]));
 
         // compute x and copy data to host 
         chyqmom4_xout<<<gridSize, blockSize, 0, stream[i+1]>>>(&moments_d[loc], &x1[loc], &x_out_d[loc], size_per_batch, size);
-        gpuErrchk(cudaMemcpy2DAsync(&x[loc], size*sizeof(float), 
-                                    &x_out_d[loc], size*sizeof(float),
-                                    size_per_batch * sizeof(float), 4, 
-                                    cudaMemcpyDeviceToHost, stream[i+1]));
+
         // compute y and copy data to host 
         chyqmom4_yout<<<gridSize, blockSize, 0, stream[i+2]>>>(&moments_d[loc], &x2[loc], &yf[loc], &y_out_d[loc], size_per_batch, size);
+
+        cudaDeviceSynchronize();
+        gpuErrchk(cudaEventRecord(stop));
+        gpuErrchk(cudaEventSynchronize(stop));
+
         gpuErrchk(cudaMemcpy2DAsync(&y[loc], size*sizeof(float), 
                                     &y_out_d[loc], size*sizeof(float),
                                     size_per_batch * sizeof(float), 4, 
                                     cudaMemcpyDeviceToHost, stream[i+2]));
+        gpuErrchk(cudaMemcpy2DAsync(&x[loc], size*sizeof(float), 
+                                    &x_out_d[loc], size*sizeof(float),
+                                    size_per_batch * sizeof(float), 4, 
+                                    cudaMemcpyDeviceToHost, stream[i+1]));
+        gpuErrchk(cudaMemcpy2DAsync(&w[loc], size*sizeof(float), 
+                                    &w_out_d[loc], size*sizeof(float),
+                                    size_per_batch * sizeof(float), 4, 
+                                    cudaMemcpyDeviceToHost, stream[i]));
     }
-    cudaDeviceSynchronize();
-    gpuErrchk(cudaEventRecord(stop));
-    gpuErrchk(cudaEventSynchronize(stop));
 
     // Unregisters host memory 
     gpuErrchk(cudaHostUnregister(moments));

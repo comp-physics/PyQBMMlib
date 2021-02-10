@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
 
     std::string filename = argv[1];
     int N_max = atoi(argv[2]);
-    int stride = atoi(argv[3]);
+    float stride = std::stof(argv[3]);
     int omp_n_threads = atoi(argv[4]);
 
     std::ofstream result_file;
@@ -43,7 +43,9 @@ int main(int argc, char **argv) {
     result_file.open(filename);
     result_file << "Input Size, omp (s), cuda (s)\n";
     
-    for (int num_moments=1; num_moments < N_max; num_moments+= stride) {
+    for (float x_moments = 1; x_moments < N_max; x_moments*= stride) {
+
+        int num_moments = (int) ceil(x_moments);
         printf("Running %d inputs \n", num_moments);
         //input 
         float *input_moments = new float[6*num_moments];

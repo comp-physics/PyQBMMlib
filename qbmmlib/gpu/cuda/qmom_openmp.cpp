@@ -93,15 +93,12 @@ void chyqmom4(float mom[], float xout[], float yout[], float wout[]) {
 float qmom_openmp(float moments[], int num_moments, int nthread, 
                     float xout[], float yout[], float wout[])
 {
-    printf("starting\n");
     float *moment_col_major = new float[num_moments*6];
-    fprintf(stderr, "Reorganizing format \n");
     for (int row = 0; row < 6; row++) {
         for (int col = 0; col < num_moments; col ++) {
             moment_col_major[col * 6 + row] = moments[row * num_moments + col];
         }
     }
-    printf("Done \n");
     omp_set_num_threads(nthread);
 
     double tic = omp_get_wtime();

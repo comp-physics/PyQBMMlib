@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-file_name_local = 'build/results_local.csv'
+file_name_local = 'build/results_log.csv'
 save_name = 'result.png'
 
 def plot_result(data):
@@ -49,34 +49,36 @@ def plot_result(data):
 
 def plot_compared_result(data1, data2):
     N = len(data1[1:, 2])
+    fit_lb = int(np.ceil(5*N/7))
     x =  data1[1:, 0]
 
-    plt.plot(x, data1[1:, 1], label='c++', color='b')
-    plt.plot(x, data1[1:, 2], label='cuda', color='r')
+    plt.plot(x, data1[1:, 1], label='c++ 10 core', color='b')
+    plt.plot(x, data1[1:, 2], label='cuda total time', color='r')
     # plt.plot(x, data1[1:, 3], label='cufft overlap local', color='k')
     # linear best fit
-    m_1, b_1 = np.polyfit(x, data1[1:, 1], 1)
-    m_2, b_2 = np.polyfit(x, data1[1:, 2], 1)
+
+    m_1, b_1 = np.polyfit(np.log(x[fit_lb:]), np.log(data1[fit_lb+1:, 1]), 1)
+    m_2, b_2 = np.polyfit(np.log(x[fit_lb:]), np.log(data1[fit_lb+1:, 2]), 1)
     # m_3, b_3 = np.polyfit(x, data1[1:, 3], 1)
-    plt.plot(x, m_1*x+b_1, color='b', linestyle='dotted')
-    plt.plot(x, m_2*x+b_2, color='r', linestyle='dotted')
+    plt.plot(x, np.exp(m_1*np.log(x) + b_1), color='b', linestyle='dotted')
+    plt.plot(x, np.exp(m_2*np.log(x) + b_2), color='r', linestyle='dotted')
     # plt.plot(x, m_3*x+b_3, color='k', linestyle='dotted')
 
     # plt.plot(x, data2[1:, 1], label='fftw_cluster', color='c')
-    # plt.plot(x, data2[1:, 2], label='cufft sequential_cluster', color='y')
+    plt.plot(x, data2[1:, 2], label='cuda kernel execution time', color='y')
     # plt.plot(x, data2[1:, 3], label='cufft overlap cluster', color='m')
     # linear best fit
-    # m_1_2, b_1_2 = np.polyfit(x, data2[1:, 1], 1)
+    m_1_2, b_1_2 = np.polyfit(np.log(x[fit_lb:]), np.log(data2[fit_lb+1:, 2]), 1)
     # m_2_2, b_2_2 = np.polyfit(x, data2[1:, 2], 1)
     # m_3_2, b_3_2 = np.polyfit(x, data2[1:, 3], 1)
-    # plt.plot(x, m_1_2*x+b_1_2, color='c', linestyle='dotted')
+    plt.plot(x, np.exp(m_1_2*np.log(x) + b_1_2), color='y', linestyle='dotted')
     # plt.plot(x, m_2_2*x+b_2_2, color='y', linestyle='dotted')
     # plt.plot(x, m_3_2*x+b_3_2, color='m', linestyle='dotted')
 
     plt.grid(True)
     plt.xscale('log')
-    # plt.xlim([0, np.max(x)])
-    plt.ylim([0, np.max(data1[1:, 1])])
+    plt.yscale('log')
+    plt.ylim([1e-3, np.max(data1[1:, 1])])
     plt.title('Computation Time Vs Input Size')
     plt.xlabel('Input size')
     plt.ylabel('Time (s)')
@@ -89,15 +91,20 @@ def plot_compared_result(data1, data2):
 
 if __name__ == "__main__":
 
-    data1 = np.genfromtxt(file_name_local, delimiter=',')
+    # data1 = np.genfromtxt(file_name_local, delimiter=',')
     # data2 = np.genfromtxt(file_name_remote, delimiter=',')
     # plot_result(data1)
-    plot_compared_result(data1, data1)
+    # plot_compared_result(data1, data1)
 
 
-    # data_1 = np.genfromtxt('build/results_trial2.csv', delimiter=',')
-    # data_2 = np.genfromtxt('build/results_trial3.csv', delimiter=',')
-    # data_3 = np.genfromtxt('build/results_trial4.csv', delimiter=',')
+    data_11 = np.genfromtxt('build/results_log_1.csv', delimiter=',')
+    data_12 = np.genfromtxt('build/results_log_2.csv', delimiter=',')
+    data_13 = np.genfromtxt('build/results_log_3.csv', delimiter=',')
 
-    # data_avg = (data_1 + data_2 + data_3)/3
-    # plot_compared_result(data_avg, data_avg)
+    data_21 = np.genfromtxt('build/results_serial_1.csv', delimiter=',')
+    data_22 = np.genfromtxt('build/results_serial_2.csv', delimiter=',')
+    data_23 = np.genfromtxt('build/results_serial_3.csv', delimiter=',')
+
+    data_1_avg = (data_11 + data_12 + data_13)/3
+    data_2_avg = (data_21 + data_22 + data_23)/3
+    plot_compared_result(data_1_avg, data_2_avg)
