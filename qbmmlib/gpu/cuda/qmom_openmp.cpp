@@ -102,6 +102,7 @@ float qmom_openmp(float moments[], int num_moments, int nthread,
         }
     }
     printf("Done \n");
+    omp_set_num_threads(nthread);
 
     double tic = omp_get_wtime();
     #pragma omp parallel for

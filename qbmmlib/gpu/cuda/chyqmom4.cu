@@ -205,7 +205,6 @@ float chyqmom4(float moments[], const int size, float w[], float x[], float y[],
 
 
     gpuErrchk(cudaEventRecord(start));
-
     for (int i=0; i<num_streams; i+=3) {
         // beginning location in memory 
         int loc = (i/3) * size_per_batch;

@@ -89,10 +89,11 @@ static __global__ void chyqmom9_mu_yf(
             rho[1*stride + idx], 
             rho[2*stride + idx]  
         };
+        float coef = c_local[1]/c_local[2];
         float yf_local[3] = {
-            c_local[1] * xp[idx] / c_local[2],
-            c_local[1] * xp[stride + idx] / c_local[2],
-            c_local[1] * xp[2*stride + idx] / c_local[2]
+            coef * xp[idx],
+            coef * xp[stride + idx],
+            coef * xp[2*stride + idx]
         };
         yf[idx] = yf_local[0];
         yf[stride + idx] = yf_local[1];
@@ -222,8 +223,8 @@ float chyqmom9(float moments[], const int size, float w[], float x[], float y[],
     gpuErrchk(cudaHostRegister(y, size*9*sizeof(float), cudaHostRegisterPortable));
 
     // Set up streams
-    // Allocate 3 concurrent streams to each batch
-    const int num_streams = batch_size*3;
+    // Allocate 1 concurrent streams to each batch
+    const int num_streams = batch_size;
     cudaStream_t stream[num_streams];
     for (int i=0; i<num_streams; i++) {
         gpuErrchk(cudaStreamCreateWithFlags(&stream[i], cudaStreamNonBlocking));
@@ -243,11 +244,10 @@ float chyqmom9(float moments[], const int size, float w[], float x[], float y[],
     int size_per_batch = ceil(size / batch_size);
     printf("[CHYQMOM9] streams: %d size: %d, size_per_batch: %d\n",num_streams, size, size_per_batch);
 
-    high_resolution_clock::time_point t1 = high_resolution_clock::now();
     gpuErrchk(cudaEventRecord(start));
-    for (int i=0; i<num_streams; i+=3) {
+    for (int i=0; i<num_streams; i++) {
         // beginning location in memory 
-        int loc = (i/3) * size_per_batch;
+        int loc = (i) * size_per_batch;
         // transfer data from host to device 
 
 
@@ -259,8 +259,8 @@ float chyqmom9(float moments[], const int size, float w[], float x[], float y[],
         // Central moments
         chyqmom9_cmoments<<<gridSize, blockSize, 0, stream[i]>>>(&moments_d[loc], &c_moments[loc], size_per_batch, size);
         // setup first hyqmom3
-        float_value_set<<<gridSize, blockSize, 0, stream[i+1]>>>(&m1[loc], 1, size_per_batch);
-        float_value_set<<<gridSize, blockSize, 0, stream[i+2]>>>(&m1[size + loc], 0, size_per_batch);
+        float_value_set<<<gridSize, blockSize, 0, stream[i]>>>(&m1[loc], 1, size_per_batch);
+        float_value_set<<<gridSize, blockSize, 0, stream[i]>>>(&m1[size + loc], 0, size_per_batch);
         gpuErrchk(cudaMemcpyAsync(&m1[2* size + loc], &c_moments[loc], size_per_batch*sizeof(float), 
                                     cudaMemcpyDeviceToDevice, stream[i]));
         gpuErrchk(cudaMemcpy2DAsync(&m1[3*size + loc], size*sizeof(float), 
@@ -273,8 +273,8 @@ float chyqmom9(float moments[], const int size, float w[], float x[], float y[],
         // Compute mu and yf
         chyqmom9_mu_yf<<<gridSize, blockSize, 0, stream[i]>>>(&c_moments[loc], &x1[loc], &w1[loc], &yf[loc], &mu[loc], size_per_batch, size);
         // Set up second hyqmom3
-        float_value_set<<<gridSize, blockSize, 0, stream[i+1]>>>(&m1[loc], 1, size_per_batch);
-        float_value_set<<<gridSize, blockSize, 0, stream[i+2]>>>(&m1[size + loc], 0, size_per_batch);
+        float_value_set<<<gridSize, blockSize, 0, stream[i]>>>(&m1[loc], 1, size_per_batch);
+        float_value_set<<<gridSize, blockSize, 0, stream[i]>>>(&m1[size + loc], 0, size_per_batch);
         gpuErrchk(cudaMemcpy2DAsync(&m1[2*size + loc], size*sizeof(float), 
                                     &mu[loc], size*sizeof(float),
                                     size_per_batch * sizeof(float), 3, 
@@ -282,9 +282,7 @@ float chyqmom9(float moments[], const int size, float w[], float x[], float y[],
 
         hyqmom3<<<gridSize, blockSize, 0, stream[i]>>>(&m1[loc], &x2[loc], &w2[loc], size_per_batch, size);
         // cudaStreamSynchronize(stream[i]);
-        // cudaStreamSynchronize(stream[i+1]);
-        // cudaStreamSynchronize(stream[i+2]);
-
+        // cudaStreamSynchronize(stream[i]);
         // compute weight and copy data to host 
         chyqmom9_wout<<<gridSize, blockSize, 0, stream[i]>>>(&moments_d[loc], &w1[loc], &w2[loc], &w_out_d[loc], size_per_batch, size);
         gpuErrchk(cudaMemcpy2DAsync(&w[loc], size*sizeof(float), 
@@ -293,30 +291,25 @@ float chyqmom9(float moments[], const int size, float w[], float x[], float y[],
                                     cudaMemcpyDeviceToHost, stream[i]));
 
         // compute x and copy data to host 
-        chyqmom9_xout<<<gridSize, blockSize, 0, stream[i+1]>>>(&moments_d[loc], &x1[loc], &x_out_d[loc], size_per_batch, size);
+        chyqmom9_xout<<<gridSize, blockSize, 0, stream[i]>>>(&moments_d[loc], &x1[loc], &x_out_d[loc], size_per_batch, size);
         gpuErrchk(cudaMemcpy2DAsync(&x[loc], size*sizeof(float), 
                                     &x_out_d[loc], size*sizeof(float),
                                     size_per_batch * sizeof(float), 9, 
-                                    cudaMemcpyDeviceToHost, stream[i+1]));
+                                    cudaMemcpyDeviceToHost, stream[i]));
         // compute y and copy data to host 
-        chyqmom9_yout<<<gridSize, blockSize, 0, stream[i+2]>>>(&moments_d[loc], &x2[loc], &yf[loc], &y_out_d[loc], size_per_batch, size);
+        chyqmom9_yout<<<gridSize, blockSize, 0, stream[i]>>>(&moments_d[loc], &x2[loc], &yf[loc], &y_out_d[loc], size_per_batch, size);
         gpuErrchk(cudaMemcpy2DAsync(&y[loc], size*sizeof(float), 
                                     &y_out_d[loc], size*sizeof(float),
                                     size_per_batch * sizeof(float), 9, 
-                                    cudaMemcpyDeviceToHost, stream[i+2]));
+                                    cudaMemcpyDeviceToHost, stream[i]));
     }
     cudaDeviceSynchronize();
-    high_resolution_clock::time_point t2 = high_resolution_clock::now();
-
-
     gpuErrchk(cudaEventRecord(stop));
     gpuErrchk(cudaEventSynchronize(stop));
     
-    duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
     float calc_duration;
     cudaEventElapsedTime(&calc_duration, start, stop);
     printf("[CUDA] %f ms \n", calc_duration);
-    printf("[CHRONO] %f ms \n", time_span.count()*1e3);
     // clean up
     cudaFree(moments_d);
     cudaFree(w_out_d);
