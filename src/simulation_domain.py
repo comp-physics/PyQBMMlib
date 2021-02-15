@@ -164,28 +164,25 @@ class simulation_domain():
         :type xi_right: array like
         """
         flux = np.zeros(self.qbmm_mgr.num_moments)
-        # for m, n in product(range(self.qbmm_mgr.num_moments), range(self.qbmm_mgr.num_nodes)):
-        #     # compute local fluxes
-        #     #flux_left = self.local_flux(wts_left[n], xi_left[:, n], indices[m, :])
-        #     #flux_right = self.local_flux(wts_right[n], xi_right[:, n], indices[m, :])
-        #     flux_left = quadrature_3d(wts_left[n], xi_left[:, n], indices[m, :],
-        #                               self.qbmm_mgr.num_nodes)
-        #     flux_right = quadrature_3d(wts_right[n], xi_right[:, n], indices[m, :],
-        #                                self.qbmm_mgr.num_nodes)
-        #     # limiter
-        #     flux_left = flux_left * max(xi_left[0, n], 0)
-        #     flux_right = flux_right * min(xi_right[0, n], 0)
+        
+        for m, n in product(range(self.qbmm_mgr.num_moments), range(self.qbmm_mgr.num_nodes)):
+            # compute local fluxes
+            flux_left = self.local_flux(wts_left[n], xi_left[:, n], indices[m, :])
+            flux_right = self.local_flux(wts_right[n], xi_right[:, n], indices[m, :])
+            # limiter
+            flux_left = flux_left * max(xi_left[0, n], 0)
+            flux_right = flux_right * min(xi_right[0, n], 0)
             
-        #     # quadrature
-        #     flux[m] += flux_left + flux_right
-
-        for m in range(self.qbmm_mgr.num_moments):
-            flux_left = quadrature_3d(wts_left, xi_left, indices[m, :], self.qbmm_mgr.num_nodes)
-            flux_right = quadrature_3d(wts_right, xi_right, indices[m, :],
-                                       self.qbmm_mgr.num_nodes)
-            flux_left = flux_left * max(max(xi_left[0, :]), 0)
-            flux_right = flux_right * max(max(xi_right[0, :]), 0)
+            # quadrature
             flux[m] += flux_left + flux_right
+
+        # for m in range(self.qbmm_mgr.num_moments):
+        #     flux_left = quadrature_3d(wts_left, xi_left, indices[m, :], self.qbmm_mgr.num_nodes)
+        #     flux_right = quadrature_3d(wts_right, xi_right, indices[m, :],
+        #                                self.qbmm_mgr.num_nodes)
+        #     flux_left = flux_left * max(xi_left[0, :].max(), 0)
+        #     flux_right = flux_right * max(xi_right[0, :].max(), 0)
+        #     flux[m] += flux_left + flux_right
             
         return flux
 
