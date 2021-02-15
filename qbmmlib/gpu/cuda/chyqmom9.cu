@@ -234,7 +234,6 @@ float chyqmom9(float moments[], const int size, float w[], float x[], float y[],
     int gridSize, blockSize;
     blockSize = 1024;
     gridSize = (size + blockSize - 1) / blockSize; 
-    printf("[CHYQMOM9] Grid Size: %d Block Size: %d\n", gridSize, blockSize);
     // setup timer 
     cudaEvent_t start, stop;
     gpuErrchk(cudaEventCreate(&start));
@@ -242,7 +241,6 @@ float chyqmom9(float moments[], const int size, float w[], float x[], float y[],
     // cudaProfilerStart();
     
     int size_per_batch = ceil(size / batch_size);
-    printf("[CHYQMOM9] streams: %d size: %d, size_per_batch: %d\n",num_streams, size, size_per_batch);
 
     gpuErrchk(cudaEventRecord(start));
     for (int i=0; i<num_streams; i++) {
@@ -306,10 +304,14 @@ float chyqmom9(float moments[], const int size, float w[], float x[], float y[],
     cudaDeviceSynchronize();
     gpuErrchk(cudaEventRecord(stop));
     gpuErrchk(cudaEventSynchronize(stop));
+
+    gpuErrchk(cudaHostUnregister(moments));
+    gpuErrchk(cudaHostUnregister(w));
+    gpuErrchk(cudaHostUnregister(x));
+    gpuErrchk(cudaHostUnregister(y));
     
     float calc_duration;
     cudaEventElapsedTime(&calc_duration, start, stop);
-    printf("[CUDA] %f ms \n", calc_duration);
     // clean up
     cudaFree(moments_d);
     cudaFree(w_out_d);

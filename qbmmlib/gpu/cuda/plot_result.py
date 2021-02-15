@@ -52,8 +52,8 @@ def plot_compared_result(data1, data2):
     fit_lb = int(np.ceil(5*N/7))
     x =  data1[1:, 0]
 
-    plt.plot(x, data1[1:, 1], label='c++ 10 core', color='b')
-    plt.plot(x, data1[1:, 2], label='cuda total time', color='r')
+    plt.plot(x, data1[1:, 1], label='cuda first attempt', color='b')
+    plt.plot(x, data1[1:, 2], label='cuda current', color='r')
     # plt.plot(x, data1[1:, 3], label='cufft overlap local', color='k')
     # linear best fit
 
@@ -65,13 +65,13 @@ def plot_compared_result(data1, data2):
     # plt.plot(x, m_3*x+b_3, color='k', linestyle='dotted')
 
     # plt.plot(x, data2[1:, 1], label='fftw_cluster', color='c')
-    plt.plot(x, data2[1:, 2], label='cuda kernel execution time', color='y')
+    # plt.plot(x, data2[1:, 2], label='cuda kernel execution time', color='y')
     # plt.plot(x, data2[1:, 3], label='cufft overlap cluster', color='m')
     # linear best fit
-    m_1_2, b_1_2 = np.polyfit(np.log(x[fit_lb:]), np.log(data2[fit_lb+1:, 2]), 1)
+    # m_1_2, b_1_2 = np.polyfit(np.log(x[fit_lb:]), np.log(data2[fit_lb+1:, 2]), 1)
     # m_2_2, b_2_2 = np.polyfit(x, data2[1:, 2], 1)
     # m_3_2, b_3_2 = np.polyfit(x, data2[1:, 3], 1)
-    plt.plot(x, np.exp(m_1_2*np.log(x) + b_1_2), color='y', linestyle='dotted')
+    # plt.plot(x, np.exp(m_1_2*np.log(x) + b_1_2), color='y', linestyle='dotted')
     # plt.plot(x, m_2_2*x+b_2_2, color='y', linestyle='dotted')
     # plt.plot(x, m_3_2*x+b_3_2, color='m', linestyle='dotted')
 
@@ -97,14 +97,14 @@ if __name__ == "__main__":
     # plot_compared_result(data1, data1)
 
 
-    data_11 = np.genfromtxt('build/results_log_1.csv', delimiter=',')
-    data_12 = np.genfromtxt('build/results_log_2.csv', delimiter=',')
-    data_13 = np.genfromtxt('build/results_log_3.csv', delimiter=',')
+    # data_11 = np.genfromtxt('build/results_log_1.csv', delimiter=',')
+    # data_12 = np.genfromtxt('build/results_log_2.csv', delimiter=',')
+    # data_13 = np.genfromtxt('build/results_log_3.csv', delimiter=',')
 
-    data_21 = np.genfromtxt('build/results_serial_1.csv', delimiter=',')
-    data_22 = np.genfromtxt('build/results_serial_2.csv', delimiter=',')
-    data_23 = np.genfromtxt('build/results_serial_3.csv', delimiter=',')
+    data_21 = np.genfromtxt('build/1kernel_1.csv', delimiter=',')
+    data_22 = np.genfromtxt('build/1kernel_2.csv', delimiter=',')
+    data_23 = np.genfromtxt('build/1kernel_3.csv', delimiter=',')
 
-    data_1_avg = (data_11 + data_12 + data_13)/3
-    data_2_avg = (data_21 + data_22 + data_23)/3
-    plot_compared_result(data_1_avg, data_2_avg)
+    # data_1_avg = np.minimum(data_11, np.minimum(data_12, data_13))
+    data_2_avg = np.minimum(data_21, data_22, data_23)
+    plot_compared_result(data_2_avg, data_2_avg)

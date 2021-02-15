@@ -9,6 +9,9 @@
 #include "hyqmom.hpp"
 #include "main.hpp"
 
+float chyqmom4_single_kernel(float moments[], int num_moments,
+                float xout[], float yout[], float wout[]);
+
 /* print out a usage message */
 void usage(int argc, char **argv) {
     fprintf(stderr, "usage: %s filename max_input stride omp_nthreads\n", argv[0]);
@@ -58,7 +61,7 @@ int main(int argc, char **argv) {
         init_input_6(input_moments, num_moments);
 
         // output results in column major format
-        float omp_time = qmom_openmp(input_moments, num_moments, omp_n_threads, x_out_omp, y_out_omp, w_out_omp);
+        float omp_time = chyqmom4_single_kernel(input_moments, num_moments, x_out_omp, y_out_omp, w_out_omp);
         // output results in row major format
         float cuda_time = chyqmom4(input_moments, num_moments, w_out_cuda, x_out_cuda, y_out_cuda, 1);
 
