@@ -1,6 +1,7 @@
 import math
 import numpy as np
 from numba import jit
+from itertools import product
 
 
 @jit(nopython=True)
@@ -38,3 +39,30 @@ def quadrature_3d(weights, abscissas, moment_index, num_quadrature_nodes):
             * abscissas[2, i] ** moment_index[2]
         )
     return q
+
+@jit(nopython=True)
+def flux_quadrature(wts_left, xi_left, wts_right, xi_right, indices, num_moments, num_nodes):
+    flux = np.zeros(num_moments)
+    for m in range(num_moments):
+        for n in range(num_nodes):
+            # compute local fluxes
+            flux_left = (
+                wts_left[n]
+                * xi_left[0, n]**indices[m, 0]
+                * xi_left[1, n]**indices[m, 1]
+                * xi_left[2, n]**indices[m, 2]
+            )
+            flux_right = (
+                wts_right[n]
+                * xi_right[0, n]**indices[m, 0]
+                * xi_right[1, n]**indices[m, 1]
+                * xi_right[2, n]**indices[m, 2]
+            )
+            # limiter
+            flux_left = flux_left * max(xi_left[0, n], 0)
+            flux_right = flux_right * min(xi_right[0, n], 0)
+            # quadrature
+            flux[m] += flux_left + flux_right
+        
+    return flux
+        

@@ -102,7 +102,7 @@ class simulation_domain():
         """
         Return the maximum value of the x-abscissa in the simulation domain
         """
-        return self.abscissas[:,0,:].max()
+        return max(0.01,abs(self.abscissas[:,0,:]).max())
 
 
     def update_quadrature(self, state, project = True):
@@ -163,28 +163,23 @@ class simulation_domain():
         :type xi_left: array like
         :type xi_right: array like
         """
-        flux = np.zeros(self.qbmm_mgr.num_moments)
-        
-        for m, n in product(range(self.qbmm_mgr.num_moments), range(self.qbmm_mgr.num_nodes)):
-            # compute local fluxes
-            flux_left = self.local_flux(wts_left[n], xi_left[:, n], indices[m, :])
-            flux_right = self.local_flux(wts_right[n], xi_right[:, n], indices[m, :])
-            # limiter
-            flux_left = flux_left * max(xi_left[0, n], 0)
-            flux_right = flux_right * min(xi_right[0, n], 0)
-            
-            # quadrature
-            flux[m] += flux_left + flux_right
+        return flux_quadrature(wts_left, xi_left, wts_right, xi_right, indices,
+                               self.qbmm_mgr.num_moments, self.qbmm_mgr.num_nodes)
 
-        # for m in range(self.qbmm_mgr.num_moments):
-        #     flux_left = quadrature_3d(wts_left, xi_left, indices[m, :], self.qbmm_mgr.num_nodes)
-        #     flux_right = quadrature_3d(wts_right, xi_right, indices[m, :],
-        #                                self.qbmm_mgr.num_nodes)
-        #     flux_left = flux_left * max(xi_left[0, :].max(), 0)
-        #     flux_right = flux_right * max(xi_right[0, :].max(), 0)
-        #     flux[m] += flux_left + flux_right
+        # flux = np.zeros(self.qbmm_mgr.num_moments)        
+        # for m, n in product(range(self.qbmm_mgr.num_moments), range(self.qbmm_mgr.num_nodes)):
+        #     # compute local fluxes
+        #     flux_left = self.local_flux(wts_left[n], xi_left[:, n], indices[m, :])
+        #     flux_right = self.local_flux(wts_right[n], xi_right[:, n], indices[m, :])
+        #     # limiter
+        #     flux_left = flux_left * max(xi_left[0, n], 0)
+        #     flux_right = flux_right * min(xi_right[0, n], 0)
             
-        return flux
+        #     # quadrature
+        #     flux[m] += flux_left + flux_right
+
+        # return flux      
+    
 
 
     def compute_fluxes(self, state):
