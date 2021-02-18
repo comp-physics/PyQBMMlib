@@ -9,7 +9,7 @@ __global__ void hyqmom3(float moments[], float x[], float w[], const int size, c
         mom[0] = moments[idx];
         for (int n = 1; n < 5; n++) {
             mom[n] = moments[n * stride + idx] / mom[0];
-            // printf("[tIdx %d] hyqmom3 mom[%d] = %f\n", idx, n, mom[n]);
+            printf("[tIdx %d] hyqmom3 mom[%d] = %f\n", idx, n, mom[n]);
 
         }
         // central moments

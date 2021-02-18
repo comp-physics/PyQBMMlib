@@ -200,13 +200,17 @@ float chyqmom4(float moments[], const int size, float w[], float x[], float y[],
     gridSize = (size + blockSize - 1) / blockSize; 
     // printf("[CHYQMOM4] Grid Size: %d Block Size: %d\n", gridSize, blockSize);
 
-    int size_per_batch = ceil(size / batch_size);
-    // printf("[CHYQMOM9] streams: %d size: %d, size_per_batch: %d\n",num_streams, size, size_per_batch);
+    int size_per_batch = ceil((float)size / batch_size);
+    printf("[CHYQMOM9] streams: %d size: %d, size_per_batch: %d\n",num_streams, size, size_per_batch);
 
     gpuErrchk(cudaEventRecord(start));
     for (int i=0; i<num_streams; i+=3) {
         // beginning location in memory 
         int loc = (i/3) * size_per_batch;
+        if (loc + size_per_batch > size) {
+            size_per_batch = size - loc;
+        }
+
         // transfer data from host to device 
         gpuErrchk(cudaMemcpy2DAsync(&moments_d[loc], size*sizeof(float), 
                                     &moments[loc], size*sizeof(float),
@@ -249,7 +253,7 @@ float chyqmom4(float moments[], const int size, float w[], float x[], float y[],
         gpuErrchk(cudaMemcpy2DAsync(&w[loc], size*sizeof(float), 
                                     &w_out_d[loc], size*sizeof(float),
                                     size_per_batch * sizeof(float), 4, 
-                                    cudaMemcpyDeviceToHost, stream[i]));
+                                    cudaMemcpyDeviceToHost, stream[i]));                         
     }
     cudaDeviceSynchronize();
     gpuErrchk(cudaEventRecord(stop));
@@ -269,6 +273,7 @@ float chyqmom4(float moments[], const int size, float w[], float x[], float y[],
     cudaFree(y_out_d);
     cudaFree(c_moments);
     cudaFree(mu);
+    cudaFree(m);
     cudaFree(yf);
     cudaFree(x1);
     cudaFree(x2);

@@ -2,6 +2,8 @@ import pycuda.driver as cuda
 import pycuda.autoinit
 from pycuda.compiler import SourceModule
 
+import ctypes
+
 import numpy as np
 import time
 
@@ -18,10 +20,21 @@ CHYQMOM9 = SourceModule('''
     }
 
     // set a segment of memory to a specific value
-     __global__ void float_value_set(float *addr, float value, int size) {
+    __global__ void float_value_set(float addr[], float value, const int size, const int loc) {
         const int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
         for (int idx = tIdx; idx < size; idx+=blockDim.x*gridDim.x) {
-            addr[idx] = value;
+            addr[idx + loc] = value;
+            //printf("[%d]loc: %d, setting addr[%d] to %f \\n", idx, loc, loc+idx, value);
+        }
+    }
+
+    // set a segment of memory to a specific array
+    __global__ void float_array_set(float *addr, float *value, int size, int loc_d, int loc_s) {
+        const int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
+        for (int idx = tIdx; idx < size; idx+=blockDim.x*gridDim.x) {
+
+            addr[idx + loc_d] = value[idx + loc_s];
+            // printf("[%d]loc_s: %d, setting addr[%d] to %f \\n", idx, loc_s, loc_d+idx, value[idx]);
         }
     }
 
@@ -40,7 +53,9 @@ CHYQMOM9 = SourceModule('''
             // mom[i] = mom[i]/mom[0] for i !=0
             for (int n=1; n<10; n++) {
                 mom[n] = moments[n * stride + idx] / mom[0];
+                // // printf("[tIdx %d] mom[%d] = %f\\n", idx, n, mom[n]);
             }
+            
             //compute central moments
             cmom[0] = mom[3] - mom[1] * mom[1];
             cmom[1] = mom[4] - mom[1] * mom[2];
@@ -59,6 +74,15 @@ CHYQMOM9 = SourceModule('''
             c_moments[4*stride + idx] =cmom[4];
             c_moments[5*stride + idx] =cmom[5];
             c_moments[6*stride + idx] =cmom[6];
+
+            // printf("[%d] c_moment[%d] = %f \\n", idx, idx, c_moments[idx]);
+            // printf("[%d] c_moment[%d] = %f \\n", idx, 1*stride + idx, c_moments[1*stride + idx]);
+            // printf("[%d] c_moment[%d] = %f \\n", idx, 2*stride + idx, c_moments[2*stride + idx]);
+            // printf("[%d] c_moment[%d] = %f \\n", idx, 3*stride + idx, c_moments[3*stride + idx]);
+            // printf("[%d] c_moment[%d] = %f \\n", idx, 4*stride + idx, c_moments[4*stride + idx]);
+            // printf("[%d] c_moment[%d] = %f \\n", idx, 5*stride + idx, c_moments[5*stride + idx]);
+            // printf("[%d] c_moment[%d] = %f \\n", idx, 6*stride + idx, c_moments[6*stride + idx]);
+
         }
     }
 
@@ -188,46 +212,6 @@ CHYQMOM9 = SourceModule('''
     }
 ''')
 
-class cudaMemcpy2D:
-    def __init__(self):
-        self.copy2D = cuda.Memcpy2D()
-
-    def copy_htod(self, dst, d_stride,
-                src, s_stride, 
-                width, height, stream=None):
-
-        self.copy2D.set_src_host(src)
-        self.copy2D.src_x_in_bytes = s_stride
-        self.copy2D.set_dst_device(dst)
-        self.copy2D.dst_x_in_bytes = d_stride
-        self.copy2D.width_in_bytes = width
-        self.copy2D.height = height
-        self.copy2D(stream)
-    
-    def copy_dtoh(self, dst, d_stride,
-                src, s_stride, 
-                width, height, stream=None):
-
-        self.copy2D.set_src_device(src)
-        self.copy2D.src_x_in_bytes = s_stride
-        self.copy2D.set_dst_host(dst)
-        self.copy2D.dst_x_in_bytes = d_stride
-        self.copy2D.width_in_bytes = width
-        self.copy2D.height = height
-        self.copy2D(stream)
-
-    def copy_dtod(self, dst, d_stride,
-                src, s_stride, 
-                width, height, stream=None):
-
-        self.copy2D.set_src_device(src)
-        self.copy2D.src_x_in_bytes = s_stride
-        self.copy2D.set_dst_device(dst)
-        self.copy2D.dst_x_in_bytes = d_stride
-        self.copy2D.width_in_bytes = width
-        self.copy2D.height = height
-        self.copy2D(stream)
-
 def chyqmom9_cuda(
     moments: np.ndarray, 
     size: int, 
@@ -237,24 +221,8 @@ def chyqmom9_cuda(
     batch_size: int):
 
     mem_d_size_in_byte = np.ones(size).astype(np.float32).nbytes
-    sizeof_float = np.dtype(np.float32).itemsize
+    sizeof_float = np.int32(np.dtype(np.float32).itemsize)
     size = np.int32(size)
-
-    # allocate memory on device
-    moments_d = cuda.mem_alloc(moments.nbytes)
-    w_out_d = cuda.mem_alloc(mem_d_size_in_byte * 9)
-    x_out_d = cuda.mem_alloc(mem_d_size_in_byte * 9)
-    y_out_d = cuda.mem_alloc(mem_d_size_in_byte * 9)
-
-    c_moments = cuda.mem_alloc(mem_d_size_in_byte * 7)
-    mu = cuda.mem_alloc(mem_d_size_in_byte * 3)
-    yf = cuda.mem_alloc(mem_d_size_in_byte * 3)
-
-    m1 = cuda.mem_alloc(mem_d_size_in_byte * 5)
-    x1 = cuda.mem_alloc(mem_d_size_in_byte * 3)
-    w1 = cuda.mem_alloc(mem_d_size_in_byte * 3)
-    x2 = cuda.mem_alloc(mem_d_size_in_byte * 3)
-    w2 = cuda.mem_alloc(mem_d_size_in_byte * 3)
 
     # register host memory as page-locked to enable Asych mem transfer
     cuda.register_host_memory(moments, cuda.mem_host_register_flags.PORTABLE)
@@ -262,102 +230,133 @@ def chyqmom9_cuda(
     cuda.register_host_memory(x, cuda.mem_host_register_flags.PORTABLE)
     cuda.register_host_memory(y, cuda.mem_host_register_flags.PORTABLE)
 
-    # Allocate 3 concurrent streams to each batch
-    num_stream = batch_size * 3
+    # Allocate 1 concurrent streams to each batch
+    num_stream = batch_size
     streams = []
     for i in range(num_stream):
         streams.append(cuda.Stream())
 
-    blockSize = (1024, 1, 1)
-    GridSize = (size + blockSize[0] - 1) / blockSize[0];
-    GridSize = (GridSize, 1, 1)
+    BlockSize = (256, 1, 1)
+    GridSize = (size +BlockSize[0] - 1) /BlockSize[0];
+    GridSize = (int(GridSize), 1, 1)
 
     # timers 
     event_start = cuda.Event()
     event_stop = cuda.Event()
 
-    size_per_batch = np.int32(np.ceil(size/batch_size))
+    size_per_batch = np.int32(np.ceil(float(size)/batch_size))
+    print("size_per_batch: ", size_per_batch)
 
     # initialize kernels
     c_kernel = CHYQMOM9.get_function('chyqmom9_cmoments')
-    float_value_set = CHYQMOM9.get_function('float_value_set');
+    float_value_set = CHYQMOM9.get_function('float_value_set')
+    float_array_set = CHYQMOM9.get_function('float_array_set')
     chyqmom9_mu_yf = CHYQMOM9.get_function('chyqmom9_mu_yf')
     chyqmom9_wout = CHYQMOM9.get_function('chyqmom9_wout')
     chyqmom9_xout = CHYQMOM9.get_function('chyqmom9_xout')
     chyqmom9_yout = CHYQMOM9.get_function('chyqmom9_yout')
 
-    copy2D = cudaMemcpy2D()
-    hyqmom3 = hyqmom.Hyqmom.hyqmom3
+    moments_d = []
+    w_out_d = []
+    x_out_d = []
+    y_out_d = []
 
+    c_moments = []
+    mu = []
+    yf = []
+
+    m1 = []
+    x1 = []
+    w1 = []
+    x2 = []
+    w2 = []
+
+    for i in range(batch_size):
+        # allocate memory on device
+        moments_d.append(cuda.mem_alloc(int(sizeof_float * size_per_batch * 10)))
+        w_out_d.append(cuda.mem_alloc(int(sizeof_float * size_per_batch * 9)))
+        x_out_d.append(cuda.mem_alloc(int(sizeof_float * size_per_batch * 9)))
+        y_out_d.append(cuda.mem_alloc(int(sizeof_float * size_per_batch * 9)))
+
+        c_moments.append(cuda.mem_alloc(int(sizeof_float * size_per_batch * 7)))
+        mu.append(cuda.mem_alloc(int(sizeof_float * size_per_batch * 3)))
+        yf.append(cuda.mem_alloc(int(sizeof_float * size_per_batch * 3)))
+
+        m1.append(cuda.mem_alloc(int(sizeof_float * size_per_batch * 5)))
+        x1.append(cuda.mem_alloc(int(sizeof_float * size_per_batch * 3)))
+        w1.append(cuda.mem_alloc(int(sizeof_float * size_per_batch * 3)))
+        x2.append(cuda.mem_alloc(int(sizeof_float * size_per_batch * 3)))
+        w2.append(cuda.mem_alloc(int(sizeof_float * size_per_batch * 3)))
+
+    hyq = hyqmom.Hyqmom(BlockSize, GridSize)
 
     event_start.record()
-    for i in np.arange(0, num_stream, 3):
-        loc = (i/3) * size_per_batch
-        copy2D.copy_htod(int(moments_d) + loc, size*sizeof_float,
-                int(moments) + loc, size*sizeof_float,
-                size_per_batch*sizeof_float, 10,
-                streams=streams[i])
-    
-        c_kernel(int(moments_d) + loc, int(c_moments) + loc, size_per_batch, size,
-                block=BlockSize, grid=GridSize, stream=streams[i])
+    for i in np.arange(0, num_stream, 1):
+        loc = np.int32((i) * size_per_batch)
+        if loc + size_per_batch > size: 
+            size_per_batch = size - loc
 
-        float_value_set(int(m1) + loc, np.float32(1), size_per_batch,
-                block=BlockSize, grid=GridSize, stream=streams[i+1])
-        float_value_set(int(m1) + loc, np.float32(0), size_per_batch,
-                block=BlockSize, grid=GridSize, stream=streams[i+2])
-        cuda.memcpy_dtod_async(int(mi) + 3*size + loc, 
-                int(c_moments) + loc, size_per_batch*sizeof_float, 
+        this_moment = np.ascontiguousarray(moments[:, loc:loc+size_per_batch], dtype=np.float32)
+        cuda.memcpy_htod_async(moments_d[i], this_moment,
                 stream=streams[i])
-        copy2D.copy_dtod(int(m1) + 3*size + loc, size*sizeof_float,
-                int(c_moments) + 4*size + loc, size*sizeof_float,
-                size_per_batch*sizeof_float, 2,
-                streams=streams[i])
-        
-        hyqmom3(int(m1) + loc, int(x1) + loc, int(w1) + loc, size_per_batch, size,
-                block=BlockSize, grid=GridSize, stream=streams[i+2])
-        chyqmom9_mu_yf(int(c_moments) + loc, 
-                int(x1) + loc, int(w1) + loc, 
-                int(yf) + loc, int(mu) + loc, size_per_batch, size,
-                block=BlockSize, grid=GridSize, stream=streams[i+2])
-        
-        float_value_set(int(m1) + loc, np.float32(1), size_per_batch,
-                block=BlockSize, grid=GridSize, stream=streams[i+1])
-        float_value_set(int(m1) + size + loc, np.float32(0), size_per_batch,
-                block=BlockSize, grid=GridSize, stream=streams[i+2])
-        copy2D.copy_dtod(int(m1)+ 2*size + loc, size*sizeof_float,
-                int(mu) + loc, size*sizeof_float,
-                size_per_batch*sizeof_float, 3,
-                streams=streams[i])
-
-        hyqmom3(int(m1) + loc, int(x2) + loc, int(w2) + loc, size_per_batch, size,
-                block=BlockSize, grid=GridSize, stream=streams[i+2])
-
-        chyqmom9_wout(int(moments_d) + loc, int(w1) + loc, 
-                int(w2) + loc, int(w_out_d) + loc, size_per_batch, size,
+    
+        c_kernel(moments_d[i], c_moments[i], size_per_batch, size_per_batch,
                 block=BlockSize, grid=GridSize, stream=streams[i])
-        copy2D.copy_dtoh(int(w) + loc, size*sizeof_float,
-                int(w_out_d) + loc, size*sizeof_float,
-                size_per_batch*sizeof_float, 9,
-                streams=streams[i])
 
-        chyqmom9_xout(int(moments_d) + loc, int(x1) + loc, 
-                    int(x_out_d) + loc, size_per_batch, size,
-                    block=BlockSize, grid=GridSize, stream=streams[i])
-        copy2D.copy_dtoh(int(x) + loc, size*sizeof_float,
-                int(x_out_d) + loc, size*sizeof_float,
-                size_per_batch*sizeof_float, 9,
-                streams=streams[i+1])
+        float_value_set(m1[i], np.float32(1), size_per_batch, np.int32(0),
+                block=BlockSize, grid=GridSize, stream=streams[i])
+        float_value_set(m1[i], np.float32(0), size_per_batch, size_per_batch,
+                block=BlockSize, grid=GridSize, stream=streams[i])
+        float_array_set(m1[i], c_moments[i], 
+                np.int32(size_per_batch), np.int32(size_per_batch * 2), np.int32(0),
+                block=BlockSize, grid=GridSize, stream=streams[i])
+        float_array_set(m1[i], c_moments[i], 
+                np.int32(size_per_batch * 2), np.int32(size_per_batch * 3), np.int32(size_per_batch * 4),
+                block=BlockSize, grid=GridSize, stream=streams[i])
+
         
-        chyqmom9_yout(int(moments_d) + loc, int(x2) + loc, 
-                    int(yf) + loc, int(y_out_d) + loc, size_per_batch, size,
-                    block=BlockSize, grid=GridSize, stream=streams[i+2])
-        copy2D.copy_dtoh(int(y) + loc, size*sizeof_float,
-                int(y_out_d) + loc, size*sizeof_float,
-                size_per_batch*sizeof_float, 9,
-                streams=streams[i+2])
+        hyq.hyqmom3(m1[i], x1[i], w1[i], size_per_batch, size_per_batch,
+                block=BlockSize, grid=GridSize, stream=streams[i])
+        chyqmom9_mu_yf(c_moments[i], 
+                x1[i], w1[i], 
+                yf[i], mu[i], size_per_batch, size_per_batch,
+                block=BlockSize, grid=GridSize, stream=streams[i])
+        float_array_set(m1[i], mu[i], 
+                np.int32(size_per_batch * 3), np.int32(size_per_batch * 2), np.int32(0),
+                block=BlockSize, grid=GridSize, stream=streams[i])
+
+        hyq.hyqmom3(m1[i], x2[i], w2[i], size_per_batch, size_per_batch,
+                block=BlockSize, grid=GridSize, stream=streams[i])
+
+        chyqmom9_wout(moments_d[i], w1[i], 
+                w2[i], w_out_d[i], size_per_batch, size_per_batch,
+                block=BlockSize, grid=GridSize, stream=streams[i])
+        this_w = np.ascontiguousarray(np.zeros_like(w[:, loc:loc+size_per_batch]))
+        cuda.memcpy_dtoh_async(this_w, w_out_d[i], stream=streams[i])
+
+        chyqmom9_xout(moments_d[i], x1[i], 
+                    x_out_d[i], size_per_batch, size_per_batch,
+                    block=BlockSize, grid=GridSize, stream=streams[i])
+        this_x = np.ascontiguousarray(np.zeros_like(x[:, loc:loc+size_per_batch]))
+        cuda.memcpy_dtoh_async(this_x, x_out_d[i], stream=streams[i])
+        
+        chyqmom9_yout(moments_d[i], x2[i], 
+                    yf[i], y_out_d[i], size_per_batch, size_per_batch,
+                    block=BlockSize, grid=GridSize, stream=streams[i])
+        this_y = np.ascontiguousarray(np.zeros_like(y[:, loc:loc+size_per_batch]))
+        cuda.memcpy_dtoh_async(this_y, y_out_d[i], stream=streams[i])
+
+        w[:, loc:loc+size_per_batch] = this_w
+        x[:, loc:loc+size_per_batch] = this_x
+        y[:, loc:loc+size_per_batch] = this_y
+
     
     event_stop.record()
+    event_stop.synchronize()
     calc_time = event_stop.time_since(event_start)
+    
+    print('### w')
+    print(w)
     return calc_time
 
 
@@ -372,20 +371,19 @@ def init_moment_10(size: int):
     
     return moments
 
-    
-
 
 if __name__ == '__main__':
-    num_moments = 2
+    num_moments = 5
 
     moments = init_moment_10(num_moments)
     # flatten to 1d array 
-    moments = moments.flatten()
-    print(moments)
+    # moments = moments.flatten()
 
     # outputs 
-    w = np.zeros((num_moments * 9, 1), dtype=np.float32)
-    x = np.zeros((num_moments * 9, 1), dtype=np.float32)
-    y = np.zeros((num_moments * 9, 1), dtype=np.float32)
+    w = np.zeros((9, num_moments), dtype=np.float32)
+    x = np.zeros((9, num_moments), dtype=np.float32)
+    y = np.zeros((9, num_moments), dtype=np.float32)
 
-    time = chyqmom9_cuda(moments, num_moments, w, x, y, 1)
+    time = chyqmom9_cuda(moments, num_moments, w, x, y, 3)
+    print("## Time")
+    print(time)

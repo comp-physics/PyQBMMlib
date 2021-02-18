@@ -13,7 +13,7 @@
 __device__ float sum_pow(float rho[], float yf[], float n, const int len) {
     float sum = 0;
     for (int i = 0; i < len; i++) {
-        sum += rho[i] * pow(yf[i], n); 
+        sum += rho[i] * powf(yf[i], n); 
     }
     return sum;
 }
@@ -62,6 +62,14 @@ static __global__ void chyqmom9_cmoments(
         c_moments[4*stride + idx] =cmom[4];
         c_moments[5*stride + idx] =cmom[5];
         c_moments[6*stride + idx] =cmom[6];
+
+        printf("[%d] c_moment[%d] = %f \n", idx, idx, c_moments[idx]);
+        printf("[%d] c_moment[%d] = %f \n", idx, 1*stride + idx, c_moments[1*stride + idx]);
+        printf("[%d] c_moment[%d] = %f \n", idx, 2*stride + idx, c_moments[2*stride + idx]);
+        printf("[%d] c_moment[%d] = %f \n", idx, 3*stride + idx, c_moments[3*stride + idx]);
+        printf("[%d] c_moment[%d] = %f \n", idx, 4*stride + idx, c_moments[4*stride + idx]);
+        printf("[%d] c_moment[%d] = %f \n", idx, 5*stride + idx, c_moments[5*stride + idx]);
+        printf("[%d] c_moment[%d] = %f \n", idx, 6*stride + idx, c_moments[6*stride + idx]);
     }
 }
 
@@ -101,12 +109,12 @@ static __global__ void chyqmom9_mu_yf(
 
         // if mu > csmall
         float q = (c_local[3] - sum_pow(rho_local, yf_local, 3.0, 3)) / 
-                    pow(mu_avg, (3.0 / 2.0));
+                    powf(mu_avg, (3.0 / 2.0));
         float eta = (c_local[4] - sum_pow(rho_local, yf_local, 4.0, 3) - 
                     6 * sum_pow(rho_local, yf_local, 2.0, 3) * mu_avg) / 
-                    pow(mu_avg, 2.0);
+                    powf(mu_avg, 2.0);
 
-        float mu3 = q * pow(mu_avg, 3/2);
+        float mu3 = q * powf(mu_avg, 3/2);
         float mu4 = eta * mu_avg * mu_avg;
 
         mu[idx] = mu_avg;
@@ -232,7 +240,7 @@ float chyqmom9(float moments[], const int size, float w[], float x[], float y[],
 
     // Calculate optimal block and grid sizes
     int gridSize, blockSize;
-    blockSize = 1024;
+    blockSize = 256;
     gridSize = (size + blockSize - 1) / blockSize; 
     // setup timer 
     cudaEvent_t start, stop;
@@ -240,12 +248,16 @@ float chyqmom9(float moments[], const int size, float w[], float x[], float y[],
     gpuErrchk(cudaEventCreate(&stop));
     // cudaProfilerStart();
     
-    int size_per_batch = ceil(size / batch_size);
+    int size_per_batch = ceil((float)size / batch_size);
+    // printf("[CHYQMOM9] streams: %d size: %d, size_per_batch: %d\n",num_streams, size, size_per_batch);
 
     gpuErrchk(cudaEventRecord(start));
     for (int i=0; i<num_streams; i++) {
         // beginning location in memory 
         int loc = (i) * size_per_batch;
+        if (loc + size_per_batch > size) {
+            size_per_batch = size - loc;
+        }
         // transfer data from host to device 
 
 
@@ -287,24 +299,26 @@ float chyqmom9(float moments[], const int size, float w[], float x[], float y[],
                                     &w_out_d[loc], size*sizeof(float),
                                     size_per_batch * sizeof(float), 9, 
                                     cudaMemcpyDeviceToHost, stream[i]));
-
         // compute x and copy data to host 
         chyqmom9_xout<<<gridSize, blockSize, 0, stream[i]>>>(&moments_d[loc], &x1[loc], &x_out_d[loc], size_per_batch, size);
         gpuErrchk(cudaMemcpy2DAsync(&x[loc], size*sizeof(float), 
                                     &x_out_d[loc], size*sizeof(float),
                                     size_per_batch * sizeof(float), 9, 
                                     cudaMemcpyDeviceToHost, stream[i]));
+            
         // compute y and copy data to host 
         chyqmom9_yout<<<gridSize, blockSize, 0, stream[i]>>>(&moments_d[loc], &x2[loc], &yf[loc], &y_out_d[loc], size_per_batch, size);
+        
         gpuErrchk(cudaMemcpy2DAsync(&y[loc], size*sizeof(float), 
                                     &y_out_d[loc], size*sizeof(float),
                                     size_per_batch * sizeof(float), 9, 
                                     cudaMemcpyDeviceToHost, stream[i]));
     }
+
     cudaDeviceSynchronize();
     gpuErrchk(cudaEventRecord(stop));
     gpuErrchk(cudaEventSynchronize(stop));
-
+    
     gpuErrchk(cudaHostUnregister(moments));
     gpuErrchk(cudaHostUnregister(w));
     gpuErrchk(cudaHostUnregister(x));
@@ -319,6 +333,7 @@ float chyqmom9(float moments[], const int size, float w[], float x[], float y[],
     cudaFree(y_out_d);
     cudaFree(c_moments);
     cudaFree(mu);
+    cudaFree(m1);
     cudaFree(yf);
     cudaFree(x1);
     cudaFree(x2);

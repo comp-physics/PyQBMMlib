@@ -21,5 +21,7 @@ add_executable(run_chyqmom4 run_chyqmom4.cpp chyqmom4.cu hyqmom.cu)
 add_executable(compare_chyqmom4 compare_chyqmom4.cpp chyqmom4.cu qmom_openmp.cpp hyqmom.cu)
 add_executable(compare_chyqmom9 compare_chyqmom9.cpp chyqmom9.cu qmom_openmp.cpp hyqmom.cu)
 
+add_executable(compare_batchsize compare_batchsize.cpp chyqmom9.cu qmom_openmp.cpp hyqmom.cu)
+
 add_executable(run_chyqmom4_1kernel run_chyqmom4_1kernel.cpp chyqmom4_single_kernel)
 add_executable(compare_1kernel compare_1kernel.cpp chyqmom4.cu chyqmom4_single_kernel.cu hyqmom.cu)

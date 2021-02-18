@@ -12,8 +12,10 @@ HYQMOM = SourceModule('''
             // copy moments to local registers
             float mom[5];
             mom[0] = moments[idx];
+            // printf("[tIdx %d] hyqmom3 mom[0] = %f\\n", idx, mom[0]);
             for (int n = 1; n < 5; n++) {
                 mom[n] = moments[n * stride + idx] / mom[0];
+                // printf("[tIdx %d] hyqmom3 mom[%d] = %f\\n", idx, n, mom[n]);
             }
             // central moments
             float c_moments[3];
@@ -79,29 +81,8 @@ HYQMOM = SourceModule('''
 
 
 class Hyqmom: 
-
     def __init__(self, block_size: int, grid_size: int) -> None:
         self.hyqmom2 = HYQMOM.get_function('hyqmom2')
         self.hyqmom3 = HYQMOM.get_function('hyqmom3')
 
-        self.grid_size = (grid_size, 1, 1)
-        self.block_size = (block_size, 1, 1)
-    
-    def hyqmom2(moments: np.ndarray, 
-                x: np.ndarray, 
-                w: np.ndarray, 
-                size: int,
-                stride: int):
-        self.hyqmom2(moments, w, x, size, stride,
-                     block=self.block_size,
-                     grid=self.grid_size)
-    
-    def hyqmom3(moments: np.ndarray, 
-                x: np.ndarray, 
-                w: np.ndarray, 
-                size: int,
-                stride: int):
-        self.hyqmom3(moments, w, x, size, stride,
-                     block=self.block_size,
-                     grid=self.grid_size)
     
