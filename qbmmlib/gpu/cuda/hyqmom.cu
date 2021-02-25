@@ -15,9 +15,9 @@ __global__ void hyqmom3(float moments[], float x[], float w[], const int size, c
         }
         // central moments
         float c_moments[3];
-        c_moments[0] = mom[2] - mom[1]* mom[1];
+        c_moments[0] = mom[2] - powf(mom[1], 2);
         c_moments[1] = mom[3] - 3*mom[1]*mom[2] + 2*powf(mom[1], 3);
-        c_moments[2] = mom[4] - 4*mom[1]*mom[2] + 6*mom[1]*mom[1]*mom[2] -
+        c_moments[2] = mom[4] - 4*mom[1]*mom[2] + 6*powf(mom[1], 2)*mom[2] -
                         3*powf(mom[1], 4);
         // printf("[tIdx %d] hyqmom3 c[0] = %f\n", idx, c_moments[0]);
         // printf("[tIdx %d] hyqmom3 c[1] = %f\n", idx, c_moments[1]);

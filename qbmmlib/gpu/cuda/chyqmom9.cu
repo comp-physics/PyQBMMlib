@@ -237,7 +237,7 @@ float chyqmom9(float moments[], const int size, float w[], float x[], float y[],
 
     // Calculate optimal block and grid sizes
     int gridSize, blockSize;
-    blockSize = 256;
+    blockSize = 1024;
     gridSize = (size + blockSize - 1) / blockSize; 
     // setup timer 
     cudaEvent_t start, stop;

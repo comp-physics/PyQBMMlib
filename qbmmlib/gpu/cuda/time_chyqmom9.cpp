@@ -57,9 +57,9 @@ int main(int argc, char **argv) {
         init_input_10(input_moments, num_moments);
 
         // output results in row major format
-        float cuda_time1 = chyqmom9(input_moments, num_moments, w_out_cuda, x_out_cuda, y_out_cuda, 1);
-        float cuda_time2 = chyqmom9(input_moments, num_moments, w_out_cuda, x_out_cuda, y_out_cuda, 1);
-        float cuda_time3 = chyqmom9(input_moments, num_moments, w_out_cuda, x_out_cuda, y_out_cuda, 1);
+        float cuda_time1 = chyqmom9(input_moments, num_moments, w_out_cuda, x_out_cuda, y_out_cuda, 8);
+        float cuda_time2 = chyqmom9(input_moments, num_moments, w_out_cuda, x_out_cuda, y_out_cuda, 8);
+        float cuda_time3 = chyqmom9(input_moments, num_moments, w_out_cuda, x_out_cuda, y_out_cuda, 8);
 
         sprintf(line, "%d, %f, %f, %f\n", num_moments, cuda_time1, cuda_time2, cuda_time3);
         result_file << line;
