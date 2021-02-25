@@ -7,7 +7,10 @@ set(CMAKE_CXX_STANDARD 11)
 # CUDA dependencies
 set(CUDA_CUDART_LIBRARY "/usr/local/cuda/lib64/libcudart.so")
 
-set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} \
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -gencode arch=compute_37,code=sm_37 \
+                        -gencode arch=compute_60,code=sm_60 \
+                        -gencode arch=compute_61,code=sm_61 \
+                        -gencode arch=compute_75,code=sm_75 \
                         -lineinfo -maxrregcount 28")
 find_package(CUDA REQUIRED)
 include_directories("${CUDA_INCLUDE_DIRS}")
