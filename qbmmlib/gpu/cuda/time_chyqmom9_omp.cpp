@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
     char line[100];
     memset(line, 0, sizeof(char) * 100);
     result_file.open(filename);
-    result_file << "Input Size, OMP (s)\n";
+    result_file << "Input Size, OMP1 (ms), OMP2 (ms), OMP3 (ms), OMP4 (ms), OMP5 (ms)\n";
     
     for (float x_moments = 1; x_moments < N_max; x_moments*= stride) {
 
@@ -57,9 +57,13 @@ int main(int argc, char **argv) {
         init_input_10(input_moments, num_moments);
 
         // output results in column major format
-        float omp_time = chyqmom9_omp(input_moments, num_moments, omp_n_threads, x_out_omp, y_out_omp, w_out_omp);
+        float omp_time1 = chyqmom9_omp(input_moments, num_moments, omp_n_threads, x_out_omp, y_out_omp, w_out_omp);
+        float omp_time2 = chyqmom9_omp(input_moments, num_moments, omp_n_threads, x_out_omp, y_out_omp, w_out_omp);
+        float omp_time3 = chyqmom9_omp(input_moments, num_moments, omp_n_threads, x_out_omp, y_out_omp, w_out_omp);
+        float omp_time4 = chyqmom9_omp(input_moments, num_moments, omp_n_threads, x_out_omp, y_out_omp, w_out_omp);
+        float omp_time5 = chyqmom9_omp(input_moments, num_moments, omp_n_threads, x_out_omp, y_out_omp, w_out_omp);
 
-        sprintf(line, "%d,%f\n", num_moments, omp_time);
+        sprintf(line, "%d, %f, %f, %f, %f, %f\n", num_moments, omp_time1, omp_time2, omp_time3, omp_time4, omp_time5);
         result_file << line;
         memset(line, 0, sizeof(char) * 100);
         

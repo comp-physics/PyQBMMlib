@@ -91,41 +91,40 @@ def plot_compared_result(data1, data2):
 
 if __name__ == "__main__":
 
-    # data1 = np.genfromtxt(file_name_local, delimiter=',')
-    # data2 = np.genfromtxt(file_name_remote, delimiter=',')
-    # plot_result(data1)
-    # plot_compared_result(data1, data1)
+    data1 = np.genfromtxt('build/chyqmom9_total_local.csv', delimiter=',')
+    data2 = np.genfromtxt('build/chyqmom9_omp_local.csv', delimiter=',')
 
+    # start plotting
+    # Top: time result. Bot: omp_time / cuda_time
+    fig, ax = plt.subplots(2, 1, gridspec_kw={'height_ratios': [3, 1]})
+    N = len(data1[1:, 2])
+    fit_lb = int(np.ceil(5*N/7))
 
-    # data_11 = np.genfromtxt('build/chyqmom9_cmp_local_1.csv', delimiter=',')
-    # data_12 = np.genfromtxt('build/chyqmom9_cmp_local_2.csv', delimiter=',')
-    # data_13 = np.genfromtxt('build/chyqmom9_cmp_local_3.csv', delimiter=',')
+    x1 =  data1[:, 0]
+    y1 = np.minimum(data1[:, 1], data1[:, 2], data1[:, 3])
+    x2 = data2[:, 0]
+    y2 = np.minimum(data2[:, 1], data2[:, 2], np.minimum(data2[:, 3], data2[:, 4], data2[:, 5]))
 
-    # data_21 = np.genfromtxt('build/chyqmom9_cmp_local_exe_1.csv', delimiter=',')
-    # data_22 = np.genfromtxt('build/chyqmom9_cmp_local_exe_2.csv', delimiter=',')
-    # data_23 = np.genfromtxt('build/chyqmom9_cmp_local_exe_3.csv', delimiter=',')
+    # time data
+    ax[0].plot(x1, y1, label='c++ 10 core', color='b')
+    ax[0].plot(x2, y2, label='cuda total time', color='r')
+    # fitted lined
+    m_1, b_1 = np.polyfit(np.log(x1[fit_lb:]), np.log(y1[fit_lb:]), 1)
+    m_2, b_2 = np.polyfit(np.log(x2[fit_lb:]), np.log(y2[fit_lb:]), 1)
+    ax[0].plot(x1, np.exp(m_1*np.log(x1) + b_1), color='b', linestyle='dotted')
+    ax[0].plot(x2, np.exp(m_2*np.log(x2) + b_2), color='r', linestyle='dotted')
 
-    # # data_1_avg = np.minimum(data_11, np.minimum(data_12, data_13))
-    # data_1_avg = np.minimum(data_11, data_12, data_13)
-    # data_2_avg = np.minimum(data_21, data_22, data_23)
-    # plot_compared_result(data_1_avg, data_2_avg)
+    ax[1].plot(x1, y2/y1)
 
+    ax[0].grid(True)
+    ax[0].set_xscale('log')
+    ax[0].set_yscale('log')
+    ax[0].legend()
+    
+    ax[0].set_ylabel('Compute time (ms)')
+    ax[1].grid(True)
+    ax[1].set_xscale('log')
+    ax[1].set_ylabel('omp/cuda')
+    ax[1].set_xlabel('Input size')
 
-    data_1 = np.genfromtxt('build/batch_10000000.csv', delimiter=',')
-    data_2 = np.genfromtxt('build/batch_8000000.csv', delimiter=',')
-    data_3 = np.genfromtxt('build/batch_6000000.csv', delimiter=',')
-    data_4 = np.genfromtxt('build/batch_4000000.csv', delimiter=',')
-
-
-    plt.plot(data_1[:, 0], data_1[:, 1]/10000000, label='size 10000000')
-    plt.plot(data_2[:, 0], data_2[:, 1]/8000000, label='size 8000000')
-    plt.plot(data_3[:, 0], data_3[:, 1]/6000000, label='size 6000000')
-    plt.plot(data_4[:, 0], data_4[:, 1]/4000000, label='size 4000000')
-
-    plt.hlines(176.736252 / 10000000, 0, 50)
-    plt.xlim([0, 50])
-    plt.grid(True)
-    plt.xlabel('batch size')
-    plt.ylabel('Computation Time per Input')
-    plt.legend()
     plt.show()

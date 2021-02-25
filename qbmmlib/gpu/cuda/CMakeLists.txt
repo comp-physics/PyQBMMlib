@@ -20,6 +20,7 @@ add_executable(run_chyqmom4 run_chyqmom4.cpp chyqmom4.cu hyqmom.cu)
 
 add_executable(time_chyqmom4 time_chyqmom4.cpp chyqmom4.cu qmom_openmp.cpp hyqmom.cu)
 add_executable(time_chyqmom9 time_chyqmom9.cpp chyqmom9.cu qmom_openmp.cpp hyqmom.cu)
+add_executable(time_chyqmom4_omp time_chyqmom4_omp.cpp chyqmom4.cu qmom_openmp.cpp hyqmom.cu)
 add_executable(time_chyqmom9_omp time_chyqmom9_omp.cpp chyqmom9.cu qmom_openmp.cpp hyqmom.cu)
 
 add_executable(time_batchsize time_batchsize.cpp chyqmom9.cu qmom_openmp.cpp hyqmom.cu)

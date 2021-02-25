@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
     char line[100];
     memset(line, 0, sizeof(char) * 100);
     result_file.open(filename);
-    result_file << "Input Size, cuda (s)\n";
+    result_file << "Input Size, cuda1 (ms), cuda2 (ms), cuda3 (ms)\n";
     
     for (float x_moments = 1; x_moments < N_max; x_moments*= stride) {
 
@@ -57,9 +57,11 @@ int main(int argc, char **argv) {
         init_input_10(input_moments, num_moments);
 
         // output results in row major format
-        float cuda_time = chyqmom9(input_moments, num_moments, w_out_cuda, x_out_cuda, y_out_cuda, 1);
+        float cuda_time1 = chyqmom9(input_moments, num_moments, w_out_cuda, x_out_cuda, y_out_cuda, 1);
+        float cuda_time2 = chyqmom9(input_moments, num_moments, w_out_cuda, x_out_cuda, y_out_cuda, 1);
+        float cuda_time3 = chyqmom9(input_moments, num_moments, w_out_cuda, x_out_cuda, y_out_cuda, 1);
 
-        sprintf(line, "%d,%f\n", num_moments, cuda_time);
+        sprintf(line, "%d, %f, %f, %f\n", num_moments, cuda_time1, cuda_time2, cuda_time3);
         result_file << line;
         memset(line, 0, sizeof(char) * 100);
         

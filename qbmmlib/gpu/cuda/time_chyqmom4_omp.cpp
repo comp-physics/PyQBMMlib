@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
     char line[100];
     memset(line, 0, sizeof(char) * 100);
     result_file.open(filename);
-    result_file << "Input Size, cuda_1 (ms), cuda_2 (ms), cuda_3 (ms)\n";
+    result_file << "Input Size, omp1 (ms), omp2 (ms), omp3 (ms)\n";
     
     for (float x_moments = 1; x_moments < N_max; x_moments*= stride) {
 
@@ -49,24 +49,24 @@ int main(int argc, char **argv) {
         printf("Running %d inputs \n", num_moments);
         //input 
         float *input_moments = new float[6*num_moments];
-        float *x_out_cuda = new float[4*num_moments];
-        float *y_out_cuda = new float[4*num_moments];
-        float *w_out_cuda = new float[4*num_moments];
+        float *x_out_omp = new float[4*num_moments];
+        float *y_out_omp = new float[4*num_moments];
+        float *w_out_omp = new float[4*num_moments];
         init_input_6(input_moments, num_moments);
 
-        // output results in row major format
-        float cuda_time1 = chyqmom4(input_moments, num_moments, w_out_cuda, x_out_cuda, y_out_cuda, 1);
-        float cuda_time2 = chyqmom4(input_moments, num_moments, w_out_cuda, x_out_cuda, y_out_cuda, 1);
-        float cuda_time3 = chyqmom4(input_moments, num_moments, w_out_cuda, x_out_cuda, y_out_cuda, 1);
+        // output results in column major format
+        float omp_time1 = chyqmom4_omp(input_moments, num_moments, omp_n_threads, x_out_omp, y_out_omp, w_out_omp);
+        float omp_time2 = chyqmom4_omp(input_moments, num_moments, omp_n_threads, x_out_omp, y_out_omp, w_out_omp);
+        float omp_time3 = chyqmom4_omp(input_moments, num_moments, omp_n_threads, x_out_omp, y_out_omp, w_out_omp);
 
-        sprintf(line, "%d, %f, %f, %f\n", num_moments, cuda_time1, cuda_time2, cuda_time3);
+        sprintf(line, "%d, %f, %f, %f\n", num_moments, omp_time1, omp_time2, omp_time3);
         result_file << line;
         memset(line, 0, sizeof(char) * 100);
         
         delete[] input_moments;
-        delete[] x_out_cuda;
-        delete[] y_out_cuda;
-        delete[] w_out_cuda;
+        delete[] x_out_omp;
+        delete[] y_out_omp;
+        delete[] w_out_omp;
     }
     result_file.close();
     return 0;
