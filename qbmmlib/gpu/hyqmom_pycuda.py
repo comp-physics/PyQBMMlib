@@ -6,7 +6,7 @@ import numpy as np
 import time
 
 HYQMOM = SourceModule('''
-    __global__ void hyqmom3(float moments[], float x[], float w[], const int size, const int stride){
+    __global__ void hyqmom3(float moments[], float x[], float w[], const int size){
         const int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
         for (int idx = tIdx; idx < size; idx += blockDim.x*gridDim.x) {
             // copy moments to local registers
@@ -14,7 +14,7 @@ HYQMOM = SourceModule('''
             mom[0] = moments[idx];
             // printf("[tIdx %d] hyqmom3 mom[0] = %f\\n", idx, mom[0]);
             for (int n = 1; n < 5; n++) {
-                mom[n] = moments[n * stride + idx] / mom[0];
+                mom[n] = moments[n * size + idx] / mom[0];
                 // printf("[tIdx %d] hyqmom3 mom[%d] = %f\\n", idx, n, mom[n]);
             }
             // central moments
@@ -51,29 +51,29 @@ HYQMOM = SourceModule('''
 
             // x 
             x[idx] = mom[1] + xps[0] * scale / sqrt(scales);
-            x[stride + idx] = mom[1] + xps[1] * scale / sqrt(scales);
-            x[2*stride + idx] = mom[1] + xps[2] * scale / sqrt(scales);
+            x[size + idx] = mom[1] + xps[1] * scale / sqrt(scales);
+            x[2*size + idx] = mom[1] + xps[2] * scale / sqrt(scales);
             //w 
             w[idx] = mom[0] * rho[0];
-            w[stride + idx] = mom[0] * rho[1];
-            w[2*stride + idx] = mom[0] * rho[2];
+            w[size + idx] = mom[0] * rho[1];
+            w[2*size + idx] = mom[0] * rho[2];
         }
     }
 
-    __global__ void hyqmom2(float moments[], float x[], float w[], const int size, const int stride) {
+    __global__ void hyqmom2(float moments[], float x[], float w[], const int size) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         float moments_local[3];
         while (idx < size) {
             for (int i = 0; i < 3; i++) {
-                moments_local[i] = moments[i * stride + idx];
+                moments_local[i] = moments[i * size + idx];
             }
             float C2 = ((moments_local[0] * moments_local[2]) - (moments_local[1] * moments_local[1])) 
                 / (moments_local[0] * moments_local[0]);
             for (int i=0; i<2; i++) {
-                w[i*stride+idx] = moments_local[0]/2;
+                w[i*size+idx] = moments_local[0]/2;
             }
             x[idx] = (moments_local[1]/moments_local[0]) - sqrt(C2);
-            x[stride + idx] = (moments_local[1]/moments_local[0]) + sqrt(C2);
+            x[size + idx] = (moments_local[1]/moments_local[0]) + sqrt(C2);
             idx+= blockDim.x*gridDim.x;
         }
     }

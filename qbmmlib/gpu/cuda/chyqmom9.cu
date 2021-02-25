@@ -35,7 +35,7 @@ static __global__ void chyqmom9_cmoments(
     const int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
     for (int idx = tIdx; idx < size; idx+=blockDim.x*gridDim.x) {
         // copy moments to local registers
-        float mom[10], cmom[7];
+        float mom[10];
         mom[0] = moments[idx];
         // printf("[tIdx %d] mom[0] = %f\n", idx, mom[0]);
         // normalize mom by mom[0];
@@ -45,31 +45,31 @@ static __global__ void chyqmom9_cmoments(
             // printf("[tIdx %d] mom[%d] = %f\n", idx, n, mom[n]);
         }
         //compute central moments
-        cmom[0] = mom[3] - mom[1] * mom[1];
-        cmom[1] = mom[4] - mom[1] * mom[2];
-        cmom[2] = mom[5] - mom[2] * mom[2];
-        cmom[3] = mom[6] - 3*mom[1]*mom[3] + 2*mom[1]*mom[1]*mom[1];
-        cmom[4] = mom[7] - 3*mom[2]*mom[5] + 2*mom[2]*mom[2]*mom[2];
-        cmom[5] = mom[8] - 4*mom[1]*mom[6] + 6*mom[1]*mom[1]*mom[3] -
+        c_moments[idx] = mom[3] - mom[1] * mom[1];
+        c_moments[1*stride + idx] = mom[4] - mom[1] * mom[2];
+        c_moments[2*stride + idx] = mom[5] - mom[2] * mom[2];
+        c_moments[3*stride + idx] = mom[6] - 3*mom[1]*mom[3] + 2*mom[1]*mom[1]*mom[1];
+        c_moments[4*stride + idx] = mom[7] - 3*mom[2]*mom[5] + 2*mom[2]*mom[2]*mom[2];
+        c_moments[5*stride + idx] = mom[8] - 4*mom[1]*mom[6] + 6*mom[1]*mom[1]*mom[3] -
         3*mom[1]*mom[1]*mom[1]*mom[1];
-        cmom[6] = mom[9] - 4*mom[2]*mom[7] + 6*mom[2]*mom[2]*mom[5] -
+        c_moments[6*stride + idx] = mom[9] - 4*mom[2]*mom[7] + 6*mom[2]*mom[2]*mom[5] -
         3*mom[2]*mom[2]*mom[2]*mom[2];
 
-        c_moments[idx] = cmom[0];
-        c_moments[1*stride + idx] =cmom[1];
-        c_moments[2*stride + idx] =cmom[2];
-        c_moments[3*stride + idx] =cmom[3];
-        c_moments[4*stride + idx] =cmom[4];
-        c_moments[5*stride + idx] =cmom[5];
-        c_moments[6*stride + idx] =cmom[6];
+        // c_moments[idx] = cmom[0];
+        // c_moments[1*stride + idx] =cmom[1];
+        // c_moments[2*stride + idx] =cmom[2];
+        // c_moments[3*stride + idx] =cmom[3];
+        // c_moments[4*stride + idx] =cmom[4];
+        // c_moments[5*stride + idx] =cmom[5];
+        // c_moments[6*stride + idx] =cmom[6];
 
-        printf("[%d] c_moment[%d] = %f \n", idx, idx, c_moments[idx]);
-        printf("[%d] c_moment[%d] = %f \n", idx, 1*stride + idx, c_moments[1*stride + idx]);
-        printf("[%d] c_moment[%d] = %f \n", idx, 2*stride + idx, c_moments[2*stride + idx]);
-        printf("[%d] c_moment[%d] = %f \n", idx, 3*stride + idx, c_moments[3*stride + idx]);
-        printf("[%d] c_moment[%d] = %f \n", idx, 4*stride + idx, c_moments[4*stride + idx]);
-        printf("[%d] c_moment[%d] = %f \n", idx, 5*stride + idx, c_moments[5*stride + idx]);
-        printf("[%d] c_moment[%d] = %f \n", idx, 6*stride + idx, c_moments[6*stride + idx]);
+        // printf("[%d] c_moment[%d] = %f \n", idx, idx, c_moments[idx]);
+        // printf("[%d] c_moment[%d] = %f \n", idx, 1*stride + idx, c_moments[1*stride + idx]);
+        // printf("[%d] c_moment[%d] = %f \n", idx, 2*stride + idx, c_moments[2*stride + idx]);
+        // printf("[%d] c_moment[%d] = %f \n", idx, 3*stride + idx, c_moments[3*stride + idx]);
+        // printf("[%d] c_moment[%d] = %f \n", idx, 4*stride + idx, c_moments[4*stride + idx]);
+        // printf("[%d] c_moment[%d] = %f \n", idx, 5*stride + idx, c_moments[5*stride + idx]);
+        // printf("[%d] c_moment[%d] = %f \n", idx, 6*stride + idx, c_moments[6*stride + idx]);
     }
 }
 
@@ -225,10 +225,10 @@ float chyqmom9(float moments[], const int size, float w[], float x[], float y[],
     gpuErrchk(cudaMalloc(&w2, sizeof(float)*size*3));
 
     // Registers host memory as page-locked (required for asynch cudaMemcpyAsync)
-    gpuErrchk(cudaHostRegister(moments, size*10*sizeof(float), cudaHostRegisterPortable));
-    gpuErrchk(cudaHostRegister(w, size*9*sizeof(float), cudaHostRegisterPortable));
-    gpuErrchk(cudaHostRegister(x, size*9*sizeof(float), cudaHostRegisterPortable));
-    gpuErrchk(cudaHostRegister(y, size*9*sizeof(float), cudaHostRegisterPortable));
+    gpuErrchk(cudaHostRegister(moments, size*10*sizeof(float), cudaHostRegisterMapped));
+    gpuErrchk(cudaHostRegister(w, size*9*sizeof(float), cudaHostRegisterMapped));
+    gpuErrchk(cudaHostRegister(x, size*9*sizeof(float), cudaHostRegisterMapped));
+    gpuErrchk(cudaHostRegister(y, size*9*sizeof(float), cudaHostRegisterMapped));
 
     // Set up streams
     // Allocate 1 concurrent streams to each batch
@@ -283,8 +283,6 @@ float chyqmom9(float moments[], const int size, float w[], float x[], float y[],
         // Compute mu and yf
         chyqmom9_mu_yf<<<gridSize, blockSize, 0, stream[i]>>>(&c_moments[loc], &x1[loc], &w1[loc], &yf[loc], &mu[loc], size_per_batch, size);
         // Set up second hyqmom3
-        float_value_set<<<gridSize, blockSize, 0, stream[i]>>>(&m1[loc], 1, size_per_batch);
-        float_value_set<<<gridSize, blockSize, 0, stream[i]>>>(&m1[size + loc], 0, size_per_batch);
         gpuErrchk(cudaMemcpy2DAsync(&m1[2*size + loc], size*sizeof(float), 
                                     &mu[loc], size*sizeof(float),
                                     size_per_batch * sizeof(float), 3, 
@@ -294,6 +292,14 @@ float chyqmom9(float moments[], const int size, float w[], float x[], float y[],
         // cudaStreamSynchronize(stream[i]);
         // cudaStreamSynchronize(stream[i]);
         // compute weight and copy data to host 
+    }
+    for (int i=0; i<num_streams; i++) {
+        // beginning location in memory 
+        int loc = (i) * size_per_batch;
+        if (loc + size_per_batch > size) {
+            size_per_batch = size - loc;
+        }
+        cudaStreamSynchronize(stream[i]);
         chyqmom9_wout<<<gridSize, blockSize, 0, stream[i]>>>(&moments_d[loc], &w1[loc], &w2[loc], &w_out_d[loc], size_per_batch, size);
         gpuErrchk(cudaMemcpy2DAsync(&w[loc], size*sizeof(float), 
                                     &w_out_d[loc], size*sizeof(float),

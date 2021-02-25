@@ -8,27 +8,28 @@ __global__ void hyqmom3(float moments[], float x[], float w[], const int size, c
         float mom[5];
         mom[0] = moments[idx];
         for (int n = 1; n < 5; n++) {
-            mom[n] = moments[n * stride + idx] / mom[0];
-            printf("[tIdx %d] hyqmom3 mom[%d] = %f\n", idx, n, mom[n]);
+            // single-precision divide
+            mom[n] = fdividef(moments[n * stride + idx], mom[0]);
+            // printf("[tIdx %d] hyqmom3 mom[%d] = %f\n", idx, n, mom[n]);
 
         }
         // central moments
         float c_moments[3];
-        c_moments[0] = mom[2] - mom[1]*mom[1];
-        c_moments[1] = mom[3] - 3*mom[1]*mom[2] + 2*mom[1]*mom[1]*mom[1];
+        c_moments[0] = mom[2] - mom[1]* mom[1];
+        c_moments[1] = mom[3] - 3*mom[1]*mom[2] + 2*powf(mom[1], 3);
         c_moments[2] = mom[4] - 4*mom[1]*mom[2] + 6*mom[1]*mom[1]*mom[2] -
-                        3*mom[1]*mom[1]*mom[1]*mom[1];
+                        3*powf(mom[1], 4);
         // printf("[tIdx %d] hyqmom3 c[0] = %f\n", idx, c_moments[0]);
         // printf("[tIdx %d] hyqmom3 c[1] = %f\n", idx, c_moments[1]);
         // printf("[tIdx %d] hyqmom3 c[2] = %f\n", idx, c_moments[2]);
         
-        float scale = sqrt(c_moments[0]);
-        float q = c_moments[1]/scale/c_moments[0];
+        float scale = sqrtf(c_moments[0]);
+        float q = c_moments[1]/c_moments[0]/ scale;
         float eta = c_moments[2]/c_moments[0]/c_moments[0];
         
         // xps
         float xps[3]; 
-        float sqrt_term = sqrt(4*eta - 3*q*q);
+        float sqrt_term = sqrtf(4*eta - 3*q*q);
         xps[0] = (q - sqrt_term)/2.0;
         xps[1] = 0;
         xps[2] = (q + sqrt_term)/2.0;
@@ -52,9 +53,9 @@ __global__ void hyqmom3(float moments[], float x[], float w[], const int size, c
         scales /= rho_sum;
 
         // x 
-        x[idx] = mom[1] + xps[0] * scale / sqrt(scales);
-        x[stride + idx] = mom[1] + xps[1] * scale / sqrt(scales);
-        x[2*stride + idx] = mom[1] + xps[2] * scale / sqrt(scales);
+        x[idx] = mom[1] + xps[0] * scale * rsqrtf(scales);
+        x[stride + idx] = mom[1] + xps[1] * scale * rsqrtf(scales);
+        x[2*stride + idx] = mom[1] + xps[2] * scale * rsqrtf(scales);
         //w 
         w[idx] = mom[0] * rho[0];
         w[stride + idx] = mom[0] * rho[1];

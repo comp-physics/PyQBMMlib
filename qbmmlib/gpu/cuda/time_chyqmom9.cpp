@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
     char line[100];
     memset(line, 0, sizeof(char) * 100);
     result_file.open(filename);
-    result_file << "Input Size, omp (s), cuda (s)\n";
+    result_file << "Input Size, cuda (s)\n";
     
     for (float x_moments = 1; x_moments < N_max; x_moments*= stride) {
 
@@ -52,44 +52,20 @@ int main(int argc, char **argv) {
         //input 
         float *input_moments = new float[10*num_moments];
         float *x_out_cuda = new float[9*num_moments];
-        float *x_out_omp = new float[9*num_moments];
         float *y_out_cuda = new float[9*num_moments];
-        float *y_out_omp = new float[9*num_moments];
         float *w_out_cuda = new float[9*num_moments];
-        float *w_out_omp = new float[9*num_moments];
         init_input_10(input_moments, num_moments);
 
-        // output results in column major format
-        float omp_time = chyqmom9_omp(input_moments, num_moments, omp_n_threads, x_out_omp, y_out_omp, w_out_omp);
         // output results in row major format
         float cuda_time = chyqmom9(input_moments, num_moments, w_out_cuda, x_out_cuda, y_out_cuda, 1);
 
-        // verify resultscompare
-        #pragma omp parallel for
-        for (int row = 0; row < 9; row++) {
-            for (int col = 0; col < num_moments; col++) {
-                float err_w = abs(w_out_omp[col * 9 + row] - w_out_cuda[row * num_moments + col]);
-                float err_x = abs(x_out_omp[col * 9 + row] - x_out_cuda[row * num_moments + col]);
-                float err_y = abs(y_out_omp[col * 9 + row] - y_out_cuda[row * num_moments + col]);
-                if (err_w > 1e-3) {
-                    // continue;
-                    int i = row * num_moments + col;
-                    printf("Error at: cuda[%d].x: %f ",i, w_out_cuda[i]);
-                    printf("omp[%d].x: %f ",i, w_out_omp[i]);
-                    printf("Err: %f \n", err_w);
-                }
-            }
-        }
         sprintf(line, "%d,%f,%f\n", num_moments, omp_time, cuda_time);
         result_file << line;
         memset(line, 0, sizeof(char) * 100);
         
         delete[] input_moments;
         delete[] x_out_cuda;
-        delete[] x_out_omp;
         delete[] y_out_cuda;
-        delete[] y_out_omp;
-        delete[] w_out_omp;
         delete[] w_out_cuda;
     }
     result_file.close();
