@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
     char line[100];
     memset(line, 0, sizeof(char) * 100);
     result_file.open(filename);
-    result_file << "Input Size, cuda (s)\n";
+    result_file << "Input Size, OMP (s)\n";
     
     for (float x_moments = 1; x_moments < N_max; x_moments*= stride) {
 
@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
         // output results in column major format
         float omp_time = chyqmom9_omp(input_moments, num_moments, omp_n_threads, x_out_omp, y_out_omp, w_out_omp);
 
-        sprintf(line, "%d,%f,%f\n", num_moments, omp_time, cuda_time);
+        sprintf(line, "%d,%f\n", num_moments, omp_time);
         result_file << line;
         memset(line, 0, sizeof(char) * 100);
         

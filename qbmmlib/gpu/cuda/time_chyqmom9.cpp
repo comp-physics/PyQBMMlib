@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
         // output results in row major format
         float cuda_time = chyqmom9(input_moments, num_moments, w_out_cuda, x_out_cuda, y_out_cuda, 1);
 
-        sprintf(line, "%d,%f,%f\n", num_moments, omp_time, cuda_time);
+        sprintf(line, "%d,%f\n", num_moments, cuda_time);
         result_file << line;
         memset(line, 0, sizeof(char) * 100);
         
