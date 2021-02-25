@@ -91,8 +91,8 @@ def plot_compared_result(data1, data2):
 
 if __name__ == "__main__":
 
-    data1 = np.genfromtxt('build/chyqmom9_total_local.csv', delimiter=',')
-    data2 = np.genfromtxt('build/chyqmom9_omp_local.csv', delimiter=',')
+    data1 = np.genfromtxt('build/chyqmom9_total_sassy.csv', delimiter=',')
+    data2 = np.genfromtxt('build/chyqmom9_omp_sassy.csv', delimiter=',')
 
     # start plotting
     # Top: time result. Bot: omp_time / cuda_time
@@ -106,7 +106,7 @@ if __name__ == "__main__":
     y2 = np.minimum(data2[:, 1], data2[:, 2], np.minimum(data2[:, 3], data2[:, 4], data2[:, 5]))
 
     # time data
-    ax[0].plot(x1, y1, label='c++ 10 core', color='b')
+    ax[0].plot(x1, y1, label='c++ 24 core', color='b')
     ax[0].plot(x2, y2, label='cuda total time', color='r')
     # fitted lined
     m_1, b_1 = np.polyfit(np.log(x1[fit_lb:]), np.log(y1[fit_lb:]), 1)

@@ -5,7 +5,6 @@
 #include <cmath>
 #include <cstdio>
 #include <cassert>
-#include <chrono>
 
 #include "hyqmom.hpp"
 
@@ -201,8 +200,6 @@ static __global__ void chyqmom9_yout(
 }
 
 float chyqmom9(float moments[], const int size, float w[], float x[], float y[], const int batch_size) {
-
-    using namespace std::chrono;
 
     float *moments_d, *w_out_d, *x_out_d, *y_out_d;
     float *c_moments, *mu, *yf;
