@@ -113,6 +113,7 @@ class simulation_domain():
         :type state: array like
         """    
         # Loop over interior points
+        # SHB: Can we vectorize over 'i' here? Allocate xi/wts first via np_zeros
         for i_point in range(1, self.num_points-1):
             # Invert
             xi, wts = self.qbmm_mgr.moment_invert(state[i_point], self.qbmm_mgr.indices)

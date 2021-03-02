@@ -29,7 +29,7 @@ def flow_example():
     """
     # In development
 
-    cfl = 0.9
+    cfl = 0.4
     dx = 1/400
     U_max = 1
     
@@ -53,8 +53,8 @@ def flow_example():
     config["advancer"]["method"] = "RK2"    
     config["advancer"]["time_step"] = cfl * dx / U_max
     config["advancer"]["cfl"] = cfl
-    config["advancer"]["final_time"] = 0.6
-    config["advancer"]["num_steps"] = 430
+    config["advancer"]["final_time"] = 30.
+    config["advancer"]["num_steps"] = 10000
     config["advancer"]["num_steps_print"] = 1 #1000
     config["advancer"]["num_steps_write"] = 10 #1000
     config["advancer"]["output_dir"] = "output/"
