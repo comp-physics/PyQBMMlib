@@ -188,44 +188,44 @@ class simulation_domain():
     
 
 
-    def compute_fluxes(self, state):
-        """
-        Compute moment fluxes
+    # def compute_fluxes(self, state):
+    #     """
+    #     Compute moment fluxes
 
-        :param state: domain moments
-        :type state: array like
-        """
-        for i_point in range(1, self.num_points-1):
+    #     :param state: domain moments
+    #     :type state: array like
+    #     """
+    #     for i_point in range(1, self.num_points-1):
 
-            # Compute left flux
-            wts_left = self.weights[i_point-1]
-            wts_right = self.weights[i_point]
-            xi_left = self.abscissas[i_point-1]
-            xi_right = self.abscissas[i_point]
-            # f_left = self.moment_fluxes(self.qbmm_mgr.indices, wts_left, wts_right,
-            #                             xi_left, xi_right)
-            f_left = flux_quadrature(wts_left, xi_left, wts_right, xi_right, 
-                                    self.qbmm_mgr.indices, 
-                                    self.qbmm_mgr.num_moments,
-                                    self.qbmm_mgr.num_nodes)
+    #         # Compute left flux
+    #         wts_left = self.weights[i_point-1]
+    #         wts_right = self.weights[i_point]
+    #         xi_left = self.abscissas[i_point-1]
+    #         xi_right = self.abscissas[i_point]
+    #         # f_left = self.moment_fluxes(self.qbmm_mgr.indices, wts_left, wts_right,
+    #         #                             xi_left, xi_right)
+    #         f_left = flux_quadrature(wts_left, xi_left, wts_right, xi_right, 
+    #                                 self.qbmm_mgr.indices, 
+    #                                 self.qbmm_mgr.num_moments,
+    #                                 self.qbmm_mgr.num_nodes)
             
-            # Compute right flux
-            wts_left = wts_right
-            xi_left = xi_right
-            wts_right = self.weights[i_point+1]
-            xi_right = self.abscissas[i_point+1]
-            # f_right = self.moment_fluxes(self.qbmm_mgr.indices, wts_left, wts_right,
-            #                              xi_left, xi_right)
-            f_right = flux_quadrature(wts_left, xi_left, wts_right, xi_right, 
-                                    self.qbmm_mgr.indices, 
-                                    self.qbmm_mgr.num_moments,
-                                    self.qbmm_mgr.num_nodes)
+    #         # Compute right flux
+    #         wts_left = wts_right
+    #         xi_left = xi_right
+    #         wts_right = self.weights[i_point+1]
+    #         xi_right = self.abscissas[i_point+1]
+    #         # f_right = self.moment_fluxes(self.qbmm_mgr.indices, wts_left, wts_right,
+    #         #                              xi_left, xi_right)
+    #         f_right = flux_quadrature(wts_left, xi_left, wts_right, xi_right, 
+    #                                 self.qbmm_mgr.indices, 
+    #                                 self.qbmm_mgr.num_moments,
+    #                                 self.qbmm_mgr.num_nodes)
 
-            # Reconstruct flux
-            self.flux[i_point] = f_left - f_right
+    #         # Reconstruct flux
+    #         self.flux[i_point] = f_left - f_right
             
             
-        return
+    #     return
 
     
     def compute_rhs(self, state):
@@ -236,7 +236,8 @@ class simulation_domain():
         :type state: array like
         """
         if self.flow:
-            self.compute_fluxes(state)
+            compute_fluxes(self.weights, self.abscissas, self.qbmm_mgr.indices,
+                           self.qbmm_mgr.num_moments, self.qbmm_mgr.num_nodes)
             self.rhs = self.flux / self.grid_spacing
         elif self.qbmm_mgr.internal_dynamics:
             internal_rhs = np.zeros([self.num_points, self.qbmm_mgr.num_moments])

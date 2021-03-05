@@ -66,3 +66,27 @@ def flux_quadrature(wts_left, xi_left, wts_right, xi_right, indices, num_moments
         
     return flux
         
+
+@jit(nopython=True)
+def compute_fluxes(weights, abscissas, indices, num_moments, num_nodes, flux):
+
+    for i_point in range(1, num_points-1):
+
+        # Compute left flux
+        wts_left = weights[i_point-1]
+        wts_right = weights[i_point]
+        xi_left = abscissas[i_point-1]
+        xi_right = abscissas[i_point]
+        f_left = flux_quadrature(wts_left, xi_left, wts_right, xi_right, 
+                                 indices, num_moments, num_nodes)
+        
+            # Compute right flux
+        wts_left = wts_right
+        xi_left = xi_right
+        wts_right = weights[i_point+1]
+        xi_right = abscissas[i_point+1]
+        f_right = flux_quadrature(wts_left, xi_left, wts_right, xi_right, 
+                                  indices, num_moments, num_nodes)
+        
+        # Reconstruct flux
+        self.flux[i_point] = f_left - f_right
