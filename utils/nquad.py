@@ -1,10 +1,28 @@
 import math
 import numpy as np
-from numba import jit
+from numba import njit
 from itertools import product
 
+@njit
+def projection(
+        weights, abscissas, indices,
+        num_coords, num_nodes):
+    moments = np.zeros(indices.shape[0])
+    ni = len(indices)
+    for i in range(ni):
+        if num_coords == 3:
+            moments[i] = quadrature_3d(
+                weights, abscissas, indices[i], num_nodes
+            )
+        if num_coords == 2:
+            moments[i] = quadrature_2d(
+                weights, abscissas, indices[i], num_nodes
+            )
+        # if num_coords == 1:
+        #     moments[i] = quadrature_1d(weights, abscissas, indices[i])
+    return moments
 
-@jit(nopython=True)
+@njit
 def quadrature_1d(weights, abscissas, moment_index):
     """
     This function computes quadrature in 1D
@@ -17,7 +35,7 @@ def quadrature_1d(weights, abscissas, moment_index):
     return q
 
 
-@jit(nopython=True)
+@njit
 def quadrature_2d(weights, abscissas, moment_index, num_quadrature_nodes):
     q = 0.0
     for i in range(num_quadrature_nodes):
@@ -28,7 +46,7 @@ def quadrature_2d(weights, abscissas, moment_index, num_quadrature_nodes):
         )
     return q
 
-@jit(nopython=True)
+@njit
 def quadrature_3d(weights, abscissas, moment_index, num_quadrature_nodes):
     q = 0.0
     for i in range(num_quadrature_nodes):
@@ -40,7 +58,7 @@ def quadrature_3d(weights, abscissas, moment_index, num_quadrature_nodes):
         )
     return q
 
-@jit(nopython=True)
+@njit
 def flux_quadrature(wts_left, xi_left, wts_right, xi_right, indices, num_moments, num_nodes):
     flux = np.zeros(num_moments)
     for m in range(num_moments):
