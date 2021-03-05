@@ -164,8 +164,10 @@ class qbmm_manager:
             #
             if self.method == "chyqmom":
                 #
-                self.moment_invert = conditional_hyperbolic
-                self.inversion_algorithm = conditional_hyperbolic
+                # self.moment_invert = conditional_hyperbolic
+                # self.inversion_algorithm = conditional_hyperbolic
+                self.moment_invert = chyqmom27
+                self.inversion_algorithm = chyqmom27
                 self.max_skewness = 30
                 if "max_skewness" in qbmm_config:
                     self.max_skewness = qbmm_config["max_skewness"]
@@ -400,47 +402,47 @@ class qbmm_manager:
         """
         return self.inversion_algorithm(moments, self.indices, self.inversion_option)
 
-    def projection(self, weights, abscrissas):
-        """
-        This function reconstructs moments (indices) from quadrature weights and abscissas
+    # def projection(self, weights, abscrissas):
+        # """
+        # This function reconstructs moments (indices) from quadrature weights and abscissas
 
-        :param weights: Quadrature weights
-        :param abscissas: Quadrature abscissas
-        :type weights: array like
-        :type abscissas: array like
-        :type weights: array like
-        :return: projected moments
-        :rtype: array like
-        """
-        return self.projection(weights, abscissas, self.indices)
+        # :param weights: Quadrature weights
+        # :param abscissas: Quadrature abscissas
+        # :type weights: array like
+        # :type abscissas: array like
+        # :type weights: array like
+        # :return: projected moments
+        # :rtype: array like
+        # """
+        # return self.projection(weights, abscissas, self.indices)
     
-    def projection(self, weights, abscissas, indices):
-        """
-        This function reconstructs moments (indices) from quadrature weights and abscissas
+    # def projection(self, weights, abscissas, indices):
+    #     """
+    #     This function reconstructs moments (indices) from quadrature weights and abscissas
 
-        :param weights: Quadrature weights
-        :param abscissas: Quadrature abscissas
-        :param indices: Full moment set indices
-        :type weights: array like
-        :type abscissas: array like
-        :type weights: array like
-        :return: projected moments
-        :rtype: array like
-        """
-        abscissas = np.array(abscissas)
-        moments = np.zeros(len(indices))
-        for i in range(len(indices)):
-            if self.num_coords == 3:
-                moments[i] = quadrature_3d(
-                    weights, abscissas, indices[i], self.num_nodes
-                )
-            if self.num_coords == 2:
-                moments[i] = quadrature_2d(
-                    weights, abscissas, indices[i], self.num_nodes
-                )
-            elif self.num_coords == 1:
-                moments[i] = quadrature_1d(weights, abscissas, indices[i])
-        return moments
+    #     :param weights: Quadrature weights
+    #     :param abscissas: Quadrature abscissas
+    #     :param indices: Full moment set indices
+    #     :type weights: array like
+    #     :type abscissas: array like
+    #     :type weights: array like
+    #     :return: projected moments
+    #     :rtype: array like
+    #     """
+    #     abscissas = np.array(abscissas)
+    #     moments = np.zeros(len(indices))
+    #     for i in range(len(indices)):
+    #         if self.num_coords == 3:
+    #             moments[i] = quadrature_3d(
+    #                 weights, abscissas, indices[i], self.num_nodes
+    #             )
+    #         if self.num_coords == 2:
+    #             moments[i] = quadrature_2d(
+    #                 weights, abscissas, indices[i], self.num_nodes
+    #             )
+    #         elif self.num_coords == 1:
+    #             moments[i] = quadrature_1d(weights, abscissas, indices[i])
+    #     return moments
 
     def compute_rhs(self, moments, rhs):
         """
@@ -502,11 +504,14 @@ class qbmm_manager:
             np_exponents = np.array(exponents)
             np_coefficients = np.array(coefficients)
             # Project back to moments
-            rhs_moments = self.projection(weights, abscissas, np_exponents)
+            rhs_moments = projection(weights, abscissas, np_exponents,
+                self.num_coords, self.num_nodes)
             # Compute RHS
             rhs[i_moment] = np.dot(np_coefficients, rhs_moments)
         #
-        projected_moments = self.projection(weights, abscissas, self.indices)
+        projected_moments = projection(weights, abscissas, self.indices,
+                self.num_coords, self.num_nodes)
+
         for i_moment in range(self.num_moments):
             moments[i_moment] = projected_moments[i_moment]
         #

@@ -1,7 +1,7 @@
 import numpy as np
 import math
 
-from numba import jit
+from numba import jit, njit
 
 @jit(nopython=True)
 def sign(q):
@@ -310,6 +310,8 @@ def hyqmom3(moments, max_skewness=30, checks=True):
     return x, w
 
 
+
+# @njit
 def conditional_hyperbolic(moments, indices, max_skewness=30, checks=True):
     """
     This function inverts moments into a two-node quadrature rule.
@@ -320,15 +322,14 @@ def conditional_hyperbolic(moments, indices, max_skewness=30, checks=True):
     :rtype: array like
     """
 
-    num_dim = len(indices)
+    # num_dim = len(indices)
 
-    if num_dim == 6:
-        return chyqmom4(moments, indices)
-    elif num_dim == 10:
-        return chyqmom9(moments, indices, max_skewness, checks)
-    elif num_dim == 16:
-        return chyqmom27(moments, indices, max_skewness, checks)
-
+    # if num_dim == 16:
+    return chyqmom27(moments, indices, max_skewness, checks)
+    # if num_dim == 10:
+    #     return chyqmom9(moments, indices, max_skewness, checks)
+    # if num_dim == 6:
+    #     return chyqmom4(moments, indices)
 
 # @jit(nopython=True)
 def chyqmom4(moments, indices, max_skewness=30):

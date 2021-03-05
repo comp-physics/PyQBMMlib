@@ -85,8 +85,10 @@ class simulation_domain():
         self.abscissas[:48] = xi_left
         self.abscissas[-48:] = xi_right 
         # Populate state
-        moments_left = self.qbmm_mgr.projection(wts_left, xi_left, self.qbmm_mgr.indices)
-        moments_right = self.qbmm_mgr.projection(wts_right, xi_right, self.qbmm_mgr.indices)
+        moments_left = projection(wts_left, xi_left, self.qbmm_mgr.indices,
+                self.qbmm_mgr.num_coords, self.qbmm_mgr.num_nodes)
+        moments_right = projection(wts_right, xi_right, self.qbmm_mgr.indices,
+                self.qbmm_mgr.num_coords, self.qbmm_mgr.num_nodes)
         state[:48] = moments_left
         state[-48:] = moments_right
         state[0] = moments_right
@@ -120,13 +122,16 @@ class simulation_domain():
             self.abscissas[i_point] = xi.T
             self.weights[i_point] = wts
             # Project
-            state[i_point] = self.qbmm_mgr.projection(wts, xi.T, self.qbmm_mgr.indices)
+            state[i_point] = projection(wts, xi.T, self.qbmm_mgr.indices,
+                self.qbmm_mgr.num_coords, self.qbmm_mgr.num_nodes)
 
         # Boundary conditions
-        state[0] = self.qbmm_mgr.projection(self.weights[-2], self.abscissas[-2],
-                                            self.qbmm_mgr.indices)
-        state[-1] = self.qbmm_mgr.projection(self.weights[1], self.abscissas[1],
-                                             self.qbmm_mgr.indices)
+        state[0] = projection(self.weights[-2], self.abscissas[-2],
+                                            self.qbmm_mgr.indices,
+                self.qbmm_mgr.num_coords, self.qbmm_mgr.num_nodes)
+        state[-1] = projection(self.weights[1], self.abscissas[1],
+                                             self.qbmm_mgr.indices,
+                self.qbmm_mgr.num_coords, self.qbmm_mgr.num_nodes)
         xi, wts = self.qbmm_mgr.moment_invert(state[0], self.qbmm_mgr.indices)
         self.abscissas[0] = xi.T
         self.weights[0] = wts
@@ -197,16 +202,24 @@ class simulation_domain():
             wts_right = self.weights[i_point]
             xi_left = self.abscissas[i_point-1]
             xi_right = self.abscissas[i_point]
-            f_left = self.moment_fluxes(self.qbmm_mgr.indices, wts_left, wts_right,
-                                        xi_left, xi_right)
+            # f_left = self.moment_fluxes(self.qbmm_mgr.indices, wts_left, wts_right,
+            #                             xi_left, xi_right)
+            f_left = flux_quadrature(wts_left, xi_left, wts_right, xi_right, 
+                                    self.qbmm_mgr.indices, 
+                                    self.qbmm_mgr.num_moments,
+                                    self.qbmm_mgr.num_nodes)
             
             # Compute right flux
             wts_left = wts_right
             xi_left = xi_right
             wts_right = self.weights[i_point+1]
             xi_right = self.abscissas[i_point+1]
-            f_right = self.moment_fluxes(self.qbmm_mgr.indices, wts_left, wts_right,
-                                         xi_left, xi_right)
+            # f_right = self.moment_fluxes(self.qbmm_mgr.indices, wts_left, wts_right,
+            #                              xi_left, xi_right)
+            f_right = flux_quadrature(wts_left, xi_left, wts_right, xi_right, 
+                                    self.qbmm_mgr.indices, 
+                                    self.qbmm_mgr.num_moments,
+                                    self.qbmm_mgr.num_nodes)
 
             # Reconstruct flux
             self.flux[i_point] = f_left - f_right
