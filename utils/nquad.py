@@ -1,7 +1,9 @@
 import math
 import numpy as np
+from inversion import *
 from numba import njit
 from itertools import product
+
 
 @njit
 def projection(
@@ -21,6 +23,7 @@ def projection(
         # if num_coords == 1:
         #     moments[i] = quadrature_1d(weights, abscissas, indices[i])
     return moments
+
 
 @njit
 def quadrature_1d(weights, abscissas, moment_index):
@@ -46,6 +49,7 @@ def quadrature_2d(weights, abscissas, moment_index, num_quadrature_nodes):
         )
     return q
 
+
 @njit
 def quadrature_3d(weights, abscissas, moment_index, num_quadrature_nodes):
     q = 0.0
@@ -57,6 +61,7 @@ def quadrature_3d(weights, abscissas, moment_index, num_quadrature_nodes):
             * abscissas[2, i] ** moment_index[2]
         )
     return q
+
 
 @njit
 def flux_quadrature(wts_left, xi_left, wts_right, xi_right, indices, num_moments, num_nodes):
@@ -85,8 +90,8 @@ def flux_quadrature(wts_left, xi_left, wts_right, xi_right, indices, num_moments
     return flux
         
 
-@jit(nopython=True)
-def compute_fluxes(weights, abscissas, indices, num_moments, num_nodes, flux):
+@njit
+def compute_fluxes(weights, abscissas, indices, num_points, num_moments, num_nodes, flux):
 
     for i_point in range(1, num_points-1):
 
@@ -107,4 +112,26 @@ def compute_fluxes(weights, abscissas, indices, num_moments, num_nodes, flux):
                                   indices, num_moments, num_nodes)
         
         # Reconstruct flux
-        self.flux[i_point] = f_left - f_right
+        flux[i_point] = f_left - f_right
+
+@njit
+def update_quadrature(state, indices, weights, abscissas, num_points, num_coords, num_nodes):
+
+    for i_point in range(1, num_points-1):
+        # Invert
+        xi, wts = chyqmom27(state[i_point], indices)
+        abscissas[i_point] = xi.T
+        weights[i_point] = wts
+        # Project
+        state[i_point] = projection(wts, xi.T, indices, num_coords, num_nodes)
+
+    # Boundary conditions
+    state[0] = projection(weights[-2], abscissas[-2], indices, num_coords, num_nodes)
+    state[-1] = projection(weights[1], abscissas[1], indices, num_coords, num_nodes)
+    xi, wts = chyqmom27(state[0], indices)
+    abscissas[0] = xi.T
+    weights[0] = wts
+    xi, wts = chyqmom27(state[-1], indices)
+    abscissas[-1] = xi.T
+    weights[-1] = wts
+    return

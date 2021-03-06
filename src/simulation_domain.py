@@ -6,12 +6,15 @@ from stats_util import *
 from jets_util import *
 from itertools import product
 
-try:
-    import numba
-    from nquad import *
-except:
-    print("Did not find numba! Install it for significant speedups.")
-    from quad import *
+import numba
+from nquad import *
+
+# try:
+#     import numba
+#     from nquad import *
+# except:
+#     print("simulation_domain: Did not find numba! Install it for significant speedups.")
+#     from quad import *
 
 class simulation_domain():
     """
@@ -107,38 +110,38 @@ class simulation_domain():
         return max(0.01,abs(self.abscissas[:,0,:]).max())
 
 
-    def update_quadrature(self, state, project = True):
-        """
-        This function updates the quadrature weights and abscissas for a given state.
+    # def update_quadrature(self, state, project = True):
+    #     """
+    #     This function updates the quadrature weights and abscissas for a given state.
 
-        :param state: domain moments
-        :type state: array like
-        """    
-        # Loop over interior points
-        # SHB: Can we vectorize over 'i' here? Allocate xi/wts first via np_zeros
-        for i_point in range(1, self.num_points-1):
-            # Invert
-            xi, wts = self.qbmm_mgr.moment_invert(state[i_point], self.qbmm_mgr.indices)
-            self.abscissas[i_point] = xi.T
-            self.weights[i_point] = wts
-            # Project
-            state[i_point] = projection(wts, xi.T, self.qbmm_mgr.indices,
-                self.qbmm_mgr.num_coords, self.qbmm_mgr.num_nodes)
+    #     :param state: domain moments
+    #     :type state: array like
+    #     """    
+    #     # Loop over interior points
+    #     # SHB: Can we vectorize over 'i' here? Allocate xi/wts first via np_zeros
+    #     for i_point in range(1, self.num_points-1):
+    #         # Invert
+    #         xi, wts = self.qbmm_mgr.moment_invert(state[i_point], self.qbmm_mgr.indices)
+    #         self.abscissas[i_point] = xi.T
+    #         self.weights[i_point] = wts
+    #         # Project
+    #         state[i_point] = projection(wts, xi.T, self.qbmm_mgr.indices,
+    #             self.qbmm_mgr.num_coords, self.qbmm_mgr.num_nodes)
 
-        # Boundary conditions
-        state[0] = projection(self.weights[-2], self.abscissas[-2],
-                                            self.qbmm_mgr.indices,
-                self.qbmm_mgr.num_coords, self.qbmm_mgr.num_nodes)
-        state[-1] = projection(self.weights[1], self.abscissas[1],
-                                             self.qbmm_mgr.indices,
-                self.qbmm_mgr.num_coords, self.qbmm_mgr.num_nodes)
-        xi, wts = self.qbmm_mgr.moment_invert(state[0], self.qbmm_mgr.indices)
-        self.abscissas[0] = xi.T
-        self.weights[0] = wts
-        xi, wts = self.qbmm_mgr.moment_invert(state[-1], self.qbmm_mgr.indices)
-        self.abscissas[-1] = xi.T
-        self.weights[-1] = wts
-        return
+    #     # Boundary conditions
+    #     state[0] = projection(self.weights[-2], self.abscissas[-2],
+    #                                         self.qbmm_mgr.indices,
+    #             self.qbmm_mgr.num_coords, self.qbmm_mgr.num_nodes)
+    #     state[-1] = projection(self.weights[1], self.abscissas[1],
+    #                                          self.qbmm_mgr.indices,
+    #             self.qbmm_mgr.num_coords, self.qbmm_mgr.num_nodes)
+    #     xi, wts = self.qbmm_mgr.moment_invert(state[0], self.qbmm_mgr.indices)
+    #     self.abscissas[0] = xi.T
+    #     self.weights[0] = wts
+    #     xi, wts = self.qbmm_mgr.moment_invert(state[-1], self.qbmm_mgr.indices)
+    #     self.abscissas[-1] = xi.T
+    #     self.weights[-1] = wts
+    #     return
 
 
     def local_flux(self, weight, abscissa, index):
@@ -237,7 +240,8 @@ class simulation_domain():
         """
         if self.flow:
             compute_fluxes(self.weights, self.abscissas, self.qbmm_mgr.indices,
-                           self.qbmm_mgr.num_moments, self.qbmm_mgr.num_nodes)
+                           self.num_points, self.qbmm_mgr.num_moments,
+                           self.qbmm_mgr.num_nodes, self.flux)
             self.rhs = self.flux / self.grid_spacing
         elif self.qbmm_mgr.internal_dynamics:
             internal_rhs = np.zeros([self.num_points, self.qbmm_mgr.num_moments])
@@ -256,6 +260,8 @@ class simulation_domain():
         :param state: domain moments
         :type state: array like
         """
-        self.update_quadrature(state)        
+        update_quadrature(state, self.qbmm_mgr.indices, self.weights, self.abscissas,
+                          self.num_points, self.qbmm_mgr.num_coords,
+                          self.qbmm_mgr.num_nodes)        
         
         

@@ -228,7 +228,7 @@ class time_advancer:
             
         # Updates
         self.state = self.stage_state[0] + self.time_step * self.stage_k[0]
-        self.domain.update_quadrature(self.state)
+        self.domain.project(self.state)
         self.time_step = self.cfl * self.domain.grid_spacing / self.domain.max_abscissa()
 
         return
@@ -245,7 +245,7 @@ class time_advancer:
         self.stage_state[1] = self.stage_state[0] + self.time_step * self.stage_k[0]
 
         # Update domain quadratures
-        self.domain.update_quadrature(self.stage_state[1])
+        self.domain.project(self.stage_state[1])
         
         # Stage 2:
         self.stage_k[1] = self.domain.compute_rhs(self.stage_state[1])
@@ -255,7 +255,7 @@ class time_advancer:
                           + self.time_step*self.stage_k[1])
 
         # Update domain quadratures
-        self.domain.update_quadrature(self.state)
+        self.domain.project(self.state)
 
         return
     

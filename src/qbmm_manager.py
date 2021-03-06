@@ -16,12 +16,15 @@ import numpy as np
 import sympy as smp
 from sympy.parsing.sympy_parser import parse_expr
 
-try:
-    import numba
-    from nquad import *
-except:
-    print("Did not find numba! Install it for significant speedups.")
-    from quad import *
+import numba
+from nquad import *
+
+# try:
+#     import numba
+#     from nquad import *
+# except:
+#     print("qbmm_mgr: Did not find numba! Install it for significant speedups.")
+#     from quad import *
 
 
 class qbmm_manager:
