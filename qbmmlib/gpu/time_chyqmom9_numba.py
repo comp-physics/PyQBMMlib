@@ -2,6 +2,7 @@ from inversion_vectorized import hyqmom2, hyqmom3, chyqmom4, chyqmom9
 
 import numpy as np
 import time
+from numba import njit, config, set_num_threads, threading_layer
 
 def init_moment_10(size: int):
     one_moment = np.asarray([1, 1, 1, 1.01,  
@@ -15,15 +16,17 @@ def init_moment_10(size: int):
     return moments
 
 if __name__ == "__main__":
-    res_file_name = 'results.csv'
+    res_file_name = 'result_numba.csv'
     max_input_size_mag = 6
-    num_points = 10
+    num_points = 200
     trial = 5
+    config.THREADING_LAYER = 'threadsafe'
+    set_num_threads(24)
     
     result = np.zeros((num_points, trial + 1))
 
-    for idx, in_size in enumerate(np.logspace(1, max_input_size_mag, num=num_points)):
-        print(int(in_size))
+    for idx, in_size in enumerate(np.logspace(0, max_input_size_mag, num=num_points)):
+
         this_result = np.zeros(trial + 1)
         this_result[0] = int(in_size)
 
@@ -32,9 +35,11 @@ if __name__ == "__main__":
             t_begin = time.perf_counter()
             this_result[i] = chyqmom9(this_moment, int(in_size))
             t_end = time.perf_counter()
-            this_result[i] = t_end - t_begin
+            this_result[i] = (t_end - t_begin) * 1e3 # convert to ms
+        print(int(in_size), ": ", this_result[1])
         result[idx] = this_result
 
     np.savetxt(res_file_name, result, delimiter=',')
+    print("Threading layer chosen: %s" % threading_layer())
     
 
