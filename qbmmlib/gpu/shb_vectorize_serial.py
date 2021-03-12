@@ -1,7 +1,6 @@
 import numpy as np
 import sys
 import time
-import psutil
 import qbmmlib.utils.stats_util as stats
 from numba import njit
 from inversion_vectorized import hyqmom2, hyqmom3, chyqmom4, chyqmom9
@@ -39,7 +38,7 @@ if __name__ == "__main__":
         print('Algorithm: CHyQMOM%i ' % (Npt**2))
 
     Ninputs = int(1e6)
-    Ntests = 3
+    Ntests = 5
     if Ntests <= 1: raise ValueError('Ntests > 1 required due to Numba compilation')
     print('You are running %i test iterations on %i inputs' % (Ntests-1, Ninputs))
 
@@ -74,6 +73,7 @@ if __name__ == "__main__":
         moments_full[:,i] = moments[i]
 
     times = np.zeros(Ntests)
+    print(moments_full)
     for i in range(Ntests):
         t_begin = time.process_time()
         if oned:
@@ -91,8 +91,8 @@ if __name__ == "__main__":
         t_end = time.process_time()
         times[i] = t_end - t_begin
 
-    print("Times   [s]", times[1:])
-    print("Min time   [s]", np.min(times[1:]))
+    print("Times   [s]", times)
+    print("Min time   [s]", np.min(times))
 
     # cProfile.run('chyqmom4_p(moments, N)','restats')
     # p = pstats.Stats('restats')
