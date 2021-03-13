@@ -80,30 +80,26 @@ class simulation_domain():
         :param state: domain moments
         :type state: array like
         """
-        print('shape num coords :',self.qbmm_mgr.num_coords)
+        # print('shape num coords :',self.qbmm_mgr.num_coords)
         wts_left, wts_right, xi_left, xi_right = jet_initialize_moments(
                 self.qbmm_mgr.num_coords,
                 self.qbmm_mgr.num_nodes)
-        exit()
-        if self.qbmm_mgr.num_coords == 3:
-            # Populate weights
-            self.weights[:48] = wts_left
-            self.weights[-48:] = wts_right
-            # Populate abscissas
-            self.abscissas[:48] = xi_left
-            self.abscissas[-48:] = xi_right 
-            # Populate state
-            moments_left = projection(wts_left, xi_left, self.qbmm_mgr.indices,
-                    self.qbmm_mgr.num_coords, self.qbmm_mgr.num_nodes)
-            moments_right = projection(wts_right, xi_right, self.qbmm_mgr.indices,
-                    self.qbmm_mgr.num_coords, self.qbmm_mgr.num_nodes)
-            state[:48] = moments_left
-            state[-48:] = moments_right
-            state[0] = moments_right
-            state[-1] = moments_left
-        elif self.qbmm_mgr.num_coords == 2:
-            # Populate weights
-            return NotImplementedError()
+        # Populate weights
+        self.weights[:48] = wts_left
+        self.weights[-48:] = wts_right
+        # Populate abscissas
+        self.abscissas[:48] = xi_left
+        self.abscissas[-48:] = xi_right 
+        # Populate state
+        moments_left = projection(wts_left, xi_left, self.qbmm_mgr.indices,
+                self.qbmm_mgr.num_coords, self.qbmm_mgr.num_nodes)
+        moments_right = projection(wts_right, xi_right, self.qbmm_mgr.indices,
+                self.qbmm_mgr.num_coords, self.qbmm_mgr.num_nodes)
+        state[:48] = moments_left
+        state[-48:] = moments_right
+        state[0] = moments_right
+        state[-1] = moments_left
+
 
         print("Domain: state: ", state[0,:])
         print("Domain: weights: ", self.weights[0,:])
@@ -268,8 +264,11 @@ class simulation_domain():
         :param state: domain moments
         :type state: array like
         """
-        update_quadrature(state, self.qbmm_mgr.indices, self.weights, self.abscissas,
+        if self.qbmm_mgr.num_coords == 3:
+            update_quadrature_3d(state, self.qbmm_mgr.indices, self.weights, self.abscissas,
                           self.num_points, self.qbmm_mgr.num_coords,
                           self.qbmm_mgr.num_nodes)        
-        
-        
+        if self.qbmm_mgr.num_coords == 2:
+            update_quadrature_2d(state, self.qbmm_mgr.indices, self.weights, self.abscissas,
+                          self.num_points, self.qbmm_mgr.num_coords,
+                          self.qbmm_mgr.num_nodes)        

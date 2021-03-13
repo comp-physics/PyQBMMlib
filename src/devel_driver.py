@@ -22,7 +22,7 @@ from jets_util import *
 from pretty_print_util import *
 import cProfile
 
-def flow_example():
+def flow_example_3d():
     """
     This driver solves a flow-coupled problem.
     Currently, it only computes moment fluxes, but work is underway to solve the compressible flow equations.
@@ -80,6 +80,53 @@ def flow_example():
     #domain.initialize_state_uniform(0.1, 1.0)
 
     return
+
+
+def flow_example_2d():
+    """
+    This driver solves a flow-coupled problem.
+    Currently, it only computes moment fluxes, but work is underway to solve the compressible flow equations.
+    """
+    # In development
+
+    cfl = 0.4
+    dx = 1/400
+    U_max = 1
+    
+    config = {}
+    config['qbmm'] = {}
+    config["advancer"] = {}
+    config["domain"] = {}
+
+    config["qbmm"]["internal_dynamics"] = ""
+    config["qbmm"]["num_coords"] = 2
+    config["qbmm"]["num_nodes"] = 9
+    config["qbmm"]["method"] = "chyqmom"
+    config["qbmm"]["adaptive"] = False
+    config["qbmm"]["max_skewness"] = 30
+
+    config["domain"]["flow"] = True
+    config["domain"]["num_dim"] = 1
+    config["domain"]["num_points"] = 402
+    config["domain"]["grid_extents"] = [0, 1]
+    
+    config["advancer"]["method"] = "RK2"    
+    config["advancer"]["time_step"] = cfl * dx / U_max
+    config["advancer"]["cfl"] = cfl
+    config["advancer"]["final_time"] = 30.
+    config["advancer"]["num_steps"] = 10000
+    config["advancer"]["num_steps_print"] = 1 #1000
+    config["advancer"]["num_steps_write"] = 10 #1000
+    config["advancer"]["output_dir"] = "output/"
+    config["advancer"]["output_id"] = "example_flow_compiled"
+    config["advancer"]["write_to"] = "h5"
+
+    advancer = time_advancer(config)
+    advancer.initialize_state_jets()
+    advancer.run()    
+    
+    return
+
 
 
 def advance_example(config):
@@ -176,7 +223,8 @@ if __name__ == "__main__":
         ### 4. If argv matches case, run, then stop
         ### 5. If argv does not match case, then exit
     else:
-        flow_example()
+        # flow_example_3d()
+        flow_example_2d()
         #print('devel_driver: no config file supplied')
 
 

@@ -324,10 +324,10 @@ def conditional_hyperbolic(moments, indices, max_skewness=30, checks=True):
 
     # num_dim = len(indices)
 
-    # if num_dim == 16:
-    return chyqmom27(moments, indices, max_skewness, checks)
-    # if num_dim == 10:
-    #     return chyqmom9(moments, indices, max_skewness, checks)
+    if num_dim == 16:
+        return chyqmom27(moments, indices, max_skewness, checks)
+    if num_dim == 10:
+        return chyqmom9(moments, indices, max_skewness, checks)
     # if num_dim == 6:
     #     return chyqmom4(moments, indices)
 
@@ -516,30 +516,30 @@ def chyqmom9(moments, indices, max_skewness=30, checks=True):
     w[8] = rho[2] * rho23
     w = mom00 * w
 
-    x[0] = xp[0]
-    x[1] = xp[0]
-    x[2] = xp[0]
-    x[3] = xp[1]
-    x[4] = xp[1]
-    x[5] = xp[1]
-    x[6] = xp[2]
-    x[7] = xp[2]
-    x[8] = xp[2]
-    x = bx + x
+    abscissas[0, 0] = xp[0]
+    abscissas[1, 0] = xp[0]
+    abscissas[2, 0] = xp[0]
+    abscissas[3, 0] = xp[0]
+    abscissas[4, 0] = xp[0]
+    abscissas[5, 0] = xp[0]
+    abscissas[6, 0] = xp[0]
+    abscissas[7, 0] = xp[0]
+    abscissas[8, 0] = xp[0]
+    abscissas[:, 0] += bx
 
-    y[0] = yf[0] + yp21
-    y[1] = yf[0] + yp22
-    y[2] = yf[0] + yp23
-    y[3] = yf[1] + yp21
-    y[4] = yf[1] + yp22
-    y[5] = yf[1] + yp23
-    y[6] = yf[2] + yp21
-    y[7] = yf[2] + yp22
-    y[8] = yf[2] + yp23
-    y = by + y
+    abscissas[0, 1] = Yf[0] + yp11
+    abscissas[1, 1] = Yf[0] + yp11
+    abscissas[2, 1] = Yf[0] + yp11
+    abscissas[3, 1] = Yf[0] + yp12
+    abscissas[4, 1] = Yf[0] + yp12
+    abscissas[5, 1] = Yf[0] + yp12
+    abscissas[6, 1] = Yf[0] + yp13
+    abscissas[7, 1] = Yf[0] + yp13
+    abscissas[8, 1] = Yf[0] + yp13
+    abscissas[:, 1] += by
 
-    x = [x, y]
-    return x, w
+    return abscissas, w
+    # return x, w
 
 
 @jit(nopython=True)
