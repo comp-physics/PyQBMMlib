@@ -80,22 +80,30 @@ class simulation_domain():
         :param state: domain moments
         :type state: array like
         """
-        wts_left, wts_right, xi_left, xi_right = jet_initialize_moments(self.qbmm_mgr.num_nodes)
-        # Populate weights
-        self.weights[:48] = wts_left
-        self.weights[-48:] = wts_right
-        # Populate abscissas
-        self.abscissas[:48] = xi_left
-        self.abscissas[-48:] = xi_right 
-        # Populate state
-        moments_left = projection(wts_left, xi_left, self.qbmm_mgr.indices,
-                self.qbmm_mgr.num_coords, self.qbmm_mgr.num_nodes)
-        moments_right = projection(wts_right, xi_right, self.qbmm_mgr.indices,
-                self.qbmm_mgr.num_coords, self.qbmm_mgr.num_nodes)
-        state[:48] = moments_left
-        state[-48:] = moments_right
-        state[0] = moments_right
-        state[-1] = moments_left
+        print('shape num coords :',self.qbmm_mgr.num_coords)
+        wts_left, wts_right, xi_left, xi_right = jet_initialize_moments(
+                self.qbmm_mgr.num_coords,
+                self.qbmm_mgr.num_nodes)
+        exit()
+        if self.qbmm_mgr.num_coords == 3:
+            # Populate weights
+            self.weights[:48] = wts_left
+            self.weights[-48:] = wts_right
+            # Populate abscissas
+            self.abscissas[:48] = xi_left
+            self.abscissas[-48:] = xi_right 
+            # Populate state
+            moments_left = projection(wts_left, xi_left, self.qbmm_mgr.indices,
+                    self.qbmm_mgr.num_coords, self.qbmm_mgr.num_nodes)
+            moments_right = projection(wts_right, xi_right, self.qbmm_mgr.indices,
+                    self.qbmm_mgr.num_coords, self.qbmm_mgr.num_nodes)
+            state[:48] = moments_left
+            state[-48:] = moments_right
+            state[0] = moments_right
+            state[-1] = moments_left
+        elif self.qbmm_mgr.num_coords == 2:
+            # Populate weights
+            return NotImplementedError()
 
         print("Domain: state: ", state[0,:])
         print("Domain: weights: ", self.weights[0,:])

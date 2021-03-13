@@ -7,3 +7,5 @@ D
 src/output
 _build
 __pycache__
+
+profile*

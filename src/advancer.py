@@ -82,6 +82,7 @@ class time_advancer:
 
         num_points = self.domain.num_points
         num_moments = self.domain.qbmm_mgr.num_moments
+        num_coords = self.domain.qbmm_mgr.num_coords
         self.state = np.zeros([num_points, num_moments])
         self.rhs = np.zeros([num_points, num_moments])
         self.stage_state = np.zeros([self.num_stages, num_points, num_moments])
