@@ -94,7 +94,6 @@ def flux_quadrature(wts_left, xi_left, wts_right, xi_right, indices, num_moments
 def compute_fluxes(weights, abscissas, indices, num_points, num_moments, num_nodes, flux):
 
     for i_point in range(1, num_points-1):
-
         # Compute left flux
         wts_left = weights[i_point-1]
         wts_right = weights[i_point]
@@ -140,6 +139,8 @@ def update_quadrature_3d(state, indices, weights, abscissas, num_points, num_coo
 def update_quadrature_2d(state, indices, weights, abscissas, num_points, num_coords, num_nodes):
 
     for i_point in range(1, num_points-1):
+        print(' ipt', i_point)
+        print('State', state, indices)
         # Invert
         xi, wts = chyqmom9(state[i_point], indices)
         abscissas[i_point] = xi.T

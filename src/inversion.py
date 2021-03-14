@@ -193,7 +193,7 @@ def hyqmom2(moments):
     return x, w
 
 
-@jit(nopython=True)
+# @jit(nopython=True)
 def hyqmom3(moments, max_skewness=30, checks=True):
     """
     This function inverts moments into a three-node quadrature rule.
@@ -233,6 +233,7 @@ def hyqmom3(moments, max_skewness=30, checks=True):
         if c2 < 0:
             if c2 < -verysmall:
                 print("Error: c2 negative in three node HYQMOM")
+                print(c2)
                 return
         else:
             realizable = c2 * c4 - c2 ** 3 - c3 ** 2
@@ -399,7 +400,7 @@ def chyqmom4(moments, indices, max_skewness=30):
     return x, w
 
 
-@jit(nopython=True)
+# @jit(nopython=True)
 def chyqmom9(moments, indices, max_skewness=30, checks=True):
 
     # normalidx = indices.tolist()
@@ -429,6 +430,8 @@ def chyqmom9(moments, indices, max_skewness=30, checks=True):
     w = np.zeros(n)
     x = np.zeros(n)
     y = np.zeros(n)
+
+    abscissas = np.zeros((n, 2))
 
     csmall = 10.0 ** (-10)
     verysmall = 10.0 ** (-14)
@@ -519,23 +522,23 @@ def chyqmom9(moments, indices, max_skewness=30, checks=True):
     abscissas[0, 0] = xp[0]
     abscissas[1, 0] = xp[0]
     abscissas[2, 0] = xp[0]
-    abscissas[3, 0] = xp[0]
-    abscissas[4, 0] = xp[0]
-    abscissas[5, 0] = xp[0]
-    abscissas[6, 0] = xp[0]
-    abscissas[7, 0] = xp[0]
-    abscissas[8, 0] = xp[0]
+    abscissas[3, 0] = xp[1]
+    abscissas[4, 0] = xp[1]
+    abscissas[5, 0] = xp[1]
+    abscissas[6, 0] = xp[2]
+    abscissas[7, 0] = xp[2]
+    abscissas[8, 0] = xp[2]
     abscissas[:, 0] += bx
 
-    abscissas[0, 1] = Yf[0] + yp11
-    abscissas[1, 1] = Yf[0] + yp11
-    abscissas[2, 1] = Yf[0] + yp11
-    abscissas[3, 1] = Yf[0] + yp12
-    abscissas[4, 1] = Yf[0] + yp12
-    abscissas[5, 1] = Yf[0] + yp12
-    abscissas[6, 1] = Yf[0] + yp13
-    abscissas[7, 1] = Yf[0] + yp13
-    abscissas[8, 1] = Yf[0] + yp13
+    abscissas[0, 1] = yf[0] + yp21
+    abscissas[1, 1] = yf[0] + yp22
+    abscissas[2, 1] = yf[0] + yp23
+    abscissas[3, 1] = yf[1] + yp21
+    abscissas[4, 1] = yf[1] + yp22
+    abscissas[5, 1] = yf[1] + yp23
+    abscissas[6, 1] = yf[2] + yp21
+    abscissas[7, 1] = yf[2] + yp22
+    abscissas[8, 1] = yf[2] + yp23
     abscissas[:, 1] += by
 
     return abscissas, w
