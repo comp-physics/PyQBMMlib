@@ -22,6 +22,9 @@ from jets_util import *
 from pretty_print_util import *
 import cProfile
 
+import warnings
+warnings.filterwarnings('error')
+
 def flow_example_3d():
     """
     This driver solves a flow-coupled problem.

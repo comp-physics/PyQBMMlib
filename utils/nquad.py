@@ -133,28 +133,35 @@ def update_quadrature_3d(state, indices, weights, abscissas, num_points, num_coo
     xi, wts = chyqmom27(state[-1], indices)
     abscissas[-1] = xi.T
     weights[-1] = wts
-    return
 
 # @njit
 def update_quadrature_2d(state, indices, weights, abscissas, num_points, num_coords, num_nodes):
 
     for i_point in range(1, num_points-1):
         print(' ipt', i_point)
-        print('State', state, indices)
+        print('State before', state[i_point])
         # Invert
         xi, wts = chyqmom9(state[i_point], indices)
         abscissas[i_point] = xi.T
         weights[i_point] = wts
         # Project
         state[i_point] = projection(wts, xi.T, indices, num_coords, num_nodes)
+        print('State after', state[i_point])
+
+    print('get boundaries')
 
     # Boundary conditions
     state[0] = projection(weights[-2], abscissas[-2], indices, num_coords, num_nodes)
     state[-1] = projection(weights[1], abscissas[1], indices, num_coords, num_nodes)
+
+    print('get pt0')
+    print(state[0])
     xi, wts = chyqmom9(state[0], indices)
     abscissas[0] = xi.T
     weights[0] = wts
+    print('get pt-1')
+    print(state[-1])
     xi, wts = chyqmom9(state[-1], indices)
     abscissas[-1] = xi.T
     weights[-1] = wts
-    return
+
