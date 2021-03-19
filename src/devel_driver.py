@@ -12,7 +12,6 @@ These are example drivers that you may use as templates for your application.
 
 from advancer import *
 from config_manager import *
-from simulation_domain import *
 import sys
 
 sys.path.append("../utils/")
@@ -21,7 +20,6 @@ from euler_util import *
 from jets_util import *
 from pretty_print_util import *
 import cProfile
-
 from mc import mc
 
 import warnings
@@ -37,7 +35,7 @@ def monte_carlo():
     config["wave"] = {}
     config["qbmm"] = {}
 
-    config["advancer"]["method"] = "RK23"
+    config["advancer"]["method"] = "RK3"
     config["advancer"]["time_step"] = 1.0e-5
     config["advancer"]["final_time"] = 30.0
     config["advancer"]["error_tol"] = 1.0e-5
@@ -77,12 +75,15 @@ def monte_carlo():
     # config["model"]["Re_inv"] = 1/100.
     # config["model"]["Web"] = 13.9
 
-    config["qbmm"]["internal_dynamics"] = " - x - xdot"
-    config["qbmm"]["num_coords"] = 2
-    config["qbmm"]["num_nodes"] = 4
+    config["qbmm"]["governing_dynamics"] = " - x - xdot"
+    config["qbmm"]["num_internal_coords"] = 2
+    config["qbmm"]["num_quadrature_nodes"] = 4
     config["qbmm"]["method"] = "chyqmom"
     config["qbmm"]["adaptive"] = False
     config["qbmm"]["max_skewness"] = 30
+
+
+    config["qbmm"]["method"] = "chyqmom"
 
     config["domain"] = {}
     config["domain"]["flow"] = False
@@ -94,7 +95,7 @@ def monte_carlo():
     # Initialize condition
     advancer = time_advancer(config)
 
-    num_dim = config["qbmm"]["num_coords"]
+    num_dim = config["qbmm"]["num_internal_coords"]
     mu = config["pop"]["mu"]
     sigma = config["pop"]["sig"]
 
@@ -107,111 +108,53 @@ def monte_carlo():
     advancer.run()
 
 
-def flow_example_3d():
+def flow_example():
     """
     This driver solves a flow-coupled problem.
     Currently, it only computes moment fluxes, but work is underway to solve the compressible flow equations.
     """
     # In development
-
-    cfl = 0.4
-    dx = 1/400
-    U_max = 1
-    
     config = {}
-    config['qbmm'] = {}
+    config["qbmm"] = {}
     config["advancer"] = {}
-    config["domain"] = {}
 
-    config["qbmm"]["internal_dynamics"] = ""
-    config["qbmm"]["num_coords"] = 3
-    config["qbmm"]["num_nodes"] = 27
+    config["qbmm"]["flow"] = True
+    config["qbmm"]["governing_dynamics"] = ""
+    config["qbmm"]["num_internal_coords"] = 3
+    config["qbmm"]["num_quadrature_nodes"] = 27
     config["qbmm"]["method"] = "chyqmom"
     config["qbmm"]["adaptive"] = False
     config["qbmm"]["max_skewness"] = 30
 
-    config["domain"]["flow"] = True
-    config["domain"]["num_dim"] = 1
-    config["domain"]["num_points"] = 402
-    config["domain"]["grid_extents"] = [0, 1]
-    
-    config["advancer"]["method"] = "RK2"    
-    config["advancer"]["time_step"] = cfl * dx / U_max
-    config["advancer"]["cfl"] = cfl
-    config["advancer"]["final_time"] = 30.
-    config["advancer"]["num_steps"] = 10000
-    config["advancer"]["num_steps_print"] = 1 #1000
-    config["advancer"]["num_steps_write"] = 10 #1000
-    config["advancer"]["output_dir"] = "output/"
-    config["advancer"]["output_id"] = "example_flow_compiled"
-    config["advancer"]["write_to"] = "h5"
+    qbmm_mgr = qbmm_manager(config)
+    indices = qbmm_mgr.indices
 
-    advancer = time_advancer(config)
-    advancer.initialize_state_jets()
-    advancer.run()    
-    
-    
-    # xi_left,  wts_left  = qbmm_mgr.moment_invert( moments_left,  indices )
-    # xi_right, wts_right = qbmm_mgr.moment_invert( moments_right, indices )
-    # print(wts_left)
-    # print(wts_right)
-    # print(xi_left)
-    # print(xi_right)
-    # flux = moment_fluxes( indices, wts_left, wts_right, xi_left, xi_right )
-    #print(flux)
+    # Initial condition
+    # mu1    = 1.0
+    # mu2    = 1.0
+    # mu3    = 1.0
+    # sigma1 = 0.1
+    # sigma2 = 0.1
+    # sigma3 = 0.1
+    # moments = raw_gaussian_moments_trivar( indices, mu1, mu2, mu3,
+    #                                        sigma1, sigma2, sigma3 )
 
+    moments_left, moments_right = jet_initialize_moments(qbmm_mgr)
 
-    #domain = simulation_domain(config)
-    #domain.initialize_state_uniform(0.1, 1.0)
+    xi_left, wts_left = qbmm_mgr.moment_invert(moments_left, indices)
+    xi_right, wts_right = qbmm_mgr.moment_invert(moments_right, indices)
+
+    print(wts_left)
+    print(wts_right)
+
+    print(xi_left)
+    print(xi_right)
+
+    flux = moment_fluxes(indices, wts_left, wts_right, xi_left, xi_right)
+
+    print(flux)
 
     return
-
-
-def flow_example_2d():
-    """
-    This driver solves a flow-coupled problem.
-    Currently, it only computes moment fluxes, but work is underway to solve the compressible flow equations.
-    """
-    # In development
-
-    cfl = 0.4
-    dx = 1/400
-    U_max = 1
-    
-    config = {}
-    config['qbmm'] = {}
-    config["advancer"] = {}
-    config["domain"] = {}
-
-    config["qbmm"]["internal_dynamics"] = ""
-    config["qbmm"]["num_coords"] = 2
-    config["qbmm"]["num_nodes"] = 9
-    config["qbmm"]["method"] = "chyqmom"
-    config["qbmm"]["adaptive"] = False
-    config["qbmm"]["max_skewness"] = 30
-
-    config["domain"]["flow"] = True
-    config["domain"]["num_dim"] = 1
-    config["domain"]["num_points"] = 402
-    config["domain"]["grid_extents"] = [0, 1]
-    
-    config["advancer"]["method"] = "RK2"    
-    config["advancer"]["time_step"] = cfl * dx / U_max
-    config["advancer"]["cfl"] = cfl
-    config["advancer"]["final_time"] = 30.
-    config["advancer"]["num_steps"] = 10000
-    config["advancer"]["num_steps_print"] = 1 #1000
-    config["advancer"]["num_steps_write"] = 10 #1000
-    config["advancer"]["output_dir"] = "output/"
-    config["advancer"]["output_id"] = "example_flow_compiled"
-    config["advancer"]["write_to"] = "h5"
-
-    advancer = time_advancer(config)
-    advancer.initialize_state_jets()
-    advancer.run()    
-    
-    return
-
 
 
 def advance_example(config):
@@ -228,7 +171,7 @@ def advance_example(config):
     advancer = time_advancer(config)
 
     # Initialize condition
-    num_dim = config["qbmm"]["num_coords"]
+    num_dim = config["qbmm"]["num_internal_coords"]
     mu = config["init_condition"]["mu"]
     sigma = config["init_condition"]["sigma"]
 
@@ -254,9 +197,9 @@ def advance_example2dp1():
     config["advancer"] = {}
 
     config["qbmm"]["flow"] = False
-    config["qbmm"]["internal_dynamics"] = " - x - xdot - r0"
-    config["qbmm"]["num_coords"] = 2
-    config["qbmm"]["num_nodes"] = 4
+    config["qbmm"]["governing_dynamics"] = " - x - xdot - r0"
+    config["qbmm"]["num_internal_coords"] = 2
+    config["qbmm"]["num_quadrature_nodes"] = 4
     config["qbmm"]["method"] = "chyqmom"
     config["qbmm"]["adaptive"] = False
     config["qbmm"]["max_skewness"] = 30
@@ -308,10 +251,7 @@ if __name__ == "__main__":
         ### 4. If argv matches case, run, then stop
         ### 5. If argv does not match case, then exit
     else:
-        # flow_example_3d()
-        # flow_example_2d()
         monte_carlo()
-        #print('devel_driver: no config file supplied')
-
+        # print("devel_driver: no config file supplied")
 
     exit()

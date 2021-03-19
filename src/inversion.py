@@ -1,9 +1,9 @@
 import numpy as np
 import math
 
-from numba import jit, njit
+# from numba import jit
 
-@jit(nopython=True)
+# @jit(nopython=True)
 def sign(q):
     if q > 0:
         return 1
@@ -233,7 +233,6 @@ def hyqmom3(moments, max_skewness=30, checks=True):
         if c2 < 0:
             if c2 < -verysmall:
                 print("Error: c2 negative in three node HYQMOM")
-                print(c2)
                 return
         else:
             realizable = c2 * c4 - c2 ** 3 - c3 ** 2
@@ -311,8 +310,6 @@ def hyqmom3(moments, max_skewness=30, checks=True):
     return x, w
 
 
-
-# @njit
 def conditional_hyperbolic(moments, indices, max_skewness=30, checks=True):
     """
     This function inverts moments into a two-node quadrature rule.
@@ -323,14 +320,15 @@ def conditional_hyperbolic(moments, indices, max_skewness=30, checks=True):
     :rtype: array like
     """
 
-    # num_dim = len(indices)
+    num_dim = len(indices)
 
-    if num_dim == 16:
-        return chyqmom27(moments, indices, max_skewness, checks)
-    if num_dim == 10:
+    if num_dim == 6:
+        return chyqmom4(moments, indices)
+    elif num_dim == 10:
         return chyqmom9(moments, indices, max_skewness, checks)
-    # if num_dim == 6:
-    #     return chyqmom4(moments, indices)
+    elif num_dim == 16:
+        return chyqmom27(moments, indices, max_skewness, checks)
+
 
 # @jit(nopython=True)
 def chyqmom4(moments, indices, max_skewness=30):
@@ -431,8 +429,6 @@ def chyqmom9(moments, indices, max_skewness=30, checks=True):
     x = np.zeros(n)
     y = np.zeros(n)
 
-    abscissas = np.zeros((n, 2))
-
     csmall = 10.0 ** (-10)
     verysmall = 10.0 ** (-14)
 
@@ -519,33 +515,33 @@ def chyqmom9(moments, indices, max_skewness=30, checks=True):
     w[8] = rho[2] * rho23
     w = mom00 * w
 
-    abscissas[0, 0] = xp[0]
-    abscissas[1, 0] = xp[0]
-    abscissas[2, 0] = xp[0]
-    abscissas[3, 0] = xp[1]
-    abscissas[4, 0] = xp[1]
-    abscissas[5, 0] = xp[1]
-    abscissas[6, 0] = xp[2]
-    abscissas[7, 0] = xp[2]
-    abscissas[8, 0] = xp[2]
-    abscissas[:, 0] += bx
+    x[0] = xp[0]
+    x[1] = xp[0]
+    x[2] = xp[0]
+    x[3] = xp[1]
+    x[4] = xp[1]
+    x[5] = xp[1]
+    x[6] = xp[2]
+    x[7] = xp[2]
+    x[8] = xp[2]
+    x = bx + x
 
-    abscissas[0, 1] = yf[0] + yp21
-    abscissas[1, 1] = yf[0] + yp22
-    abscissas[2, 1] = yf[0] + yp23
-    abscissas[3, 1] = yf[1] + yp21
-    abscissas[4, 1] = yf[1] + yp22
-    abscissas[5, 1] = yf[1] + yp23
-    abscissas[6, 1] = yf[2] + yp21
-    abscissas[7, 1] = yf[2] + yp22
-    abscissas[8, 1] = yf[2] + yp23
-    abscissas[:, 1] += by
+    y[0] = yf[0] + yp21
+    y[1] = yf[0] + yp22
+    y[2] = yf[0] + yp23
+    y[3] = yf[1] + yp21
+    y[4] = yf[1] + yp22
+    y[5] = yf[1] + yp23
+    y[6] = yf[2] + yp21
+    y[7] = yf[2] + yp22
+    y[8] = yf[2] + yp23
+    y = by + y
 
-    return abscissas, w
-    # return x, w
+    x = [x, y]
+    return x, w
 
 
-@jit(nopython=True)
+# @jit(nopython=True)
 def chyqmom27(moments, indices, max_skewness=30, checks=True):
 
     # Indices used for calling chyqmom9
@@ -602,8 +598,8 @@ def chyqmom27(moments, indices, max_skewness=30, checks=True):
     W = np.zeros(n)
 
     if m000 <= verysmall and checks:
-        W[12] = m000
-        return abscissas, W
+        w[12] = m000
+        return
 
     bx = m100 / m000
     by = m010 / m000
