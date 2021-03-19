@@ -38,11 +38,11 @@ def monte_carlo():
 
     config["advancer"]["method"] = "RK3"
     config["advancer"]["time_step"] = 1.0e-6
-    config["advancer"]["final_time"] = 15.0
+    config["advancer"]["final_time"] = 3.0
     config["advancer"]["error_tol"] = 1.0e-7
-    config["advancer"]["num_steps"] = 20000
+    config["advancer"]["num_steps"] = 200000
     config["advancer"]["num_steps_print"] = 1000
-    config["advancer"]["num_steps_write"] = 1000
+    config["advancer"]["num_steps_write"] = 10
     config["advancer"]["output_dir"] = "D/"
     config["advancer"]["output_id"] = "example_2D"
     config["advancer"]["write_to"] = "txt"
@@ -58,6 +58,7 @@ def monte_carlo():
     config["mc"]["Nsamples"] = 1000
     config["mc"]["Ntimes"] = 100
 
+    # in R and Rdot directions
     config["pop"]["shape"] = ["normal", "normal"]
     config["pop"]["mu"] = [1.,0]
     config["pop"]["sig"] = [0.05,0.05]
@@ -73,10 +74,14 @@ def monte_carlo():
     config["model"]["gamma"] = 1.0
     # config["model"]["c"] = 1000.
     # config["model"]["Ca"] = 0.5
-    # config["model"]["Re_inv"] = 1/100.
+    config["model"]["Re_inv"] = 1/1000.
     # config["model"]["Web"] = 13.9
 
-    config["qbmm"]["governing_dynamics"] = " - 1.5*xdot*xdot/x + 1./(x**4) - 1./(x*0.9) "
+    
+    config["qbmm"]["governing_dynamics"] = " - 1.5*xdot*xdot/x + 1./(x**4) - 1./(x*0.9)  - 4/1000*xdot/x/x"
+    # config["qbmm"]["governing_dynamics"] = " - 1.5*xdot*xdot/x + 1./(x**4) - 1./(x*0.9) "
+    # == Rddot
+
     # config["qbmm"]["governing_dynamics"] = " - x - xdot"
     config["qbmm"]["num_internal_coords"] = 2
     config["qbmm"]["num_quadrature_nodes"] = 4
@@ -98,7 +103,9 @@ def monte_carlo():
     advancer.run()
 
     # config["pop"]["moments"] = [[1, 0], [0, 1], [1, 1]]
-    config["pop"]["moments"] = advancer.qbmm_mgr.indices[0:3]
+    # config["pop"]["moments"] = advancer.qbmm_mgr.indices[0:3]
+    config["pop"]["moments"] = [ [3, 2], [2, 1], [3, 0], [ 3*(1-1.4), 0, 3*1.4 ] ]
+
     # Monte Carlo
     mymc = mc(config)
     mymc.run()

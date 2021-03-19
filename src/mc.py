@@ -77,11 +77,12 @@ class mc:
             sol = bubble.solve(T=T, p=p, Ro=s[0], Vo=s[1], ts=ts)
             sols.append(sol)
 
+        Nmom = len(self.state.moments)
         moments = self.moment(sols)
-        fig, ax = plt.subplots(1, 3)
+        fig, ax = plt.subplots(1, Nmom)
         # fig, ax = plt.subplots(1, self.state.Nmom)
         # for i in range(self.state.Nmom):
-        for i in range(3):
+        for i in range(Nmom):
             ax[i].plot(sols[i].t, moments[i])
             # ax[i].set(xlabel="$t$", ylabel="$M$" + str(self.state.moments[i]))
         # plt.show()
