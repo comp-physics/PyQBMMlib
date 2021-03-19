@@ -349,12 +349,12 @@ class qbmm_manager:
         self.num_coefficients = len(self.coefficients)
         self.num_exponents = len(self.exponents)
 
-        # message = 'qbmm_mgr: transport_terms: '
-        # for i in range( total_num_terms ):
-        #     sym_array_pretty_print( message, 'exponents', self.exponents[i,:] )
+        message = 'qbmm_mgr: transport_terms: '
+        for i in range( total_num_terms ):
+            sym_array_pretty_print( message, 'exponents', self.exponents[i,:] )
 
-        # message = 'qbmm_mgr: transport_terms: '
-        # sym_array_pretty_print( message, 'coefficients', self.coefficients )
+        message = 'qbmm_mgr: transport_terms: '
+        sym_array_pretty_print( message, 'coefficients', self.coefficients )
 
         for i in range(self.num_coefficients):
             if self.num_internal_coords == 1:

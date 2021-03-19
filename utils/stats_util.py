@@ -1,6 +1,5 @@
 import scipy.stats as stats
 import scipy.special as sc
-import math
 import numpy as np
 from stats_util import *
 
@@ -28,15 +27,15 @@ def raw_gaussian_moments_bivar(indices, mu1, mu2, sig1, sig2):
         i = indices[i_moment][0]
         j = indices[i_moment][1]
         moments[i_moment] = (
-            (1.0 / math.pi)
+            (1.0 / np.pi)
             * 2 ** ((-4.0 + i + j) / 2.0)
-            * math.exp(
+            * np.exp(
                 -(mu1 ** 2.0 / (2.0 * sig1 ** 2)) - (mu2 ** 2.0 / (2 * sig2 ** 2.0))
             )
             * sig1 ** (-1.0 + i)
             * sig2 ** (-1 + j)
             * (
-                -math.sqrt(2.0)
+                -np.sqrt(2.0)
                 * (-1.0 + (-1.0) ** i)
                 * mu1
                 * sc.gamma(1.0 + i / 2.0)
@@ -49,7 +48,7 @@ def raw_gaussian_moments_bivar(indices, mu1, mu2, sig1, sig2):
                 )
             )
             * (
-                -math.sqrt(2.0)
+                -np.sqrt(2.0)
                 * (-1 + (-1) ** j)
                 * mu2
                 * sc.gamma(1.0 + j / 2.0)

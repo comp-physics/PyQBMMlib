@@ -78,8 +78,10 @@ class mc:
             sols.append(sol)
 
         moments = self.moment(sols)
-        fig, ax = plt.subplots(1, self.state.Nmom)
-        for i in range(self.state.Nmom):
+        fig, ax = plt.subplots(1, 3)
+        # fig, ax = plt.subplots(1, self.state.Nmom)
+        # for i in range(self.state.Nmom):
+        for i in range(3):
             ax[i].plot(sols[i].t, moments[i])
-            ax[i].set(xlabel="$t$", ylabel="$M$" + str(self.state.moments[i]))
+            # ax[i].set(xlabel="$t$", ylabel="$M$" + str(self.state.moments[i]))
         # plt.show()

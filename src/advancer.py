@@ -18,6 +18,7 @@ from pretty_print_util import *
 from qbmm_manager import *
 import numpy as np
 import csv
+import matplotlib.pyplot as plt
 
 
 class time_advancer:
@@ -270,6 +271,9 @@ class time_advancer:
 
         i_step = 0
         step = True
+
+        self.times = []
+        self.states = []
         while step == True:
 
             self.advance()
@@ -286,11 +290,25 @@ class time_advancer:
             if self.adaptive:
                 self.adapt_time_step()
 
+            self.times.append(self.time)
+            self.states.append(self.state)
+
             if self.time > self.final_time or i_step >= self.num_steps:
                 step = False
 
         print("advancer: run: stepping ends")
         print("advancer: Number of steps:", i_step)
+
+        # Plot
+        if True:
+            self.states = np.asarray(self.states)
+            # moments = self.moment(sols)
+            # fig, ax = plt.subplots(1, self.num_dim)
+            fig, ax = plt.subplots(1, 3)
+            for i in range(3):
+                ax[i].plot(self.times, self.states[:,i])
+                # ax[i].set(xlabel="$t$", ylabel="$M$" + str(self.state.moments[i]))
+            
 
         return
 

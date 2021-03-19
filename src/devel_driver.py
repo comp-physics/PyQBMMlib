@@ -21,6 +21,7 @@ from jets_util import *
 from pretty_print_util import *
 import cProfile
 from mc import mc
+import matplotlib.pyplot as plt
 
 import warnings
 warnings.filterwarnings('error')
@@ -36,9 +37,9 @@ def monte_carlo():
     config["qbmm"] = {}
 
     config["advancer"]["method"] = "RK3"
-    config["advancer"]["time_step"] = 1.0e-5
-    config["advancer"]["final_time"] = 30.0
-    config["advancer"]["error_tol"] = 1.0e-5
+    config["advancer"]["time_step"] = 1.0e-6
+    config["advancer"]["final_time"] = 15.0
+    config["advancer"]["error_tol"] = 1.0e-7
     config["advancer"]["num_steps"] = 20000
     config["advancer"]["num_steps_print"] = 1000
     config["advancer"]["num_steps_write"] = 1000
@@ -48,19 +49,19 @@ def monte_carlo():
 
     # Acoustic
     # config["wave"]["amplitude"] = 3
-    config["wave"]["amplitude"] = 1.00001
+    config["wave"]["amplitude"] = 1/0.9
     # config["wave"]["form"] = "sine"
     config["wave"]["form"] = "constant"
     # config["wave"]["period"] = 4.0
     # config["wave"]["cycles"] = 2.0
 
-    config["mc"]["Nsamples"] = 10
+    config["mc"]["Nsamples"] = 1000
     config["mc"]["Ntimes"] = 100
 
-    config["pop"]["shape"] = ["lognormal", "normal"]
+    config["pop"]["shape"] = ["normal", "normal"]
     config["pop"]["mu"] = [1.,0]
-    config["pop"]["sig"] = [0.1,0.2]
-    config["pop"]["moments"] = [[1, 0], [0, 1], [1, 1]]
+    config["pop"]["sig"] = [0.05,0.05]
+    # config["pop"]["moments"] = [[1, 0], [0, 1], [1, 1]]
     # config["pop"]["moments"] = [ [3, 2], [2, 1], [3, 0], [ 3*(1-1.4), 0, 3*1.4 ] ]
 
     # Bubble properties
@@ -68,33 +69,23 @@ def monte_carlo():
     # config["model"]["model"] = "KM"
     # config["model"]["model"] = "Linear"
     # config["model"]["R"] = 1.0
-    config["model"]["V"] = 0.0
-    config["model"]["gamma"] = 1.4
+    # config["model"]["V"] = 0.0
+    config["model"]["gamma"] = 1.0
     # config["model"]["c"] = 1000.
     # config["model"]["Ca"] = 0.5
     # config["model"]["Re_inv"] = 1/100.
     # config["model"]["Web"] = 13.9
 
-    config["qbmm"]["governing_dynamics"] = " - x - xdot"
+    config["qbmm"]["governing_dynamics"] = " - 1.5*xdot*xdot/x + 1./(x**4) - 1./(x*0.9) "
+    # config["qbmm"]["governing_dynamics"] = " - x - xdot"
     config["qbmm"]["num_internal_coords"] = 2
     config["qbmm"]["num_quadrature_nodes"] = 4
     config["qbmm"]["method"] = "chyqmom"
     config["qbmm"]["adaptive"] = False
     config["qbmm"]["max_skewness"] = 30
 
-
-    config["qbmm"]["method"] = "chyqmom"
-
-    config["domain"] = {}
-    config["domain"]["flow"] = False
-
-    # Monte Carlo
-    mymc = mc(config)
-    mymc.run()
-
     # Initialize condition
     advancer = time_advancer(config)
-
     num_dim = config["qbmm"]["num_internal_coords"]
     mu = config["pop"]["mu"]
     sigma = config["pop"]["sig"]
@@ -104,8 +95,16 @@ def monte_carlo():
     elif num_dim == 2:
         advancer.initialize_state_gaussian_bivar(mu[0], mu[1], sigma[0], sigma[1])
 
-    # Run
     advancer.run()
+
+    # config["pop"]["moments"] = [[1, 0], [0, 1], [1, 1]]
+    config["pop"]["moments"] = advancer.qbmm_mgr.indices[0:3]
+    # Monte Carlo
+    mymc = mc(config)
+    mymc.run()
+
+    plt.tight_layout()
+    plt.show()
 
 
 def flow_example():
