@@ -63,7 +63,7 @@ def monte_carlo():
     config["pop"]["mu"] = [1.,0]
     config["pop"]["sig"] = [0.05,0.05]
     # config["pop"]["moments"] = [[1, 0], [0, 1], [1, 1]]
-    # config["pop"]["moments"] = [ [3, 2], [2, 1], [3, 0], [ 3*(1-1.4), 0, 3*1.4 ] ]
+    config["pop"]["moments"] = [ [3, 2], [2, 1], [3, 0], [ 3*(1-1.4), 0 ] ]
 
     # Bubble properties
     config["model"]["model"] = "RPE"
@@ -102,16 +102,18 @@ def monte_carlo():
 
     advancer.run()
 
-    # config["pop"]["moments"] = [[1, 0], [0, 1], [1, 1]]
-    # config["pop"]["moments"] = advancer.qbmm_mgr.indices[0:3]
-    config["pop"]["moments"] = [ [3, 2], [2, 1], [3, 0], [ 3*(1-1.4), 0, 3*1.4 ] ]
 
     # Monte Carlo
     mymc = mc(config)
     mymc.run()
 
-    plt.tight_layout()
+    # plt.tight_layout()
     plt.show()
+
+
+    # config["pop"]["moments"] = [[1, 0], [0, 1], [1, 1]]
+    # config["pop"]["moments"] = advancer.qbmm_mgr.indices[0:3]
+    # config["pop"]["moments"] = [ [3, 2], [2, 1], [3, 0], [ 3*(1-1.4), 0, 3*1.4 ] ]
 
 
 def flow_example():

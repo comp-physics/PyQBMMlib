@@ -444,6 +444,9 @@ class qbmm_manager:
         else:
             abscissas, weights = self.moment_invert(moments, self.indices)
 
+        self.abscissas = abscissas
+        self.weights = weights
+
         # Loop over moments
         for i_moment in range(self.num_moments):
             # Evalue RHS terms

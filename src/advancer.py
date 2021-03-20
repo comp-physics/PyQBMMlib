@@ -76,6 +76,13 @@ class time_advancer:
         self.state = np.zeros(self.num_dim)
         self.rhs = np.zeros(self.num_dim)
 
+        if "moments" in config["pop"]:
+            self.hi_moment_idx = config["pop"]["moments"]
+            self.Nhmom = len(self.hi_moment_idx)
+        else:
+            self.hi_moment_idx = []
+            self.Nhmom = 0
+
         if "error_tol" in config["advancer"]:
             self.adaptive = True
             self.error_tol = config["advancer"]["error_tol"]
@@ -257,6 +264,11 @@ class time_advancer:
         self.time_step = new_time_step
         return
 
+    def get_hi_mom(self):
+        abscissas = self.qbmm_mgr.abscissas
+        weights = self.qbmm_mgr.weights
+        self.hi_moments = self.qbmm_mgr.projection(weights, abscissas, np.array(self.hi_moment_idx) )
+
     def run(self):
         """
         Advancer driver
@@ -274,6 +286,8 @@ class time_advancer:
 
         self.times = []
         self.states = []
+        self.hi_moment_states = []
+
         while step == True:
 
             self.advance()
@@ -290,6 +304,10 @@ class time_advancer:
             if self.adaptive:
                 self.adapt_time_step()
 
+            if self.Nhmom:
+                self.get_hi_mom()
+                self.hi_moment_states.append(self.hi_moments)
+
             self.times.append(self.time)
             self.states.append(self.state)
 
@@ -300,13 +318,14 @@ class time_advancer:
         print("advancer: Number of steps:", i_step)
 
         # Plot
-        if True:
-            self.states = np.asarray(self.states)
+        if self.Nhmom:
+            # self.states = np.asarray(self.states)
+            self.hi_moment_states = np.asarray(self.hi_moment_states)
             # moments = self.moment(sols)
             # fig, ax = plt.subplots(1, self.num_dim)
-            fig, ax = plt.subplots(1, 3)
-            for i in range(3):
-                ax[i].plot(self.times, self.states[:,i])
+            fig, ax = plt.subplots(1, self.Nhmom)
+            for i in range(self.Nhmom):
+                ax[i].plot(self.times, self.hi_moment_states[:,i])
                 # ax[i].set(xlabel="$t$", ylabel="$M$" + str(self.state.moments[i]))
             
 
