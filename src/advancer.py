@@ -19,6 +19,7 @@ from qbmm_manager import *
 import numpy as np
 import csv
 import matplotlib.pyplot as plt
+import waveforms as wf
 
 
 class time_advancer:
@@ -145,6 +146,9 @@ class time_advancer:
 
         return
 
+    def initialize_wave(self, wave_config=None):
+        self.wave = wf.waveforms(config=wave_config)
+
     def initialize_state_gaussian_trivar(self, mu1, mu2, mu3, sig1, sig2, sig3):
         """
         This function initializes the state to the raw moments of a trivariate Gaussian distribution.
@@ -208,8 +212,9 @@ class time_advancer:
         """
 
         # Stage 1: { y_1, k_1 } = f( t_n, y_0 )
+        p = self.wave.p(self.time)
         self.stage_state[0] = self.state.copy()
-        self.qbmm_mgr.compute_rhs(self.stage_state[0], self.stage_k[0])
+        self.qbmm_mgr.compute_rhs(self.stage_state[0], self.stage_k[0], p=p)
 
         # Updates
         self.state = self.stage_state[0] + self.time_step * self.stage_k[0]
@@ -223,21 +228,24 @@ class time_advancer:
 
         # Stage 1: { y_1, k_1 } = f( t_n, y_0 )
         self.stage_state[0] = self.state.copy()
-        self.qbmm_mgr.compute_rhs(self.stage_state[0], self.stage_k[0])
+        p = self.wave.p(self.time)
+        self.qbmm_mgr.compute_rhs(self.stage_state[0], self.stage_k[0], p=p)
         self.stage_state[1] = self.stage_state[0] + self.time_step * self.stage_k[0]
 
         # Stage 2: { y_2, k_2 } = f( t_n, y_1 + dt * k_1 )
-        self.qbmm_mgr.compute_rhs(self.stage_state[1], self.stage_k[1])
+        p = self.wave.p(self.time + self.time_step)
+        self.qbmm_mgr.compute_rhs(self.stage_state[1], self.stage_k[1], p=p)
         test_state = 0.5 * (
             self.stage_state[0]
             + (self.stage_state[1] + self.time_step * self.stage_k[1])
         )
 
         # Stage 3: { y_3, k_3 } = f( t_n + 0.5 * dt, ... )
+        p = self.wave.p(self.time + 0.5*self.time_step)
         self.stage_state[2] = 0.75 * self.stage_state[0] + 0.25 * (
             self.stage_state[1] + self.time_step * self.stage_k[1]
         )
-        self.qbmm_mgr.compute_rhs(self.stage_state[2], self.stage_k[2])
+        self.qbmm_mgr.compute_rhs(self.stage_state[2], self.stage_k[2], p=p)
 
         # Updates
         self.state = (

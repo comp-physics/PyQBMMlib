@@ -306,7 +306,7 @@ class qbmm_manager:
         elif self.num_internal_coords == 2:
             # if self.poly:
             #     r0 = smp.symbols( self.poly_symbol )
-            x, xdot = smp.symbols("x xdot")
+            x, xdot, p, xx = smp.symbols("x xdot p xx")
             l, m = smp.symbols("l m", real=True)
             xddot = parse_expr(self.governing_dynamics)
             integrand = xddot * (x ** l) * (xdot ** (m - 1))
@@ -315,6 +315,7 @@ class qbmm_manager:
         terms = smp.powsimp(smp.expand(integrand)).args
         num_terms = len(terms)
 
+        print('terms = ', terms)
         # Add constant term for 2+D problems
         total_num_terms = num_terms
         if self.num_internal_coords == 2:
@@ -338,7 +339,11 @@ class qbmm_manager:
                 self.coefficients[i] = l * smp.poly(terms[i]).coeffs()[0]
             else:
                 self.exponents[i, 1] = terms[i].as_coeff_exponent(xdot)[1]
-                self.coefficients[i] = m * smp.poly(terms[i]).coeffs()[0]
+                if p in terms[i].free_symbols:
+                    self.coefficients[i] = p * m * smp.poly(terms[i]).coeffs()[0]
+                else:
+                    self.coefficients[i] = m * smp.poly(terms[i]).coeffs()[0]
+                # print('coeff[i]', i, 'terms:', terms[i], '  coef  ', self.coefficients[i])
 
         # Add extra constant term if in 2D
         if self.num_internal_coords == 2:
@@ -362,10 +367,11 @@ class qbmm_manager:
                 for j in range(self.num_internal_coords):
                     self.exponents[i, j] = smp.lambdify([l], self.exponents[i, j])
             elif self.num_internal_coords == 2:
-                self.coefficients[i] = smp.lambdify([l, m], self.coefficients[i])
+                self.coefficients[i] = smp.lambdify([l, m, p], self.coefficients[i])
                 for j in range(self.num_internal_coords):
                     self.exponents[i, j] = smp.lambdify([l, m], self.exponents[i, j])
-
+        # print('coeff: ', self.coefficients[2](1.,1.,2.))
+        # raise Exception()
         return
 
     def moment_invert_1D(self, moments):
@@ -430,7 +436,7 @@ class qbmm_manager:
                 moments[i] = quadrature_1d(weights, abscissas, indices[i])
         return moments
 
-    def compute_rhs(self, moments, rhs):
+    def compute_rhs(self, moments, rhs, p):
         """
         This function computes moment-transport RHS
 
@@ -478,7 +484,8 @@ class qbmm_manager:
                 coefficients = [
                     np.double(
                         self.coefficients[j](
-                            self.indices[i_moment][0], self.indices[i_moment][1]
+                            self.indices[i_moment][0], self.indices[i_moment][1],
+                            p[0]
                         )
                     )
                     for j in range(self.num_coefficients)

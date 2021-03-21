@@ -100,6 +100,8 @@ def monte_carlo():
     elif num_dim == 2:
         advancer.initialize_state_gaussian_bivar(mu[0], mu[1], sigma[0], sigma[1])
 
+    advancer.initialize_wave(wave_config=config["wave"])
+
     advancer.run()
 
 
