@@ -226,8 +226,8 @@ if __name__ == "__main__":
         ### 4. If argv matches case, run, then stop
         ### 5. If argv does not match case, then exit
     else:
-        # flow_example_3d()
-        flow_example_2d()
+        flow_example_3d()
+        # flow_example_2d()
         #print('devel_driver: no config file supplied')
 
 

@@ -313,9 +313,9 @@ def init_2d_jet(num_nodes):
     xi_left[1, :] += 0.5 * xi_left[0, :]
     xi_right[1, :] += 0.5 * xi_right[0, :]
 
-    xi_right[:, :] += np.random.rand()*1e-7
-    xi_left[:, :] += np.random.rand()*1e-7
-    wts_left[:] += np.random.rand()*1e-7
-    wts_right[:] += np.random.rand()*1e-7
+    # xi_right[:, :] += np.random.rand()*1e-7
+    # xi_left[:, :] += np.random.rand()*1e-7
+    # wts_left[:] += np.random.rand()*1e-7
+    # wts_right[ :] += np.random.rand()*1e-7
 
     return wts_left, wts_right, xi_left, xi_right

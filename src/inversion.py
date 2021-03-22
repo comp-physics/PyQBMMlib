@@ -163,7 +163,7 @@ def hyperbolic(moments, max_skewness=30, checks=True):
         return
 
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def hyqmom2(moments):
     """
     This function inverts moments into a two-node quadrature rule.
@@ -193,7 +193,7 @@ def hyqmom2(moments):
     return x, w
 
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def hyqmom3(moments, max_skewness=30, checks=True):
     """
     This function inverts moments into a three-node quadrature rule.
@@ -312,7 +312,7 @@ def hyqmom3(moments, max_skewness=30, checks=True):
 
 
 
-# @njit
+@njit
 def conditional_hyperbolic(moments, indices, max_skewness=30, checks=True):
     """
     This function inverts moments into a two-node quadrature rule.
@@ -332,7 +332,7 @@ def conditional_hyperbolic(moments, indices, max_skewness=30, checks=True):
     # if num_dim == 6:
     #     return chyqmom4(moments, indices)
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def chyqmom4(moments, indices, max_skewness=30):
 
     # normalidx = indices.tolist()
@@ -400,7 +400,7 @@ def chyqmom4(moments, indices, max_skewness=30):
     return x, w
 
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def chyqmom9(moments, indices, max_skewness=30, checks=True):
 
     # normalidx = indices.tolist()
