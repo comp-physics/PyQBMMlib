@@ -1,9 +1,9 @@
 import numpy as np
 import math
 
-from numba import jit, njit
+from numba import njit
 
-@jit(nopython=True)
+@njit
 def sign(q):
     if q > 0:
         return 1
@@ -163,7 +163,7 @@ def hyperbolic(moments, max_skewness=30, checks=True):
         return
 
 
-@jit(nopython=True)
+@njit
 def hyqmom2(moments):
     """
     This function inverts moments into a two-node quadrature rule.
@@ -193,7 +193,7 @@ def hyqmom2(moments):
     return x, w
 
 
-@jit(nopython=True)
+@njit
 def hyqmom3(moments, max_skewness=30, checks=True):
     """
     This function inverts moments into a three-node quadrature rule.
@@ -332,7 +332,7 @@ def conditional_hyperbolic(moments, indices, max_skewness=30, checks=True):
     # if num_dim == 6:
     #     return chyqmom4(moments, indices)
 
-@jit(nopython=True)
+@njit
 def chyqmom4(moments, indices, max_skewness=30):
 
     # normalidx = indices.tolist()
@@ -400,7 +400,7 @@ def chyqmom4(moments, indices, max_skewness=30):
     return x, w
 
 
-@jit(nopython=True)
+@njit
 def chyqmom9(moments, indices, max_skewness=30, checks=True):
 
     mom00 = moments[0]
@@ -507,33 +507,36 @@ def chyqmom9(moments, indices, max_skewness=30, checks=True):
     w[8] = rho[2] * rho23
     w = mom00 * w
 
-    abscissas[0, 0] = xp[0]
-    abscissas[1, 0] = xp[0]
-    abscissas[2, 0] = xp[0]
-    abscissas[3, 0] = xp[1]
-    abscissas[4, 0] = xp[1]
-    abscissas[5, 0] = xp[1]
-    abscissas[6, 0] = xp[2]
-    abscissas[7, 0] = xp[2]
-    abscissas[8, 0] = xp[2]
-    abscissas[:, 0] += bx
+    x[0] = xp[0]
+    x[1] = xp[0]
+    x[2] = xp[0]
+    x[3] = xp[1]
+    x[4] = xp[1]
+    x[5] = xp[1]
+    x[6] = xp[2]
+    x[7] = xp[2]
+    x[8] = xp[2]
+    x = bx + x
 
-    abscissas[0, 1] = yf[0] + yp21
-    abscissas[1, 1] = yf[0] + yp22
-    abscissas[2, 1] = yf[0] + yp23
-    abscissas[3, 1] = yf[1] + yp21
-    abscissas[4, 1] = yf[1] + yp22
-    abscissas[5, 1] = yf[1] + yp23
-    abscissas[6, 1] = yf[2] + yp21
-    abscissas[7, 1] = yf[2] + yp22
-    abscissas[8, 1] = yf[2] + yp23
-    abscissas[:, 1] += by
+    y[0] = yf[0] + yp21
+    y[1] = yf[0] + yp22
+    y[2] = yf[0] + yp23
+    y[3] = yf[1] + yp21
+    y[4] = yf[1] + yp22
+    y[5] = yf[1] + yp23
+    y[6] = yf[2] + yp21
+    y[7] = yf[2] + yp22
+    y[8] = yf[2] + yp23
+    y = by + y
+
+    abscissas[:, 0] = x[:]
+    abscissas[:, 1] = y[:]
+    # SHB Note: If running 0D case then the abscissas output might not work
 
     return abscissas, w
-    # return x, w
 
 
-@jit(nopython=True)
+@njit
 def chyqmom27(moments, indices, max_skewness=30, checks=True):
 
     # Indices used for calling chyqmom9
@@ -820,8 +823,8 @@ def chyqmom27(moments, indices, max_skewness=30, checks=True):
         else:
             M1 = np.array([1, 0, 0, c020, c011, c002, c030, c003, c040, c004])
             Q1, W1 = chyqmom9(M1, RF_idx, max_skewness, checks)
-            Y1 = Q1[0]
-            Z1 = Q1[1]
+            Y1 = Q1[:,0]
+            Z1 = Q1[:,1]
 
             rho[0] = 0
             rho[1] = 1
@@ -857,8 +860,8 @@ def chyqmom27(moments, indices, max_skewness=30, checks=True):
     elif c020 <= csmall and checks:
         M2 = np.array([1, 0, 0, c200, c101, c002, c300, c003, c400, c004])
         Q2, W2 = chyqmom9(M2, RF_idx, max_skewness, checks)
-        X2 = Q2[0]
-        Z2 = Q2[1]
+        X2 = Q2[:,0]
+        Z2 = Q2[:,1]
 
         rho[0] = 1
         rho[1] = 1
@@ -890,8 +893,8 @@ def chyqmom27(moments, indices, max_skewness=30, checks=True):
     elif c002 <= csmall and checks:
         M3 = np.array([1, 0, 0, c200, c110, c020, c300, c030, c400, c040])
         Q3, W3 = chyqmom9(M3, RF_idx, max_skewness, checks)
-        X3 = Q3[0]
-        Y3 = Q3[1]
+        X3 = Q3[:,0]
+        Y3 = Q3[:,1]
 
         rho[0] = 1
         rho[1] = 1
@@ -920,8 +923,8 @@ def chyqmom27(moments, indices, max_skewness=30, checks=True):
     else:
         M4 = np.array([1, 0, 0, c200, c110, c020, c300, c030, c400, c040])
         Q4, W4 = chyqmom9(M4, RF_idx, max_skewness, checks)
-        X4 = Q4[0]
-        Y4 = Q4[1]
+        X4 = Q4[:,0]
+        Y4 = Q4[:,1]
 
         rho11 = W4[0] / (W4[0] + W4[1] + W4[2])
         rho12 = W4[1] / (W4[0] + W4[1] + W4[2])

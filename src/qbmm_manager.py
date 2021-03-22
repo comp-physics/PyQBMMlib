@@ -459,7 +459,17 @@ class qbmm_manager:
         if self.num_coords == 1:
             abscissas, weights = self.moment_invert(moments)
         else:
-            abscissas, weights = self.moment_invert(moments, self.indices)
+            abscissas_temp, weights = self.moment_invert(moments, self.indices)
+            # New: Transpose
+            if self.num_coords == 2:
+                abscissas = [
+                        abscissas_temp[:,0], 
+                        abscissas_temp[:,1]]
+            elif self.num_coords == 3:
+                abscissas = [
+                        abscissas_temp[:,0], 
+                        abscissas_temp[:,1], 
+                        abscissas_temp[:,2]]
 
         # Loop over moments
         for i_moment in range(self.num_moments):
