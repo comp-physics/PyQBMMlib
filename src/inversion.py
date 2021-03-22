@@ -403,18 +403,6 @@ def chyqmom4(moments, indices, max_skewness=30):
 @jit(nopython=True)
 def chyqmom9(moments, indices, max_skewness=30, checks=True):
 
-    # normalidx = indices.tolist()
-    # mom00 = moments[normalidx.index([0,0])]
-    # mom10 = moments[normalidx.index([1,0])]
-    # mom01 = moments[normalidx.index([0,1])]
-    # mom20 = moments[normalidx.index([2,0])]
-    # mom11 = moments[normalidx.index([1,1])]
-    # mom02 = moments[normalidx.index([0,2])]
-    # mom30 = moments[normalidx.index([3,0])]
-    # mom03 = moments[normalidx.index([0,3])]
-    # mom40 = moments[normalidx.index([4,0])]
-    # mom04 = moments[normalidx.index([0,4])]
-
     mom00 = moments[0]
     mom10 = moments[1]
     mom01 = moments[2]
@@ -552,24 +540,6 @@ def chyqmom27(moments, indices, max_skewness=30, checks=True):
     RF_idx = np.array(
         [[0, 0], [1, 0], [0, 1], [2, 0], [1, 1], [0, 2], [3, 0], [0, 3], [4, 0], [0, 4]]
     )
-
-    # normalidx = indices.tolist()
-    # m000 = moments[normalidx.index([0,0,0])]
-    # m100 = moments[normalidx.index([1,0,0])]
-    # m010 = moments[normalidx.index([0,1,0])]
-    # m001 = moments[normalidx.index([0,0,1])]
-    # m200 = moments[normalidx.index([2,0,0])]
-    # m110 = moments[normalidx.index([1,1,0])]
-    # m101 = moments[normalidx.index([1,0,1])]
-    # m020 = moments[normalidx.index([0,2,0])]
-    # m011 = moments[normalidx.index([0,1,1])]
-    # m002 = moments[normalidx.index([0,0,2])]
-    # m300 = moments[normalidx.index([3,0,0])]
-    # m030 = moments[normalidx.index([0,3,0])]
-    # m003 = moments[normalidx.index([0,0,3])]
-    # m400 = moments[normalidx.index([4,0,0])]
-    # m040 = moments[normalidx.index([0,4,0])]
-    # m004 = moments[normalidx.index([0,0,4])]
 
     m000 = moments[0]
     m100 = moments[1]
