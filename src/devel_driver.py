@@ -113,7 +113,8 @@ def flow_example_2d():
     config["domain"]["num_points"] = 402
     config["domain"]["grid_extents"] = [0, 1]
     
-    config["advancer"]["method"] = "RK2"    
+    config["advancer"]["method"] = "Euler"    
+    # config["advancer"]["method"] = "RK2"    
     config["advancer"]["time_step"] = cfl * dx / U_max
     config["advancer"]["cfl"] = cfl
     config["advancer"]["final_time"] = 30.

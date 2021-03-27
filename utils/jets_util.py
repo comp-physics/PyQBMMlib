@@ -109,15 +109,15 @@ def init_2d_jet(num_nodes):
     u_left = 0.01
     u_right = 1
 
-    wts_left[0] = 0.125 * w_left
-    wts_left[2] = 0.125 * w_left
-    wts_left[6] = 0.125 * w_left
-    wts_left[8] = 0.125 * w_left
+    wts_left[0] = w_left / 4.
+    wts_left[2] = w_left / 4.
+    wts_left[6] = w_left / 4.
+    wts_left[8] = w_left / 4.
 
-    wts_right[0] = 0.125 * w_right
-    wts_right[2] = 0.125 * w_right
-    wts_right[6] = 0.125 * w_right
-    wts_right[8] = 0.125 * w_right
+    wts_right[0] = w_right / 4.
+    wts_right[2] = w_right / 4.
+    wts_right[6] = w_right / 4.
+    wts_right[8] = w_right / 4.
 
     xi_left[0, 0] = u_left
     xi_left[0, 2] = u_left
@@ -143,6 +143,7 @@ def init_2d_jet(num_nodes):
 
     xi_left[1, :] += 0.5 * xi_left[0, :]
     xi_right[1, :] += 0.5 * xi_right[0, :]
+
 
     # xi_right[:, :] += np.random.rand()*1e-7
     # xi_left[:, :] += np.random.rand()*1e-7

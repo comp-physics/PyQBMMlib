@@ -68,19 +68,30 @@ def flux_quadrature(wts_left, xi_left, wts_right, xi_right, indices, num_moments
     flux = np.zeros(num_moments)
     for m in range(num_moments):
         for n in range(num_nodes):
+
+
             # compute local fluxes
             flux_left = (
                 wts_left[n]
                 * xi_left[0, n]**indices[m, 0]
                 * xi_left[1, n]**indices[m, 1]
-                * xi_left[2, n]**indices[m, 2]
+
             )
             flux_right = (
                 wts_right[n]
                 * xi_right[0, n]**indices[m, 0]
                 * xi_right[1, n]**indices[m, 1]
-                * xi_right[2, n]**indices[m, 2]
+
             )
+
+            if len(indices[0]) == 3:
+                flux_left *= (
+                    xi_left[2, n]**indices[m, 2]
+                    )
+                flux_right *= (
+                    xi_right[2, n]**indices[m, 2]
+                    )
+
             # limiter
             flux_left = flux_left * max(xi_left[0, n], 0)
             flux_right = flux_right * min(xi_right[0, n], 0)
@@ -134,34 +145,34 @@ def update_quadrature_3d(state, indices, weights, abscissas, num_points, num_coo
     abscissas[-1] = xi.T
     weights[-1] = wts
 
-# @njit
+@njit
 def update_quadrature_2d(state, indices, weights, abscissas, num_points, num_coords, num_nodes):
 
     for i_point in range(1, num_points-1):
-        print(' ipt', i_point)
-        print('State before', state[i_point])
+        # print(' ipt', i_point)
+        # print('State before', state[i_point])
         # Invert
         xi, wts = chyqmom9(state[i_point], indices)
         abscissas[i_point] = xi.T
         weights[i_point] = wts
         # Project
         state[i_point] = projection(wts, xi.T, indices, num_coords, num_nodes)
-        print('State after', state[i_point])
+        # print('State after', state[i_point])
 
-    print('get boundaries')
+    # print('get boundaries')
 
     # Boundary conditions
     state[0] = projection(weights[-2], abscissas[-2], indices, num_coords, num_nodes)
     state[-1] = projection(weights[1], abscissas[1], indices, num_coords, num_nodes)
 
-    print('get pt0')
-    print(state[0])
+    # print('get pt0')
+    # print(state[0])
     xi, wts = chyqmom9(state[0], indices)
     abscissas[0] = xi.T
     weights[0] = wts
-    print('get pt-1')
-    print(state[-1])
+    # print('get pt-1')
+    # print(state[-1])
     xi, wts = chyqmom9(state[-1], indices)
     abscissas[-1] = xi.T
     weights[-1] = wts
-    print(' finish update quad 2d')
+    # print(' finish update quad 2d')
