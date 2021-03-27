@@ -164,4 +164,4 @@ def update_quadrature_2d(state, indices, weights, abscissas, num_points, num_coo
     xi, wts = chyqmom9(state[-1], indices)
     abscissas[-1] = xi.T
     weights[-1] = wts
-
+    print(' finish update quad 2d')

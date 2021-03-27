@@ -424,6 +424,13 @@ def chyqmom9(moments, indices, max_skewness=30, checks=True):
     csmall = 10.0 ** (-10)
     verysmall = 10.0 ** (-14)
 
+
+    if mom00 < verysmall and checks:
+        abscissas[:, 0] = x[:]
+        abscissas[:, 1] = y[:]
+        w[3] = mom00
+        return abscissas, w
+
     bx = mom10 / mom00
     by = mom01 / mom00
     d20 = mom20 / mom00
