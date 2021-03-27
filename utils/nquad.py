@@ -63,13 +63,11 @@ def quadrature_3d(weights, abscissas, moment_index, num_quadrature_nodes):
     return q
 
 
-@njit
+# @njit
 def flux_quadrature(wts_left, xi_left, wts_right, xi_right, indices, num_moments, num_nodes):
     flux = np.zeros(num_moments)
     for m in range(num_moments):
         for n in range(num_nodes):
-
-
             # compute local fluxes
             flux_left = (
                 wts_left[n]
@@ -101,7 +99,7 @@ def flux_quadrature(wts_left, xi_left, wts_right, xi_right, indices, num_moments
     return flux
         
 
-@njit
+# @njit
 def compute_fluxes(weights, abscissas, indices, num_points, num_moments, num_nodes, flux):
 
     for i_point in range(1, num_points-1):
@@ -113,7 +111,7 @@ def compute_fluxes(weights, abscissas, indices, num_points, num_moments, num_nod
         f_left = flux_quadrature(wts_left, xi_left, wts_right, xi_right, 
                                  indices, num_moments, num_nodes)
         
-            # Compute right flux
+        # Compute right flux
         wts_left = wts_right
         xi_left = xi_right
         wts_right = weights[i_point+1]
@@ -145,7 +143,7 @@ def update_quadrature_3d(state, indices, weights, abscissas, num_points, num_coo
     abscissas[-1] = xi.T
     weights[-1] = wts
 
-@njit
+# @njit
 def update_quadrature_2d(state, indices, weights, abscissas, num_points, num_coords, num_nodes):
 
     for i_point in range(1, num_points-1):
@@ -158,6 +156,14 @@ def update_quadrature_2d(state, indices, weights, abscissas, num_points, num_coo
         # Project
         state[i_point] = projection(wts, xi.T, indices, num_coords, num_nodes)
         # print('State after', state[i_point])
+        if np.isnan(abscissas[i_point]).any() or \
+            np.isnan(weights[i_point]).any():
+            ii = np.where(np.isnan(abscissas[i_point]))[0]
+            # print('state',  iii, 'is nan:', state[iii])
+            print('abs:', abscissas[i_point])
+            print('w:',weights[i_point])
+            print('found nan in wts or absc')
+            raise Exception()
 
     # print('get boundaries')
 
@@ -176,3 +182,11 @@ def update_quadrature_2d(state, indices, weights, abscissas, num_points, num_coo
     abscissas[-1] = xi.T
     weights[-1] = wts
     # print(' finish update quad 2d')
+
+    print('max = ', np.max(state[:,:]))
+    if np.isnan(state).any():
+        print('found nan')
+        ii = np.where(np.isnan(state))[0]
+        iii = ii[0]
+        print('state',  iii, 'is nan:', state[iii])
+        raise Exception()
