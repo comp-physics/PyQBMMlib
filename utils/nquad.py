@@ -63,7 +63,7 @@ def quadrature_3d(weights, abscissas, moment_index, num_quadrature_nodes):
     return q
 
 
-# @njit
+@njit
 def flux_quadrature(wts_left, xi_left, wts_right, xi_right, indices, num_moments, num_nodes):
     flux = np.zeros(num_moments)
     for m in range(num_moments):
@@ -99,7 +99,7 @@ def flux_quadrature(wts_left, xi_left, wts_right, xi_right, indices, num_moments
     return flux
         
 
-# @njit
+@njit
 def compute_fluxes(weights, abscissas, indices, num_points, num_moments, num_nodes, flux):
 
     for i_point in range(1, num_points-1):
@@ -143,7 +143,7 @@ def update_quadrature_3d(state, indices, weights, abscissas, num_points, num_coo
     abscissas[-1] = xi.T
     weights[-1] = wts
 
-# @njit
+@njit
 def update_quadrature_2d(state, indices, weights, abscissas, num_points, num_coords, num_nodes):
 
     for i_point in range(1, num_points-1):
@@ -164,8 +164,6 @@ def update_quadrature_2d(state, indices, weights, abscissas, num_points, num_coo
             print('w:',weights[i_point])
             print('found nan in wts or absc')
             raise Exception()
-
-    # print('get boundaries')
 
     # Boundary conditions
     state[0] = projection(weights[-2], abscissas[-2], indices, num_coords, num_nodes)
