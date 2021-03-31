@@ -36,20 +36,21 @@ def monte_carlo():
     config["wave"] = {}
     config["qbmm"] = {}
 
+    # config["advancer"]["method"] = "Euler"
     config["advancer"]["method"] = "RK3"
     config["advancer"]["time_step"] = 1.0e-6
-    config["advancer"]["final_time"] = 3.0
-    config["advancer"]["error_tol"] = 1.0e-7
+    config["advancer"]["final_time"] = 10.0
+    config["advancer"]["error_tol"] = 1.0e-6
     config["advancer"]["num_steps"] = 200000
-    config["advancer"]["num_steps_print"] = 1000
-    config["advancer"]["num_steps_write"] = 10
+    config["advancer"]["num_steps_print"] = 100
+    config["advancer"]["num_steps_write"] = 100
     config["advancer"]["output_dir"] = "D/"
     config["advancer"]["output_id"] = "example_2D"
     config["advancer"]["write_to"] = "txt"
 
     # Acoustic
     # config["wave"]["amplitude"] = 3
-    config["wave"]["amplitude"] = 1/0.9
+    config["wave"]["amplitude"] = 1/0.6
     # config["wave"]["form"] = "sine"
     config["wave"]["form"] = "constant"
     # config["wave"]["period"] = 4.0
@@ -60,7 +61,7 @@ def monte_carlo():
 
     # in R and Rdot directions
     config["pop"]["shape"] = ["normal", "normal"]
-    config["pop"]["mu"] = [1.,0]
+    config["pop"]["mu"] = [1.0+1.E-12,0.0+1.E-12]
     config["pop"]["sig"] = [0.05,0.05]
     # config["pop"]["moments"] = [[1, 0], [0, 1], [1, 1]]
     config["pop"]["moments"] = [ [3, 2], [2, 1], [3, 0], [ 3*(1-1.4), 0 ] ]
@@ -85,6 +86,7 @@ def monte_carlo():
     # config["qbmm"]["governing_dynamics"] = " - x - xdot"
     config["qbmm"]["num_internal_coords"] = 2
     config["qbmm"]["num_quadrature_nodes"] = 4
+    # config["qbmm"]["num_quadrature_nodes"] = 9
     config["qbmm"]["method"] = "chyqmom"
     config["qbmm"]["adaptive"] = False
     config["qbmm"]["max_skewness"] = 30

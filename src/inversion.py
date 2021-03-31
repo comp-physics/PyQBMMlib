@@ -1,9 +1,9 @@
 import numpy as np
 import math
 
-# from numba import jit
+from numba import jit
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def sign(q):
     if q > 0:
         return 1
@@ -163,7 +163,7 @@ def hyperbolic(moments, max_skewness=30, checks=True):
         return
 
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def hyqmom2(moments):
     """
     This function inverts moments into a two-node quadrature rule.
@@ -193,7 +193,7 @@ def hyqmom2(moments):
     return x, w
 
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def hyqmom3(moments, max_skewness=30, checks=True):
     """
     This function inverts moments into a three-node quadrature rule.
@@ -330,7 +330,7 @@ def conditional_hyperbolic(moments, indices, max_skewness=30, checks=True):
         return chyqmom27(moments, indices, max_skewness, checks)
 
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def chyqmom4(moments, indices, max_skewness=30):
 
     # normalidx = indices.tolist()
@@ -398,7 +398,7 @@ def chyqmom4(moments, indices, max_skewness=30):
     return x, w
 
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def chyqmom9(moments, indices, max_skewness=30, checks=True):
 
     # normalidx = indices.tolist()
@@ -537,11 +537,20 @@ def chyqmom9(moments, indices, max_skewness=30, checks=True):
     y[8] = yf[2] + yp23
     y = by + y
 
+    # if np.isnan(np.sum(x*y*w)):
+    #     raise Exception('nan in one of x, y, w')
+
     x = [x, y]
+
+    # print('x = ',x)
+    # print('w = ',w)
+
+
+
     return x, w
 
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def chyqmom27(moments, indices, max_skewness=30, checks=True):
 
     # Indices used for calling chyqmom9
