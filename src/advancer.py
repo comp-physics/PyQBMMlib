@@ -21,6 +21,8 @@ import csv
 import matplotlib.pyplot as plt
 import waveforms as wf
 
+import scipy.io as sio
+
 
 class time_advancer:
     """This class advances the moment transport equations in time.
@@ -329,6 +331,7 @@ class time_advancer:
         if self.Nhmom:
             # self.states = np.asarray(self.states)
             self.hi_moment_states = np.asarray(self.hi_moment_states)
+            sio.savemat(self.output_dir+"QBMM_HM_"+self.output_id+".mat" ,{"moments":self.hi_moment_states,"T":self.times})
             # moments = self.moment(sols)
             # fig, ax = plt.subplots(1, self.num_dim)
             fig, ax = plt.subplots(1, self.Nhmom)

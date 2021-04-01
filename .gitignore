@@ -3,6 +3,7 @@ tags
 *.pyc
 *.ipynb_checkpoints
 
+data
 D
 _build
 __pycache__

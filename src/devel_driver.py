@@ -44,20 +44,21 @@ def monte_carlo():
     config["advancer"]["num_steps"] = 200000
     config["advancer"]["num_steps_print"] = 100
     config["advancer"]["num_steps_write"] = 100
-    config["advancer"]["output_dir"] = "D/"
-    config["advancer"]["output_id"] = "example_2D"
+    config["advancer"]["output_dir"] = "../data/Constant_Forcing/"
+    #config["advancer"]["output_id"] = "example_2D"
     config["advancer"]["write_to"] = "txt"
 
     # Acoustic
     # config["wave"]["amplitude"] = 3
-    config["wave"]["amplitude"] = 1/0.6
+    config["wave"]["amplitude"] = 1/0.25
+    config["advancer"]["output_id"] = "Constant_Pressure"+str(int(100.0/config["wave"]["amplitude"]))
     # config["wave"]["form"] = "sine"
     config["wave"]["form"] = "constant"
     # config["wave"]["period"] = 4.0
     # config["wave"]["cycles"] = 2.0
 
-    config["mc"]["Nsamples"] = 1000
-    config["mc"]["Ntimes"] = 100
+    config["mc"]["Nsamples"] = 50
+    config["mc"]["Ntimes"] = 1801
 
     # in R and Rdot directions
     config["pop"]["shape"] = ["normal", "normal"]
@@ -79,7 +80,7 @@ def monte_carlo():
     # config["model"]["Web"] = 13.9
 
     
-    config["qbmm"]["governing_dynamics"] = " - 1.5*xdot*xdot/x + 1./(x**4) - 1./(x*0.9)  - 4/1000*xdot/x/x"
+    config["qbmm"]["governing_dynamics"] = " - 1.5*xdot*xdot/x + 1./(x**4) - 1./(x*0.25)  - 4/1000*xdot/x/x"
     # config["qbmm"]["governing_dynamics"] = " - 1.5*xdot*xdot/x + 1./(x**4) - 1./(x*0.9) "
     # == Rddot
 

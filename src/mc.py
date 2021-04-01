@@ -4,6 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import waveforms as wf
 
+import scipy.io as sio
+
 class mc:
     def __init__(self, config=None):
         self.adv_config = config["advancer"]
@@ -79,6 +81,7 @@ class mc:
 
         Nmom = len(self.state.moments)
         moments = self.moment(sols)
+        #sio.savemat("../data/Constant_Forcing/MC_HM_Constant_Pressure"+ str(int(100.0/self.wave_config["amplitude"])) +".mat" ,{"moments":moments,"T":sols[1].t})
         fig, ax = plt.subplots(1, Nmom)
         # fig, ax = plt.subplots(1, self.state.Nmom)
         # for i in range(self.state.Nmom):
