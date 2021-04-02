@@ -65,6 +65,9 @@ def quadrature_3d(weights, abscissas, moment_index, num_quadrature_nodes):
 
 @njit
 def flux_quadrature(wts_left, xi_left, wts_right, xi_right, indices, num_moments, num_nodes):
+    # Input: Local weights/abscissas at left/right
+    # Output: Local fluxes at left/right
+
     flux = np.zeros(num_moments)
     for m in range(num_moments):
         for n in range(num_nodes):
@@ -101,6 +104,9 @@ def flux_quadrature(wts_left, xi_left, wts_right, xi_right, indices, num_moments
 
 @njit
 def compute_fluxes(weights, abscissas, indices, num_points, num_moments, num_nodes, flux):
+    # Input: Global weights, abscissas 
+    # Compute: Global flux quadrature
+    # Output: All domain fluxes
 
     for i_point in range(1, num_points-1):
         # Compute left flux
@@ -116,29 +122,39 @@ def compute_fluxes(weights, abscissas, indices, num_points, num_moments, num_nod
         xi_left = xi_right
         wts_right = weights[i_point+1]
         xi_right = abscissas[i_point+1]
-        f_right = flux_quadrature(wts_left, xi_left, wts_right, xi_right, 
-                                  indices, num_moments, num_nodes)
+        f_right = flux_quadrature(wts_left, xi_left, wts_right, xi_right, indices, num_moments, num_nodes)
         
         # Reconstruct flux
         flux[i_point] = f_left - f_right
 
 @njit
+def domain_project(state, indices, weights, abscissas, num_points, num_coords, num_nodes):
+    # Input: Weights, abscissas, indices, num_points, num_coords, num_nodes
+    # Output: State
+
+    for i_point in range(1, num_points-1):
+        state[i_point] = projection(weights[i_point], abscissas[i_point], indices, num_coords, num_nodes)
+
+    # Boundary conditions
+    state[0] = projection(weights[-2], abscissas[-2], indices, num_coords, num_nodes)
+    state[-1] = projection(weights[1], abscissas[1], indices, num_coords, num_nodes)
+
+@njit
 def update_quadrature_3d(state, indices, weights, abscissas, num_points, num_coords, num_nodes):
+    # Input: State, indices, num_points, num_coords, num_nodes
+    # Output: Weights, abscissas
 
     for i_point in range(1, num_points-1):
         # Invert
         xi, wts = chyqmom27(state[i_point], indices)
         abscissas[i_point] = xi.T
         weights[i_point] = wts
-        # Project
-        state[i_point] = projection(wts, xi.T, indices, num_coords, num_nodes)
 
     # Boundary conditions
-    state[0] = projection(weights[-2], abscissas[-2], indices, num_coords, num_nodes)
-    state[-1] = projection(weights[1], abscissas[1], indices, num_coords, num_nodes)
     xi, wts = chyqmom27(state[0], indices)
     abscissas[0] = xi.T
     weights[0] = wts
+
     xi, wts = chyqmom27(state[-1], indices)
     abscissas[-1] = xi.T
     weights[-1] = wts

@@ -226,10 +226,15 @@ class time_advancer:
         # Stage 1: { y_1, k_1 } = f( t_n, y_0 )
         self.stage_state[0] = self.state.copy()
         self.stage_k[0] = self.domain.compute_rhs(self.stage_state[0])
-            
+        
+        # Project back to moment set using computed weights/abscissas
+        # self.domain.project(self.stage_state[0])
+
         # Updates
         self.state = self.stage_state[0] + self.time_step * self.stage_k[0]
-        # self.domain.project(self.state)
+        print('max val of RHS', np.max(np.abs(self.stage_k[0])))
+
+        # self.domain.project()
         self.time_step = self.cfl * self.domain.grid_spacing / self.domain.max_abscissa()
 
         return
