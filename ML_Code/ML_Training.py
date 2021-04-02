@@ -35,14 +35,13 @@ import tkinter
 from scipy.signal import savgol_filter
 
 
-def HM_Training(input_data,output_data,max_in,max_out,total_times):
+def HM_Training(input_data,output_data,qbmm_HM,max_in,max_out,total_times,test_cases,cases):
     
     time_start = 0
-    time_history = 32
+    time_history = 128
     time_jump = 1
     train_times = total_times-time_history*time_jump-time_start
 
-    test_cases = [0,2,4,6,8,10,12,14]
     test_size = len(test_cases)
     used_features = 5
     input_train = np.zeros((test_size*train_times,time_history,used_features))
@@ -67,15 +66,21 @@ def HM_Training(input_data,output_data,max_in,max_out,total_times):
     model1.add(tf.keras.layers.Dense(4, activation='linear'))
     model1.compile(loss='mse', optimizer='adam' )
     hist1 = model1.fit(input_train[:,:,:], output_train[:,:,:], batch_size=32, epochs=100, validation_data=(input_train[0:10,:,:],output_train[0:10,:,:]))
-    model1.save('HM_MLQBMM.h5')
+    if (cases == "constant"):
+        model1.save('HM_MLQBMM.h5')
+    elif (cases == "sine"):
+        model1.save('HM_Sinusoidal_MLQBMM.h5')
     
     return;
     
 
 
-def HM_Testing(input_data,output_data,max_in,max_out,total_times,used_features,test_cases):
+def HM_Testing(input_data,output_data,qbmm_HM,max_in,max_out,total_times,used_features,test_cases,cases):
 
-    model1 = tf.keras.models.load_model('HM_MLQBMM.h5')
+    if (cases == "constant"):
+        model1 = tf.keras.models.load_model('HM_MLQBMM.h5')
+    elif (cases == "sine"):
+        model1 = tf.keras.models.load_model('HM_Sinusoidal_MLQBMM.h5')
 
     test_size = len(test_cases)
 
@@ -93,7 +98,7 @@ def HM_Testing(input_data,output_data,max_in,max_out,total_times,used_features,t
     for ii in range(0,test_size):
         for tt in range(0,total_times):
             for jj in range(0,4):
-                predictions[ii,jj,tt] = output_test[ii,tt,jj]*max_out[test_cases[ii],jj]
+                predictions[ii,jj,tt] = output_test[ii,tt,jj]*max_out[test_cases[ii],jj]+qbmm_HM[test_cases[ii],jj,tt]
     
     return predictions;    
     

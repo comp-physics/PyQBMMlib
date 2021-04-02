@@ -39,25 +39,28 @@ def monte_carlo():
     # config["advancer"]["method"] = "Euler"
     config["advancer"]["method"] = "RK3"
     config["advancer"]["time_step"] = 1.0e-6
-    config["advancer"]["final_time"] = 10.0
-    config["advancer"]["error_tol"] = 1.0e-6
+    config["advancer"]["final_time"] = 60.0
+    config["advancer"]["error_tol"] = 1.0e-7
     config["advancer"]["num_steps"] = 200000
     config["advancer"]["num_steps_print"] = 100
     config["advancer"]["num_steps_write"] = 100
-    config["advancer"]["output_dir"] = "../data/Constant_Forcing/"
+    #config["advancer"]["output_dir"] = "../data/Constant_Forcing/"
+    config["advancer"]["output_dir"] = "../data/Sinusoidal_Forcing/"
     #config["advancer"]["output_id"] = "example_2D"
     config["advancer"]["write_to"] = "txt"
 
     # Acoustic
     # config["wave"]["amplitude"] = 3
-    config["wave"]["amplitude"] = 1/0.25
-    config["advancer"]["output_id"] = "Constant_Pressure"+str(int(100.0/config["wave"]["amplitude"]))
-    # config["wave"]["form"] = "sine"
-    config["wave"]["form"] = "constant"
-    # config["wave"]["period"] = 4.0
+    #config["wave"]["amplitude"] = 1/0.95
+    config["wave"]["amplitude"] = 0.85
+    #config["advancer"]["output_id"] = "Constant_Pressure"+str(int(100.0/config["wave"]["amplitude"]))
+    config["wave"]["form"] = "sine"
+    #config["wave"]["form"] = "constant"
+    config["wave"]["period"] = 3.0
     # config["wave"]["cycles"] = 2.0
+    config["advancer"]["output_id"] = "Sinusoidal_Pressure"+str(int(100.0*config["wave"]["amplitude"]))+"_Period"+str(int(config["wave"]["period"]))
 
-    config["mc"]["Nsamples"] = 50
+    config["mc"]["Nsamples"] = 1000
     config["mc"]["Ntimes"] = 1801
 
     # in R and Rdot directions
@@ -80,7 +83,7 @@ def monte_carlo():
     # config["model"]["Web"] = 13.9
 
     
-    config["qbmm"]["governing_dynamics"] = " - 1.5*xdot*xdot/x + 1./(x**4) - 1./(x*0.25)  - 4/1000*xdot/x/x"
+    config["qbmm"]["governing_dynamics"] = " - 1.5*xdot*xdot/x + 1./(x**4) - 1./(x*p)  - 4/1000*xdot/x/x"
     # config["qbmm"]["governing_dynamics"] = " - 1.5*xdot*xdot/x + 1./(x**4) - 1./(x*0.9) "
     # == Rddot
 

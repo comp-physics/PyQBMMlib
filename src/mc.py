@@ -81,7 +81,7 @@ class mc:
 
         Nmom = len(self.state.moments)
         moments = self.moment(sols)
-        #sio.savemat("../data/Constant_Forcing/MC_HM_Constant_Pressure"+ str(int(100.0/self.wave_config["amplitude"])) +".mat" ,{"moments":moments,"T":sols[1].t})
+        sio.savemat(self.adv_config["output_dir"]+"MC_HM_"+self.adv_config["output_id"]+".mat" ,{"moments":moments,"T":sols[1].t})
         fig, ax = plt.subplots(1, Nmom)
         # fig, ax = plt.subplots(1, self.state.Nmom)
         # for i in range(self.state.Nmom):
