@@ -79,7 +79,8 @@ def monte_carlo():
     # config["model"]["Web"] = 13.9
 
     
-    config["qbmm"]["governing_dynamics"] = " - 1.5*xdot*xdot/x + 1./(x**4) - 1./(x*0.9)  - 4/1000*xdot/x/x"
+    config["qbmm"]["governing_dynamics"] = " - 1.5*xdot*xdot/x + 1./(x**4) - 1./(x*p)  - 4/1000*xdot/x/x"
+    # config["qbmm"]["governing_dynamics"] = " - 1.5*xdot*xdot/x + 1./(x**4) - 1./(x*0.9)  - 4/1000*xdot/x/x"
     # config["qbmm"]["governing_dynamics"] = " - 1.5*xdot*xdot/x + 1./(x**4) - 1./(x*0.9) "
     # == Rddot
 
