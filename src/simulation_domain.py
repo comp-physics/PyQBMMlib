@@ -243,11 +243,7 @@ class simulation_domain():
         :type state: array like
         """
         if self.flow:
-            # Should have: state -> weights,abscissas for whole domain
-            # Compute global fluxes
-            # Set RHS = flux / dx 
-
-            self.grid_inversion()
+            self.grid_inversion(state)
             compute_fluxes(self.weights, self.abscissas, self.qbmm_mgr.indices,
                            self.num_points, self.qbmm_mgr.num_moments,
                            self.qbmm_mgr.num_nodes, self.flux)
@@ -262,27 +258,30 @@ class simulation_domain():
         return self.rhs
 
 
-    def grid_inversion(self):
+    def grid_inversion(self,state):
         """
-        Invert moments over whole grid
+        Invert moments to weights/abscissas over whole grid
 
         :param state: domain moments
         :type state: array like
         """
         if self.qbmm_mgr.num_coords == 3:
-            update_quadrature_3d(self.state, self.qbmm_mgr.indices, self.weights, self.abscissas,
-                          self.num_points, self.qbmm_mgr.num_coords,
-                          self.qbmm_mgr.num_nodes)        
+            domain_invert_3d(state, self.qbmm_mgr.indices, 
+                            self.weights, self.abscissas,
+                            self.num_points, self.qbmm_mgr.num_coords,
+                            self.qbmm_mgr.num_nodes)        
         if self.qbmm_mgr.num_coords == 2:
-            update_quadrature_2d(self.state, self.qbmm_mgr.indices, self.weights, self.abscissas,
-                          self.num_points, self.qbmm_mgr.num_coords,
-                          self.qbmm_mgr.num_nodes)
+            domain_invert_2d(state, self.qbmm_mgr.indices, 
+                            self.weights, self.abscissas,
+                            self.num_points, self.qbmm_mgr.num_coords,
+                            self.qbmm_mgr.num_nodes)
 
     def project(self, state):
         if self.qbmm_mgr.num_coords == 3:
-            domain_project(state, self.qbmm_mgr.indices, self.weights, self.abscissas,
-                          self.num_points, self.qbmm_mgr.num_coords,
-                          self.qbmm_mgr.num_nodes)        
+            domain_project(state, self.qbmm_mgr.indices, 
+                        self.weights, self.abscissas,
+                        self.num_points, self.qbmm_mgr.num_coords,
+                        self.qbmm_mgr.num_nodes)        
         else:
             raise NotImplementedError('No projection for 2D yet')
 

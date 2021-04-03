@@ -53,10 +53,11 @@ def flow_example_3d():
     config["domain"]["num_points"] = 402
     config["domain"]["grid_extents"] = [0, 1]
     
-    config["advancer"]["method"] = "Euler"
+    # config["advancer"]["method"] = "Euler"
+    config["advancer"]["method"] = "RK2"
     config["advancer"]["time_step"] = cfl * dx / U_max
     config["advancer"]["cfl"] = cfl
-    config["advancer"]["final_time"] = 30.
+    config["advancer"]["final_time"] = 0.6
     config["advancer"]["num_steps"] = 10000
     config["advancer"]["num_steps_print"] = 1 #1000
     config["advancer"]["num_steps_write"] = 10 #1000
