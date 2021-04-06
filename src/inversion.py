@@ -232,9 +232,7 @@ def hyqmom3(moments, max_skewness=30, checks=True):
     if checks:
         if c2 < 0:
             if c2 < -verysmall:
-                print("Error: c2 negative in three node HYQMOM")
-                print(c2)
-                return
+                raise Exception("Error: c2 negative in three node HYQMOM")
         else:
             realizable = c2 * c4 - c2 ** 3 - c3 ** 2
             if realizable < 0:
@@ -257,8 +255,7 @@ def hyqmom3(moments, max_skewness=30, checks=True):
                     c3 = q * math.sqrt(c2) * c2
                     c4 = eta * c2 ** 2
                     if realizable < -(10.0 ** (-6)):
-                        print("Error: c4 small in HYQMOM3")
-                        return
+                        raise Exception("Error: c4 small in HYQMOM3")
                 else:
                     c3 = 0.0
                     c4 = c2 ** 2.0
@@ -298,8 +295,7 @@ def hyqmom3(moments, max_skewness=30, checks=True):
     srho = np.sum(rho)
     rho = rho / srho
     if min(rho) < 0:
-        print("Error: Negative weight in HYQMOM")
-        return
+        raise Exception("Error: Negative weight in HYQMOM")
 
     scales = np.sum(rho * xps ** 2) / np.sum(rho)
     xp = xps * scale / math.sqrt(scales)
