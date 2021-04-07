@@ -113,128 +113,6 @@ class simulation_domain():
         """
         return max(0.01,abs(self.abscissas[:,0,:]).max())
 
-
-    # def update_quadrature(self, state, project = True):
-    #     """
-    #     This function updates the quadrature weights and abscissas for a given state.
-
-    #     :param state: domain moments
-    #     :type state: array like
-    #     """    
-    #     # Loop over interior points
-    #     # SHB: Can we vectorize over 'i' here? Allocate xi/wts first via np_zeros
-    #     for i_point in range(1, self.num_points-1):
-    #         # Invert
-    #         xi, wts = self.qbmm_mgr.moment_invert(state[i_point], self.qbmm_mgr.indices)
-    #         self.abscissas[i_point] = xi.T
-    #         self.weights[i_point] = wts
-    #         # Project
-    #         state[i_point] = projection(wts, xi.T, self.qbmm_mgr.indices,
-    #             self.qbmm_mgr.num_coords, self.qbmm_mgr.num_nodes)
-
-    #     # Boundary conditions
-    #     state[0] = projection(self.weights[-2], self.abscissas[-2],
-    #                                         self.qbmm_mgr.indices,
-    #             self.qbmm_mgr.num_coords, self.qbmm_mgr.num_nodes)
-    #     state[-1] = projection(self.weights[1], self.abscissas[1],
-    #                                          self.qbmm_mgr.indices,
-    #             self.qbmm_mgr.num_coords, self.qbmm_mgr.num_nodes)
-    #     xi, wts = self.qbmm_mgr.moment_invert(state[0], self.qbmm_mgr.indices)
-    #     self.abscissas[0] = xi.T
-    #     self.weights[0] = wts
-    #     xi, wts = self.qbmm_mgr.moment_invert(state[-1], self.qbmm_mgr.indices)
-    #     self.abscissas[-1] = xi.T
-    #     self.weights[-1] = wts
-    #     return
-
-
-    def local_flux(self, weight, abscissa, index):
-        """
-        Compute local moment flux for given quadrature weight and abscissa
-
-        :param weight: quadrature weight
-        :param abscissa: quadrature abscissa
-        :param index: moment index
-        :type weight: float
-        :type abscissa: array like
-        :type index: array like
-        """
-        return weight*(abscissa[0]**index[0])*(abscissa[1]**index[1])*(abscissa[2]**index[2])
-
-
-    def moment_fluxes(self, indices, wts_left, wts_right, xi_left, xi_right):
-        """
-        Computes moment fluxes
-        :param indices: domain moment indices
-        :param wts_left: quadrature weights on the left face of a grid cell
-        :param wts_right: quadrature weights on the right face of a grid cell
-        :param xi_left: quadrature abscissas on the left face of a grid cell
-        :param xi_right: quadrature abscissas on the right face of a grid cell
-        :type indices: array like
-        :type wts_left: array like
-        :type wts_right: array like
-        :type xi_left: array like
-        :type xi_right: array like
-        """
-        return flux_quadrature(wts_left, xi_left, wts_right, xi_right, indices,
-                               self.qbmm_mgr.num_moments, self.qbmm_mgr.num_nodes)
-
-        # flux = np.zeros(self.qbmm_mgr.num_moments)        
-        # for m, n in product(range(self.qbmm_mgr.num_moments), range(self.qbmm_mgr.num_nodes)):
-        #     # compute local fluxes
-        #     flux_left = self.local_flux(wts_left[n], xi_left[:, n], indices[m, :])
-        #     flux_right = self.local_flux(wts_right[n], xi_right[:, n], indices[m, :])
-        #     # limiter
-        #     flux_left = flux_left * max(xi_left[0, n], 0)
-        #     flux_right = flux_right * min(xi_right[0, n], 0)
-            
-        #     # quadrature
-        #     flux[m] += flux_left + flux_right
-
-        # return flux      
-    
-
-
-    # def compute_fluxes(self, state):
-    #     """
-    #     Compute moment fluxes
-
-    #     :param state: domain moments
-    #     :type state: array like
-    #     """
-    #     for i_point in range(1, self.num_points-1):
-
-    #         # Compute left flux
-    #         wts_left = self.weights[i_point-1]
-    #         wts_right = self.weights[i_point]
-    #         xi_left = self.abscissas[i_point-1]
-    #         xi_right = self.abscissas[i_point]
-    #         # f_left = self.moment_fluxes(self.qbmm_mgr.indices, wts_left, wts_right,
-    #         #                             xi_left, xi_right)
-    #         f_left = flux_quadrature(wts_left, xi_left, wts_right, xi_right, 
-    #                                 self.qbmm_mgr.indices, 
-    #                                 self.qbmm_mgr.num_moments,
-    #                                 self.qbmm_mgr.num_nodes)
-            
-    #         # Compute right flux
-    #         wts_left = wts_right
-    #         xi_left = xi_right
-    #         wts_right = self.weights[i_point+1]
-    #         xi_right = self.abscissas[i_point+1]
-    #         # f_right = self.moment_fluxes(self.qbmm_mgr.indices, wts_left, wts_right,
-    #         #                              xi_left, xi_right)
-    #         f_right = flux_quadrature(wts_left, xi_left, wts_right, xi_right, 
-    #                                 self.qbmm_mgr.indices, 
-    #                                 self.qbmm_mgr.num_moments,
-    #                                 self.qbmm_mgr.num_nodes)
-
-    #         # Reconstruct flux
-    #         self.flux[i_point] = f_left - f_right
-            
-            
-    #     return
-
-    
     def compute_rhs(self, state):
         """
         Compute moment transport fluxes, source terms.
@@ -244,7 +122,7 @@ class simulation_domain():
         """
         if self.flow:
             self.grid_inversion(state)
-            compute_fluxes(self.weights, self.abscissas, self.qbmm_mgr.indices,
+            domain_get_fluxes(self.weights, self.abscissas, self.qbmm_mgr.indices,
                            self.num_points, self.qbmm_mgr.num_moments,
                            self.qbmm_mgr.num_nodes, self.flux)
             self.rhs = self.flux / self.grid_spacing

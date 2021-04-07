@@ -62,70 +62,53 @@ def quadrature_3d(weights, abscissas, moment_index, num_quadrature_nodes):
         )
     return q
 
-
 @njit
-def flux_quadrature(wts_left, xi_left, wts_right, xi_right, indices, num_moments, num_nodes):
-    # Input: Local weights/abscissas at left/right
-    # Output: Local fluxes at left/right
-
-    flux = np.zeros(num_moments)
+def flux_quadrature_local(wts, xi, indices, num_moments, num_nodes):
+    flux_min = np.zeros((num_moments,num_nodes))
+    flux_max = np.zeros((num_moments,num_nodes))
     for m in range(num_moments):
         for n in range(num_nodes):
-            # compute local fluxes
-            flux_left = (
-                wts_left[n]
-                * xi_left[0, n]**indices[m, 0]
-                * xi_left[1, n]**indices[m, 1]
-
-            )
-            flux_right = (
-                wts_right[n]
-                * xi_right[0, n]**indices[m, 0]
-                * xi_right[1, n]**indices[m, 1]
-
+            flux = (
+                wts[n]
+                * xi[0, n]**indices[m, 0]
+                * xi[1, n]**indices[m, 1]
             )
 
             if len(indices[0]) == 3:
-                flux_left *= (
-                    xi_left[2, n]**indices[m, 2]
-                    )
-                flux_right *= (
-                    xi_right[2, n]**indices[m, 2]
+                flux *= (
+                    xi[2, n]**indices[m, 2]
                     )
 
             # limiter
-            flux_left = flux_left * max(xi_left[0, n], 0)
-            flux_right = flux_right * min(xi_right[0, n], 0)
-            # quadrature
-            flux[m] += flux_left + flux_right
+            flux_min[m,n] = flux * min(xi[0, n], 0)
+            flux_max[m,n] = flux * max(xi[0, n], 0)
         
-    return flux
-        
+    return flux_min, flux_max
 
 @njit
-def compute_fluxes(weights, abscissas, indices, num_points, num_moments, num_nodes, flux):
-    # Input: Global weights, abscissas 
-    # Compute: Global flux quadrature
-    # Output: All domain fluxes
+def sum_fluxes(flux_l, flux_r):
+    return np.sum(flux_l + flux_r,axis=1)
+
+
+@njit
+def domain_get_fluxes(weights, abscissas, indices, num_points, num_moments, num_nodes, flux):
+
+    f_min = np.zeros((num_points,num_moments,num_nodes))
+    f_max = np.zeros((num_points,num_moments,num_nodes))
+    f_sum = np.zeros_like(flux)
+
+    for i_point in range(0,num_points):
+        wts = weights[i_point]
+        xi = abscissas[i_point]
+        f_min[i_point], f_max[i_point] = flux_quadrature_local(
+                        wts, xi, indices, num_moments, num_nodes)
+
+    for i_point in range(1, num_points):
+        f_sum[i_point] = sum_fluxes(f_max[i_point-1], f_min[i_point])
 
     for i_point in range(1, num_points-1):
-        # Compute left flux
-        wts_left = weights[i_point-1]
-        wts_right = weights[i_point]
-        xi_left = abscissas[i_point-1]
-        xi_right = abscissas[i_point]
-        f_left = flux_quadrature(wts_left, xi_left, wts_right, xi_right, 
-                                 indices, num_moments, num_nodes)
-        
-        # Compute right flux
-        wts_left = wts_right
-        xi_left = xi_right
-        wts_right = weights[i_point+1]
-        xi_right = abscissas[i_point+1]
-        f_right = flux_quadrature(wts_left, xi_left, wts_right, xi_right, indices, num_moments, num_nodes)
-        
-        # Reconstruct flux
-        flux[i_point] = f_left - f_right
+        flux[i_point] = f_sum[i_point] - f_sum[i_point+1]
+
 
 @njit
 def domain_project(state, indices, weights, abscissas, num_points, num_coords, num_nodes):
@@ -143,6 +126,7 @@ def domain_project(state, indices, weights, abscissas, num_points, num_coords, n
     # Boundary conditions
     state[0] = projection(weights[-2], abscissas[-2], indices, num_coords, num_nodes)
     state[-1] = projection(weights[1], abscissas[1], indices, num_coords, num_nodes)
+
 
 @njit
 def domain_invert_3d(state, indices, weights, abscissas, num_points, num_coords, num_nodes):

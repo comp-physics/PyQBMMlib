@@ -17,7 +17,6 @@ import sys
 
 sys.path.append("../utils/")
 from stats_util import *
-from euler_util import *
 from jets_util import *
 from pretty_print_util import *
 import cProfile
@@ -57,7 +56,7 @@ def flow_example_3d():
     config["advancer"]["method"] = "RK2"
     config["advancer"]["time_step"] = cfl * dx / U_max
     config["advancer"]["cfl"] = cfl
-    config["advancer"]["final_time"] = 10.
+    config["advancer"]["final_time"] = 0.1
     config["advancer"]["num_steps"] = 10000
     config["advancer"]["num_steps_print"] = 100 #1000
     config["advancer"]["num_steps_write"] = 1000 #1000
@@ -68,22 +67,6 @@ def flow_example_3d():
     advancer = time_advancer(config)
     advancer.initialize_state_jets()
     advancer.run()    
-    
-    
-    # xi_left,  wts_left  = qbmm_mgr.moment_invert( moments_left,  indices )
-    # xi_right, wts_right = qbmm_mgr.moment_invert( moments_right, indices )
-    # print(wts_left)
-    # print(wts_right)
-    # print(xi_left)
-    # print(xi_right)
-    # flux = moment_fluxes( indices, wts_left, wts_right, xi_left, xi_right )
-    #print(flux)
-
-
-    #domain = simulation_domain(config)
-    #domain.initialize_state_uniform(0.1, 1.0)
-
-    return
 
 
 def flow_example_2d():
@@ -130,9 +113,6 @@ def flow_example_2d():
     advancer.initialize_state_jets()
     advancer.run()    
     
-    return
-
-
 
 def advance_example(config):
     """
@@ -163,8 +143,6 @@ def advance_example(config):
 
     # Run
     advancer.run()
-
-    return
 
 
 def advance_example2dp1():
@@ -207,8 +185,6 @@ def advance_example2dp1():
     advancer.initialize_state_gaussian_bivar(mu1, mu2, sigma1, sigma2)
 
     advancer.run()
-
-    return
 
 
 if __name__ == "__main__":
