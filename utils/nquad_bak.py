@@ -10,79 +10,53 @@ def projection(
     moments = np.zeros(indices.shape[0])
     ni = len(indices)
     for i in range(ni):
-        if num_coords == 3:
-            moments[i] = quadrature_3d(
-                weights, abscissas, indices[i], num_nodes
+        moments[i] = quadrature(
+            weights, abscissas, indices[i], num_coords
             )
-        if num_coords == 2:
-            moments[i] = quadrature_2d(
-                weights, abscissas, indices[i], num_nodes
-            )
-        # if num_coords == 1:
-        #     moments[i] = quadrature_1d(weights, abscissas, indices[i])
     return moments
 
 
 @njit
-def quadrature_1d(weights, abscissas, moment_index):
-    """
-    This function computes quadrature in 1D
-    Inputs:
-    - weights: quadrature weights
-    Return:
-    """
-    xi_to_idx = abscissas ** moment_index
-    q = np.dot(weights, xi_to_idx)
-    return q
-
-
-@njit
-def quadrature_2d(weights, abscissas, moment_index, num_quadrature_nodes):
-    q = 0.0
-    for i in range(num_quadrature_nodes):
-        q += (
-            weights[i]
-            * (abscissas[0][i] ** moment_index[0])
-            * (abscissas[1][i] ** moment_index[1])
-        )
-    return q
-
-
-@njit
-def quadrature_3d(weights, abscissas, moment_index, num_quadrature_nodes):
-    q = 0.0
-    for i in range(num_quadrature_nodes):
-        q += (
-            weights[i]
-            * abscissas[0, i] ** moment_index[0]
-            * abscissas[1, i] ** moment_index[1]
-            * abscissas[2, i] ** moment_index[2]
-        )
-    return q
-
-@njit
-def flux_quadrature(wts, xi, indices, num_moments, num_nodes, num_points):
-    flux_min = np.zeros((num_points,num_moments,num_nodes))
-    flux_max = np.zeros((num_points,num_moments,num_nodes))
-    for i in range(num_points):
-        for m in range(num_moments):
-            for n in range(num_nodes):
-                flux = (
-                    wts[i,n]
-                    * xi[i, 0, n]**indices[m, 0]
-                    * xi[i, 1, n]**indices[m, 1]
+def quadrature(weights, abscissas, moment_index, num_coords):
+    if num_coords == 3: 
+        return np.sum(
+                weights[:]
+                * abscissas[0, :] ** moment_index[0]
+                * abscissas[1, :] ** moment_index[1]
+                * abscissas[2, :] ** moment_index[2]
+                )
+    elif num_coords == 2:
+        return np.sum(
+                weights[:]
+                * abscissas[0, :] ** moment_index[0]
+                * abscissas[1, :] ** moment_index[1]
+                )
+    elif num_coords == 1:
+        return np.sum(
+                weights[:]
+                * abscissas[0, :] ** moment_index[0]
                 )
 
-                if len(indices[0]) == 3:
-                    flux *= (
-                        xi[i, 2, n]**indices[m, 2]
-                        )
+@njit
+def quadrature_limited(weights, abscissas, moment_index, num_coords, num_nodes):
+    flux_min = np.zeros(num_nodes)
+    flux_max = np.zeros(num_nodes)
+    for n in range(num_nodes):
+        q = weights[n] * np.prod(abscissas[:,n]**moment_index[:])
+        flux_min[n] = q * min(abscissas[0, n], 0.)
+        flux_max[n] = q * max(abscissas[0, n], 0.)
+    return np.sum(flux_min), np.sum(flux_max)
 
-                flux_min[i,m,n] = flux * min(xi[i, 0, n], 0.)
-                flux_max[i,m,n] = flux * max(xi[i, 0, n], 0.)
-        
+@njit
+def flux_quadrature(weights, abscissas, indices, num_moments, num_nodes, num_points):
+    flux_min = np.zeros((num_points,num_moments))
+    flux_max = np.zeros((num_points,num_moments))
+    num_coords = len(indices[0])
+    for i in range(num_points):
+        for m in range(num_moments):
+            flux_min[i,m], flux_max[i,m] = quadrature_limited(
+                weights[i],abscissas[i],indices[m],num_coords,num_nodes)
     return flux_min, flux_max
-
 
 @njit
 def domain_get_fluxes(weights, abscissas, indices, num_points, num_moments, num_nodes, flux):
@@ -93,7 +67,7 @@ def domain_get_fluxes(weights, abscissas, indices, num_points, num_moments, num_
                     num_nodes, num_points)
 
     f_sum = np.zeros_like(flux)
-    f_sum[1:-1,:] = np.sum(f_max[0:-2,:] + f_min[1:-1,:],axis=2)
+    f_sum[1:-1] = f_max[0:-2] + f_min[1:-1]
     flux[1:-2] = f_sum[1:-2] - f_sum[2:-1]
 
 
