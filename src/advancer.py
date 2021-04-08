@@ -67,6 +67,11 @@ class time_advancer:
         self.output_dir      = config['advancer']['output_dir']
         self.output_id       = config['advancer']['output_id']
         self.write_to        = config['advancer']['write_to']
+
+        if 'project' in config['advancer']:
+            self.project = config['advancer']['project']
+        else:
+            self.project = True
         
         self.domain = simulation_domain(config)
 
@@ -228,7 +233,8 @@ class time_advancer:
         self.stage_k[0] = self.domain.compute_rhs(self.stage_state[0])
         
         # Project back to moment set using computed weights/abscissas
-        self.domain.project(self.stage_state[0])
+        if self.project:
+            self.domain.project(self.stage_state[0])
 
         # Updates
         self.state = self.stage_state[0] + self.time_step * self.stage_k[0]
@@ -246,12 +252,17 @@ class time_advancer:
         # Stage 1:
         self.stage_state[0] = self.state.copy()
         self.stage_k[0] = self.domain.compute_rhs(self.stage_state[0])
-        self.domain.project(self.stage_state[0])
+
+        if self.project:
+            self.domain.project(self.stage_state[0])
+
         self.stage_state[1] = self.stage_state[0] + self.time_step * self.stage_k[0]
         
         # Stage 2:
         self.stage_k[1] = self.domain.compute_rhs(self.stage_state[1])
-        self.domain.project(self.stage_state[1])
+
+        if self.project:
+            self.domain.project(self.stage_state[1])
         
         # Update
         self.state = 0.5*(self.stage_state[0] + self.stage_state[1]

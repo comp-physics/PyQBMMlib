@@ -1,14 +1,12 @@
-import math
 import numpy as np
-from inversion import *
+from inversion import chyqmom9, chyqmom27
 from numba import njit
-from itertools import product
-
 
 @njit
 def projection(
         weights, abscissas, indices,
         num_coords, num_nodes):
+
     moments = np.zeros(indices.shape[0])
     ni = len(indices)
     for i in range(ni):
@@ -63,25 +61,26 @@ def quadrature_3d(weights, abscissas, moment_index, num_quadrature_nodes):
     return q
 
 @njit
-def flux_quadrature_local(wts, xi, indices, num_moments, num_nodes):
-    flux_min = np.zeros((num_moments,num_nodes))
-    flux_max = np.zeros((num_moments,num_nodes))
-    for m in range(num_moments):
-        for n in range(num_nodes):
-            flux = (
-                wts[n]
-                * xi[0, n]**indices[m, 0]
-                * xi[1, n]**indices[m, 1]
-            )
+def flux_quadrature(wts, xi, indices, num_moments, num_nodes, num_points):
+    flux_min = np.zeros((num_points,num_moments,num_nodes))
+    flux_max = np.zeros((num_points,num_moments,num_nodes))
+    for i in range(num_points):
+        for m in range(num_moments):
+            for n in range(num_nodes):
+                flux = (
+                    wts[i,n]
+                    * xi[i, 0, n]**indices[m, 0]
+                    * xi[i, 1, n]**indices[m, 1]
+                )
 
-            if len(indices[0]) == 3:
-                flux *= (
-                    xi[2, n]**indices[m, 2]
-                    )
+                if len(indices[0]) == 3:
+                    flux *= (
+                        xi[i, 2, n]**indices[m, 2]
+                        )
 
-            # limiter
-            flux_min[m,n] = flux * min(xi[0, n], 0)
-            flux_max[m,n] = flux * max(xi[0, n], 0)
+                # limiter
+                flux_min[i,m,n] = flux * min(xi[i, 0, n], 0)
+                flux_max[i,m,n] = flux * max(xi[i, 0, n], 0)
         
     return flux_min, flux_max
 
@@ -89,25 +88,17 @@ def flux_quadrature_local(wts, xi, indices, num_moments, num_nodes):
 def sum_fluxes(flux_l, flux_r):
     return np.sum(flux_l + flux_r,axis=1)
 
-
 @njit
 def domain_get_fluxes(weights, abscissas, indices, num_points, num_moments, num_nodes, flux):
 
-    f_min = np.zeros((num_points,num_moments,num_nodes))
-    f_max = np.zeros((num_points,num_moments,num_nodes))
+    f_min, f_max = flux_quadrature(
+                    weights, abscissas, 
+                    indices, num_moments, 
+                    num_nodes, num_points)
+
     f_sum = np.zeros_like(flux)
-
-    for i_point in range(0,num_points):
-        wts = weights[i_point]
-        xi = abscissas[i_point]
-        f_min[i_point], f_max[i_point] = flux_quadrature_local(
-                        wts, xi, indices, num_moments, num_nodes)
-
-    for i_point in range(1, num_points):
-        f_sum[i_point] = sum_fluxes(f_max[i_point-1], f_min[i_point])
-
-    for i_point in range(1, num_points-1):
-        flux[i_point] = f_sum[i_point] - f_sum[i_point+1]
+    f_sum[1:-1,:] = np.sum(f_max[0:-2,:] + f_min[1:-1,:],axis=2)
+    flux[1:-2] = f_sum[1:-2] - f_sum[2:-1]
 
 
 @njit

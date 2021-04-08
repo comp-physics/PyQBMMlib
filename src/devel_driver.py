@@ -56,7 +56,8 @@ def flow_example_3d():
     config["advancer"]["method"] = "RK2"
     config["advancer"]["time_step"] = cfl * dx / U_max
     config["advancer"]["cfl"] = cfl
-    config["advancer"]["final_time"] = 0.1
+    config["advancer"]["project"] = False
+    config["advancer"]["final_time"] = 1.
     config["advancer"]["num_steps"] = 10000
     config["advancer"]["num_steps_print"] = 100 #1000
     config["advancer"]["num_steps_write"] = 1000 #1000
