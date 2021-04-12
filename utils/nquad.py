@@ -137,48 +137,70 @@ def domain_invert_3d(state, indices, weights, abscissas, num_points, num_coords,
 
     return weights, abscissas
 
-@njit
+# @njit
 def domain_invert_2d(state, indices, weights, abscissas, num_points, num_coords, num_nodes):
+    # Input: State, indices, num_points, num_coords, num_nodes
+    # Output: Weights, abscissas
 
     for i_point in range(1, num_points-1):
-        # print(' ipt', i_point)
-        # print('State before', state[i_point])
         # Invert
         xi, wts = chyqmom9(state[i_point], indices)
         abscissas[i_point] = xi.T
         weights[i_point] = wts
-        # Project
-        state[i_point] = projection(wts, xi.T, indices, num_coords, num_nodes)
-        # print('State after', state[i_point])
-        if np.isnan(abscissas[i_point]).any() or \
-            np.isnan(weights[i_point]).any():
-            ii = np.where(np.isnan(abscissas[i_point]))[0]
-            # print('state',  iii, 'is nan:', state[iii])
-            print('abs:', abscissas[i_point])
-            print('w:',weights[i_point])
-            print('found nan in wts or absc')
-            raise Exception()
 
     # Boundary conditions
-    state[0] = projection(weights[-2], abscissas[-2], indices, num_coords, num_nodes)
-    state[-1] = projection(weights[1], abscissas[1], indices, num_coords, num_nodes)
-
-    # print('get pt0')
-    # print(state[0])
     xi, wts = chyqmom9(state[0], indices)
     abscissas[0] = xi.T
     weights[0] = wts
-    # print('get pt-1')
-    # print(state[-1])
+
     xi, wts = chyqmom9(state[-1], indices)
     abscissas[-1] = xi.T
     weights[-1] = wts
-    # print(' finish update quad 2d')
 
-    print('max = ', np.max(state[:,:]))
-    if np.isnan(state).any():
-        print('found nan')
-        ii = np.where(np.isnan(state))[0]
-        iii = ii[0]
-        print('state',  iii, 'is nan:', state[iii])
-        raise Exception()
+    return weights, abscissas
+
+# @njit
+# def domain_invert_2d(state, indices, weights, abscissas, num_points, num_coords, num_nodes):
+
+#     for i_point in range(1, num_points-1):
+#         # print(' ipt', i_point)
+#         # print('State before', state[i_point])
+#         # Invert
+#         xi, wts = chyqmom9(state[i_point], indices)
+#         abscissas[i_point] = xi.T
+#         weights[i_point] = wts
+#         # Project
+#         state[i_point] = projection(wts, xi.T, indices, num_coords, num_nodes)
+#         # print('State after', state[i_point])
+#         if np.isnan(abscissas[i_point]).any() or \
+#             np.isnan(weights[i_point]).any():
+#             ii = np.where(np.isnan(abscissas[i_point]))[0]
+#             # print('state',  iii, 'is nan:', state[iii])
+#             print('abs:', abscissas[i_point])
+#             print('w:',weights[i_point])
+#             print('found nan in wts or absc')
+#             raise Exception()
+
+#     # Boundary conditions
+#     state[0] = projection(weights[-2], abscissas[-2], indices, num_coords, num_nodes)
+#     state[-1] = projection(weights[1], abscissas[1], indices, num_coords, num_nodes)
+
+#     # print('get pt0')
+#     # print(state[0])
+#     xi, wts = chyqmom9(state[0], indices)
+#     abscissas[0] = xi.T
+#     weights[0] = wts
+#     # print('get pt-1')
+#     # print(state[-1])
+#     xi, wts = chyqmom9(state[-1], indices)
+#     abscissas[-1] = xi.T
+#     weights[-1] = wts
+#     # print(' finish update quad 2d')
+
+#     print('max = ', np.max(state[:,:]))
+#     if np.isnan(state).any():
+#         print('found nan')
+#         ii = np.where(np.isnan(state))[0]
+#         iii = ii[0]
+#         print('state',  iii, 'is nan:', state[iii])
+#         raise Exception()

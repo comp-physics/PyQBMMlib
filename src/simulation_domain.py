@@ -84,26 +84,32 @@ class simulation_domain():
         wts_left, wts_right, xi_left, xi_right = jet_initialize_moments(
                 self.qbmm_mgr.num_coords,
                 self.qbmm_mgr.num_nodes)
+
+        disc_loc = 0.125
+        n_pt = len(self.weights) - 2
+        disc_idx = int(n_pt * disc_loc) - 2
+
         # Populate weights
-        self.weights[:48] = wts_left
-        self.weights[-48:] = wts_right
+        self.weights[:disc_idx] = wts_left
+        self.weights[-disc_idx:] = wts_right
         # Populate abscissas
-        self.abscissas[:48] = xi_left
-        self.abscissas[-48:] = xi_right 
+        self.abscissas[:disc_idx] = xi_left
+        self.abscissas[-disc_idx:] = xi_right 
+
         # Populate state
         moments_left = projection(wts_left, xi_left, self.qbmm_mgr.indices,
                 self.qbmm_mgr.num_coords, self.qbmm_mgr.num_nodes)
         moments_right = projection(wts_right, xi_right, self.qbmm_mgr.indices,
                 self.qbmm_mgr.num_coords, self.qbmm_mgr.num_nodes)
-        state[:48] = moments_left
-        state[-48:] = moments_right
+
+        state[:disc_idx] = moments_left
+        state[-disc_idx:] = moments_right
         state[0] = moments_right
         state[-1] = moments_left
 
-
-        print("Domain: state: ", state[0,:])
-        print("Domain: weights: ", self.weights[0,:])
-        print("Domain: abscissas: ", self.abscissas[0,0,:])
+        # print("Domain: state: ", state[0,:])
+        # print("Domain: weights: ", self.weights[0,:])
+        # print("Domain: abscissas: ", self.abscissas[0,0,:])
         return
 
 
@@ -148,18 +154,20 @@ class simulation_domain():
                             self.weights, self.abscissas,
                             self.num_points, self.qbmm_mgr.num_coords,
                             self.qbmm_mgr.num_nodes)        
-        if self.qbmm_mgr.num_coords == 2:
+        elif self.qbmm_mgr.num_coords == 2:
             domain_invert_2d(state, self.qbmm_mgr.indices, 
                             self.weights, self.abscissas,
                             self.num_points, self.qbmm_mgr.num_coords,
                             self.qbmm_mgr.num_nodes)
+        else:
+            raise NotImplementedError
 
     def project(self, state):
-        if self.qbmm_mgr.num_coords == 3:
-            domain_project(state, self.qbmm_mgr.indices, 
-                        self.weights, self.abscissas,
-                        self.num_points, self.qbmm_mgr.num_coords,
-                        self.qbmm_mgr.num_nodes)        
-        else:
-            raise NotImplementedError('No projection for 2D yet')
+        # if self.qbmm_mgr.num_coords == 3:
+        domain_project(state, self.qbmm_mgr.indices, 
+                    self.weights, self.abscissas,
+                    self.num_points, self.qbmm_mgr.num_coords,
+                    self.qbmm_mgr.num_nodes)        
+        # else:
+        #     raise NotImplementedError('No projection for 2D yet')
 

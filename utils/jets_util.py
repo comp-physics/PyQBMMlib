@@ -130,18 +130,18 @@ def init_2d_jet(num_nodes):
     xi_right[0, 8] = u_right
 
     # Taking from y-direction in 3D jet 
-    # xi_left[1, 0] = u_left
-    # xi_left[1, 2] = u_left
-    xi_left[1, 0] = 1
-    xi_left[1, 2] = 1
+    xi_left[1, 0] = u_left
+    xi_left[1, 2] = u_left
+    # xi_left[1, 0] = 1
+    # xi_left[1, 2] = 1
     xi_left[1, 6] = -1
     xi_left[1, 8] = -1
 
     # Try taking from z-direction instead
-    xi_left[1, 0] = -1
-    xi_left[1, 2] = 1
-    xi_left[1, 6] = -1
-    xi_left[1, 8] = 1
+    # xi_left[1, 0] = -1
+    # xi_left[1, 2] = 1
+    # xi_left[1, 6] = -1
+    # xi_left[1, 8] = 1
 
     xi_right[1, :] = xi_left[1, :]
 
