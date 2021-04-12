@@ -187,8 +187,8 @@ def hyqmom2(moments):
 
     if c2 < 10 ** (-12):
         c2 = 10 ** (-12)
-    x[0] = bx - math.sqrt(c2)
-    x[1] = bx + math.sqrt(c2)
+    x[0] = bx - np.sqrt(c2)
+    x[1] = bx + np.sqrt(c2)
 
     return x, w
 
@@ -205,7 +205,7 @@ def hyqmom3(moments, max_skewness=30, checks=True):
     :return: Abscissas, weights
     :rtype: array like
     """
-
+    # print('moments in:', moments)
     n = 3
     etasmall = 10 ** (-10)
     verysmall = 10 ** (-14)
@@ -237,13 +237,13 @@ def hyqmom3(moments, max_skewness=30, checks=True):
             realizable = c2 * c4 - c2 ** 3 - c3 ** 2
             if realizable < 0:
                 if c2 >= etasmall:
-                    q = c3 / math.sqrt(c2) / c2
+                    q = c3 / np.sqrt(c2) / c2
                     eta = c4 / c2 / c2
                     if abs(q) > verysmall:
                         slope = (eta - 3) / q
                         det = 8 + slope ** 2
-                        qp = 0.5 * (slope + math.sqrt(det))
-                        qm = 0.5 * (slope - math.sqrt(det))
+                        qp = 0.5 * (slope + np.sqrt(det))
+                        qm = 0.5 * (slope - np.sqrt(det))
                         if q > 0:
                             q = qp
                         else:
@@ -252,7 +252,7 @@ def hyqmom3(moments, max_skewness=30, checks=True):
                         q = 0
 
                     eta = q ** 2 + 1
-                    c3 = q * math.sqrt(c2) * c2
+                    c3 = q * np.sqrt(c2) * c2
                     c4 = eta * c2 ** 2
                     if realizable < -(10.0 ** (-6)):
                         raise Exception("Error: c4 small in HYQMOM3")
@@ -260,14 +260,16 @@ def hyqmom3(moments, max_skewness=30, checks=True):
                     c3 = 0.0
                     c4 = c2 ** 2.0
 
-    scale = math.sqrt(c2)
+    scale = np.sqrt(c2)
     if checks and c2 < etasmall:
         q = 0
         eta = 1
     else:
-        q = c3 / math.sqrt(c2) / c2
+        q = c3 / np.sqrt(c2) / c2
         eta = c4 / c2 / c2
 
+    # print('q=',q)
+    # print('maxskew=',max_skewness)
     if q ** 2 > max_skewness ** 2:
         slope = (eta - 3) / q
         if q > 0:
@@ -280,11 +282,11 @@ def hyqmom3(moments, max_skewness=30, checks=True):
             if realizable < 0:
                 eta = 1 + q ** 2
 
-    xps[0] = (q - math.sqrt(4 * eta - 3 * q ** 2)) / 2.0
+    xps[0] = (q - np.sqrt(4 * eta - 3 * q ** 2)) / 2.0
     xps[1] = 0.0
-    xps[2] = (q + math.sqrt(4 * eta - 3 * q ** 2)) / 2.0
+    xps[2] = (q + np.sqrt(4 * eta - 3 * q ** 2)) / 2.0
 
-    dem = 1.0 / math.sqrt(4 * eta - 3 * q ** 2)
+    dem = 1.0 / np.sqrt(4 * eta - 3 * q ** 2)
     prod = -xps[0] * xps[2]
     prod = max(prod, 1 + realsmall)
 
@@ -298,7 +300,7 @@ def hyqmom3(moments, max_skewness=30, checks=True):
         raise Exception("Error: Negative weight in HYQMOM")
 
     scales = np.sum(rho * xps ** 2) / np.sum(rho)
-    xp = xps * scale / math.sqrt(scales)
+    xp = xps * scale / np.sqrt(scales)
 
     w = moments[0] * rho
     x = xp
@@ -475,8 +477,8 @@ def chyqmom9(moments, indices, max_skewness=30, checks=True):
                 if abs(q) > verysmall:
                     slope = (eta - 3.0) / q
                     det = 8.0 + slope ** 2.0
-                    qp = 0.5 * (slope + math.sqrt(det))
-                    qm = 0.5 * (slope - math.sqrt(det))
+                    qp = 0.5 * (slope + np.sqrt(det))
+                    qm = 0.5 * (slope - np.sqrt(det))
                     if q > 0:
                         q = qp
                     else:
@@ -646,8 +648,8 @@ def chyqmom27(moments, indices, max_skewness=30, checks=True):
         if abs(q) > verysmall:
             slope = (eta - 3.0) / q
             det = 8 + slope ** 2
-            qp = 0.5 * (slope + math.sqrt(det))
-            qm = 0.5 * (slope - math.sqrt(det))
+            qp = 0.5 * (slope + np.sqrt(det))
+            qm = 0.5 * (slope - np.sqrt(det))
             if q > 0:
                 q = qp
             else:
@@ -670,8 +672,8 @@ def chyqmom27(moments, indices, max_skewness=30, checks=True):
         if abs(q) > verysmall:
             slope = (eta - 3) / q
             det = 8 + slope ** 2
-            qp = 0.5 * (slope + math.sqrt(det))
-            qm = 0.5 * (slope - math.sqrt(det))
+            qp = 0.5 * (slope + np.sqrt(det))
+            qm = 0.5 * (slope - np.sqrt(det))
             if sign(q) == 1:
                 q = qp
             else:
@@ -693,8 +695,8 @@ def chyqmom27(moments, indices, max_skewness=30, checks=True):
         if abs(q) > verysmall:
             slope = (eta - 3) / q
             det = 8 + slope ** 2
-            qp = 0.5 * (slope + math.sqrt(det))
-            qm = 0.5 * (slope - math.sqrt(det))
+            qp = 0.5 * (slope + np.sqrt(det))
+            qm = 0.5 * (slope - np.sqrt(det))
             if sign(q) == 1:
                 q = qp
             else:
@@ -716,8 +718,8 @@ def chyqmom27(moments, indices, max_skewness=30, checks=True):
         if abs(q) > verysmall:
             slope = (eta - 3) / q
             det = 8 + slope ** 2
-            qp = 0.5 * (slope + math.sqrt(det))
-            qm = 0.5 * (slope - math.sqrt(det))
+            qp = 0.5 * (slope + np.sqrt(det))
+            qm = 0.5 * (slope - np.sqrt(det))
             if sign(q) == 1:
                 q = qp
             else:
@@ -951,8 +953,8 @@ def chyqmom27(moments, indices, max_skewness=30, checks=True):
         yp31 = Y4[6] - Yf[2]
         yp32 = Y4[7] - Yf[2]
         yp33 = Y4[8] - Yf[2]
-        scale1 = math.sqrt(c200)
-        scale2 = math.sqrt(c020)
+        scale1 = np.sqrt(c200)
+        scale2 = np.sqrt(c020)
         Rho1 = np.diag(rho)
         Rho2 = np.array(
             [[rho11, rho12, rho13], [rho21, rho22, rho23], [rho31, rho32, rho33]]
@@ -976,10 +978,10 @@ def chyqmom27(moments, indices, max_skewness=30, checks=True):
         c101s = c101 / scale1
         c011s = c011 / scale2
         if c101s ** 2 >= c002 * (1 - small):
-            c101s = sign(c101s) * math.sqrt(c002)
+            c101s = sign(c101s) * np.sqrt(c002)
         elif c011s ** 2 >= c002 * (1 - small):
             c110s = c110 / scale1 / scale2
-            c011s = sign(c011s) * math.sqrt(c002)
+            c011s = sign(c011s) * np.sqrt(c002)
             c101s = c110s * c011s
 
         b0 = 0
@@ -1005,8 +1007,8 @@ def chyqmom27(moments, indices, max_skewness=30, checks=True):
                 if abs(q) > verysmall:
                     slope = (eta - 3) / q
                     det = 8 + slope ** 2
-                    qp = 0.5 * (slope + math.sqrt(det))
-                    qm = 0.5 * (slope - math.sqrt(det))
+                    qp = 0.5 * (slope + np.sqrt(det))
+                    qm = 0.5 * (slope - np.sqrt(det))
                     if sign(q) == 1:
                         q = qp
                     else:

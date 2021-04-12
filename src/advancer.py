@@ -313,6 +313,7 @@ class time_advancer:
         """
         # print('before t_step: ', self.time_step)
         self.time_step = self.cfl*self.domain.grid_spacing/self.domain.max_abscissa()
+        # print(' biggest abscissa ', self.domain.max_abscissa())
         # print('after  t_step: ', self.time_step)
         return
     

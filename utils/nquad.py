@@ -1,5 +1,5 @@
 import numpy as np
-from inversion import chyqmom9, chyqmom27
+from inversion import hyqmom3, chyqmom9, chyqmom27
 from numba import njit
 
 @njit
@@ -18,21 +18,25 @@ def projection(
             moments[i] = quadrature_2d(
                 weights, abscissas, indices[i], num_nodes
             )
-        # if num_coords == 1:
-        #     moments[i] = quadrature_1d(weights, abscissas, indices[i])
+        if num_coords == 1:
+            moments[i] = quadrature_1d(
+                weights, abscissas, indices[i], num_nodes
+            )
     return moments
 
 
 @njit
-def quadrature_1d(weights, abscissas, moment_index):
-    """
-    This function computes quadrature in 1D
-    Inputs:
-    - weights: quadrature weights
-    Return:
-    """
-    xi_to_idx = abscissas ** moment_index
-    q = np.dot(weights, xi_to_idx)
+def quadrature_1d(weights, abscissas, moment_index, num_quadrature_nodes):
+    # xi_to_idx = abscissas ** moment_index
+    # q = np.dot(weights, xi_to_idx)
+    # return q
+
+    q = 0.0
+    for i in range(num_quadrature_nodes):
+        q += (
+            weights[i]
+            * (abscissas[0][i] ** moment_index[0])
+        )
     return q
 
 
@@ -60,6 +64,7 @@ def quadrature_3d(weights, abscissas, moment_index, num_quadrature_nodes):
         )
     return q
 
+
 @njit
 def flux_quadrature(wts, xi, indices, num_moments, num_nodes, num_points):
     flux_min = np.zeros((num_points,num_moments,num_nodes))
@@ -70,11 +75,16 @@ def flux_quadrature(wts, xi, indices, num_moments, num_nodes, num_points):
                 flux = (
                     wts[i,n]
                     * xi[i, 0, n]**indices[m, 0]
-                    * xi[i, 1, n]**indices[m, 1]
                 )
+
+                if len(indices[0]) == 2:
+                    flux *= (
+                        xi[i, 1, n]**indices[m, 1]
+                        )
 
                 if len(indices[0]) == 3:
                     flux *= (
+                        xi[i, 1, n]**indices[m, 1] *
                         xi[i, 2, n]**indices[m, 2]
                         )
 
@@ -154,6 +164,28 @@ def domain_invert_2d(state, indices, weights, abscissas, num_points, num_coords,
     weights[0] = wts
 
     xi, wts = chyqmom9(state[-1], indices)
+    abscissas[-1] = xi.T
+    weights[-1] = wts
+
+    return weights, abscissas
+
+# @njit
+def domain_invert_1d(state, indices, weights, abscissas, num_points, num_coords, num_nodes):
+    # Input: State, indices, num_points, num_coords, num_nodes
+    # Output: Weights, abscissas
+
+    for i_point in range(1, num_points-1):
+        # Invert
+        xi, wts = hyqmom3(state[i_point])
+        abscissas[i_point] = xi.T
+        weights[i_point] = wts
+
+    # Boundary conditions
+    xi, wts = hyqmom3(state[0])
+    abscissas[0] = xi.T
+    weights[0] = wts
+
+    xi, wts = hyqmom3(state[-1])
     abscissas[-1] = xi.T
     weights[-1] = wts
 

@@ -11,6 +11,8 @@ def jet_initialize_moments(num_coords,num_nodes):
         return init_3d_jet(num_nodes)
     elif num_coords == 2:
         return init_2d_jet(num_nodes)
+    elif num_coords == 1:
+        return init_1d_jet(num_nodes)
 
 def init_3d_jet(num_nodes):
     wts_left = np.zeros(num_nodes)
@@ -155,5 +157,32 @@ def init_2d_jet(num_nodes):
     # xi_left[:, :] += np.random.rand()*1e-7
     # wts_left[:] += np.random.rand()*1e-7
     # wts_right[ :] += np.random.rand()*1e-7
+
+    return wts_left, wts_right, xi_left, xi_right
+
+
+def init_1d_jet(num_nodes):
+    wts_left = np.zeros(num_nodes)
+    wts_right = np.zeros(num_nodes)
+    xi_left = np.zeros([1, num_nodes])
+    xi_right = np.zeros([1, num_nodes])
+
+    w_left = 1
+    w_right = 0.5
+
+    u_left = 0.01
+    u_right = 1
+
+    wts_left[0] = w_left/2.
+    wts_left[2] = w_left/2.
+
+    wts_right[0] = w_right/2.
+    wts_right[2] = w_right/2.
+
+    xi_left[0, 0] = u_left
+    xi_left[0, 2] = u_left
+
+    xi_right[0, 0] = u_right
+    xi_right[0, 2] = u_right
 
     return wts_left, wts_right, xi_left, xi_right

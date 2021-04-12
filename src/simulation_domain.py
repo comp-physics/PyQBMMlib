@@ -88,6 +88,9 @@ class simulation_domain():
         disc_loc = 0.125
         n_pt = len(self.weights) - 2
         disc_idx = int(n_pt * disc_loc) - 2
+        print('Dislocation index is ', disc_idx, ' out of ', n_pt, ' points')
+        print("abscissas left: ", xi_left[0,:])
+        print("abscissas right: ", xi_right[0,:])
 
         # Populate weights
         self.weights[:disc_idx] = wts_left
@@ -109,7 +112,9 @@ class simulation_domain():
 
         # print("Domain: state: ", state[0,:])
         # print("Domain: weights: ", self.weights[0,:])
-        # print("Domain: abscissas: ", self.abscissas[0,0,:])
+        # print("Domain: abscissas: ", self.abscissas[:,0,:])
+        # raise Exception
+
         return
 
 
@@ -132,6 +137,8 @@ class simulation_domain():
                            self.num_points, self.qbmm_mgr.num_moments,
                            self.qbmm_mgr.num_nodes, self.flux)
             self.rhs = self.flux / self.grid_spacing
+            if np.isnan(np.sum(self.rhs)):
+                raise Exception('NaN in RHS')
         elif self.qbmm_mgr.internal_dynamics:
             internal_rhs = np.zeros([self.num_points, self.qbmm_mgr.num_moments])
             self.qbmm_mgr.compute_rhs(state, internal_rhs)
@@ -159,15 +166,16 @@ class simulation_domain():
                             self.weights, self.abscissas,
                             self.num_points, self.qbmm_mgr.num_coords,
                             self.qbmm_mgr.num_nodes)
+        elif self.qbmm_mgr.num_coords == 1:
+            domain_invert_1d(state, self.qbmm_mgr.indices, 
+                            self.weights, self.abscissas,
+                            self.num_points, self.qbmm_mgr.num_coords,
+                            self.qbmm_mgr.num_nodes)
         else:
             raise NotImplementedError
 
     def project(self, state):
-        # if self.qbmm_mgr.num_coords == 3:
         domain_project(state, self.qbmm_mgr.indices, 
                     self.weights, self.abscissas,
                     self.num_points, self.qbmm_mgr.num_coords,
                     self.qbmm_mgr.num_nodes)        
-        # else:
-        #     raise NotImplementedError('No projection for 2D yet')
-

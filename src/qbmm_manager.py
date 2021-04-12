@@ -197,12 +197,20 @@ class qbmm_manager:
             if self.method == "qmom":
                 self.indices = np.arange(2 * self.num_nodes)
             elif self.method == "hyqmom":
-                self.indices = np.arange(2 * (self.num_nodes - 1) + 1)
+                # temp = np.arange(2 * (self.num_nodes - 1) + 1)
+                if self.num_nodes == 2:
+                    self.indices = np.array([[0],[1],[2]])
+                elif self.num_nodes == 3:
+                    self.indices = np.array([[0],[1],[2],[3],[4]])
+                else:
+                    raise NotImplementedError
+
             #
             self.num_moments = len(self.indices)
             #
             message = "qbmm_mgr: moment_indices: "
-            f_array_pretty_print(message, "indices", self.indices)
+            # f_array_pretty_print(message, "indices", self.indices)
+            print('self.indices',self.indices)
         elif self.num_coords == 2:
             #
             if self.method == "chyqmom":
