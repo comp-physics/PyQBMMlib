@@ -17,7 +17,7 @@ def init_moment_10(size: int):
 
 if __name__ == "__main__":
     res_file_name = 'result_numba.csv'
-    max_input_size_mag = 6
+    max_input_size_mag = 7
     num_points = 200
     trial = 5
     config.THREADING_LAYER = 'threadsafe'
@@ -25,7 +25,7 @@ if __name__ == "__main__":
     
     result = np.zeros((num_points, trial + 1))
 
-    for idx, in_size in enumerate(np.logspace(0, max_input_size_mag, num=num_points)):
+    for idx, in_size in enumerate(np.logspace(1, max_input_size_mag, num=num_points)):
 
         this_result = np.zeros(trial + 1)
         this_result[0] = int(in_size)
