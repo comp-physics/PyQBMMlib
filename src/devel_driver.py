@@ -32,7 +32,7 @@ def flow_example_3d():
     # In development
 
     cfl = 0.4
-    N = 400
+    N = 50000
     dx = 1./N
     U_max = 1
     
@@ -60,7 +60,7 @@ def flow_example_3d():
     # config["advancer"]["project"] = False
     config["advancer"]["final_time"] = 0.1
     config["advancer"]["num_steps"] = 10000
-    config["advancer"]["num_steps_print"] = 100 #1000
+    config["advancer"]["num_steps_print"] = 1 #1000
     config["advancer"]["num_steps_write"] = 1000 #1000
     config["advancer"]["output_dir"] = "output/"
     config["advancer"]["output_id"] = "example_flow_compiled"

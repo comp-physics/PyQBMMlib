@@ -1,6 +1,6 @@
 import numpy as np
 from inversion import hyqmom3, chyqmom9, chyqmom27
-from numba import njit
+from numba import njit, prange
 
 @njit
 def projection(
@@ -65,11 +65,11 @@ def quadrature_3d(weights, abscissas, moment_index, num_quadrature_nodes):
     return q
 
 
-@njit
+@njit(parallel=True)
 def flux_quadrature(wts, xi, indices, num_moments, num_nodes, num_points):
     flux_min = np.zeros((num_points,num_moments,num_nodes))
     flux_max = np.zeros((num_points,num_moments,num_nodes))
-    for i in range(num_points):
+    for i in prange(num_points):
         for m in range(num_moments):
             for n in range(num_nodes):
                 flux = (
@@ -107,12 +107,12 @@ def domain_get_fluxes(weights, abscissas, indices, num_points, num_moments, num_
     flux[1:-2] = f_sum[1:-2] - f_sum[2:-1]
 
 
-@njit
+@njit(parallel=True)
 def domain_project(state, indices, weights, abscissas, num_points, num_coords, num_nodes):
     # Input: Weights, abscissas, indices, num_points, num_coords, num_nodes
     # Output: State
 
-    for i_point in range(1, num_points-1):
+    for i_point in prange(1, num_points-1):
         state[i_point] = projection(
                 weights[i_point], 
                 abscissas[i_point], 
@@ -125,12 +125,12 @@ def domain_project(state, indices, weights, abscissas, num_points, num_coords, n
     state[-1] = projection(weights[1], abscissas[1], indices, num_coords, num_nodes)
 
 
-@njit
+@njit(parallel=True)
 def domain_invert_3d(state, indices, weights, abscissas, num_points, num_coords, num_nodes):
     # Input: State, indices, num_points, num_coords, num_nodes
     # Output: Weights, abscissas
 
-    for i_point in range(1, num_points-1):
+    for i_point in prange(1, num_points-1):
         # Invert
         xi, wts = chyqmom27(state[i_point], indices)
         abscissas[i_point] = xi.T
