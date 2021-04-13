@@ -19,3 +19,7 @@ build
 *.egg-info
 *.egg
 dist
+
+# data 
+*.csv
+*.png
