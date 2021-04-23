@@ -26,9 +26,15 @@ must also include rest of the moment elements in the transaction, which the thre
 need at this time. This results in a wasted data transfer, and will increase the number of transaction
 required. 
 
+.. image:: fig/col-major.PNG
+  :width: 600
+
 In the GPU implementations, input moments are formatted such that each column is a single moment, 
 and the number of columns are the number of moments. In memory, this format will ensure that the first 
 element of all moments are consecutive to one another. During execution, each GPU thread will request 
 the first element of each moment, and since all first elements are consecutive in memory, the GPU can 
 contain them in a single transaction. This results in better performance, as the number of total 
 transactions is reduced. 
+
+.. image:: fig/row-major.PNG
+  :width: 600

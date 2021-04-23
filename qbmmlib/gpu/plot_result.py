@@ -91,9 +91,14 @@ def plot_compared_result(data1, data2):
 
 if __name__ == "__main__":
 
-    data1 = np.genfromtxt('chyqmom4_result_1gpu.csv', delimiter=',')
-    data2 = np.genfromtxt('chyqmom4_result_2gpu.csv', delimiter=',')
-    data3 = np.genfromtxt('result_numba.csv', delimiter=',')
+    data1 = np.genfromtxt('bridges_1gpu.csv', delimiter=',')
+    data2 = np.genfromtxt('bridges_2gpu.csv', delimiter=',')
+    data3 = np.genfromtxt('bridges_3gpu.csv', delimiter=',')
+    data4 = np.genfromtxt('bridges_4gpu.csv', delimiter=',')
+    data5 = np.genfromtxt('bridges_5gpu.csv', delimiter=',')
+    data6 = np.genfromtxt('bridges_6gpu.csv', delimiter=',')
+    data7 = np.genfromtxt('bridges_7gpu.csv', delimiter=',')
+    data8 = np.genfromtxt('bridges_8gpu.csv', delimiter=',')
     # start plotting
     # Top: time result. Bot: omp_time / cuda_time
     fig, ax = plt.subplots(2, 1, gridspec_kw={'height_ratios': [3, 1]})
@@ -104,22 +109,48 @@ if __name__ == "__main__":
     y1 = np.minimum(data1[:, 1], data1[:, 2], data1[:, 3])
     x2 = data2[:, 0]
     y2 = np.minimum(data2[:, 1], data2[:, 2], np.minimum(data2[:, 3], data2[:, 4], data2[:, 5]))
-    # x3 = data3[:, 0]
-    # y3 = np.minimum(data3[:, 1], data3[:, 2], np.minimum(data3[:, 3], data3[:, 4], data3[:, 5]))
-
+    x3 = data3[:, 0]
+    y3 = np.minimum(data3[:, 1], data3[:, 2], np.minimum(data3[:, 3], data3[:, 4], data3[:, 5]))
+    x4 = data4[:, 0]
+    y4 = np.minimum(data4[:, 1], data4[:, 2], np.minimum(data4[:, 3], data4[:, 4], data4[:, 5]))
+    x5 = data5[:, 0]
+    y5 = np.minimum(data5[:, 1], data5[:, 2], np.minimum(data5[:, 3], data5[:, 4], data5[:, 5]))
+    x6 = data6[:, 0]
+    y6 = np.minimum(data6[:, 1], data6[:, 2], np.minimum(data6[:, 3], data6[:, 4], data6[:, 5]))
+    x7 = data7[:, 0]
+    y7 = np.minimum(data7[:, 1], data7[:, 2], np.minimum(data7[:, 3], data7[:, 4], data7[:, 5]))
+    x8 = data8[:, 0]
+    y8 = np.minimum(data8[:, 1], data8[:, 2], np.minimum(data8[:, 3], data8[:, 4], data8[:, 5]))
     # time data
     ax[0].plot(x1, y1, label='1 GPU', color='b')
-    ax[0].plot(x2, y2, label='2 GPU', color='r')
-    # ax[0].plot(x3, y3, label='numba 24 cores', color='g')
+    ax[0].plot(x2, y2, label='2 GPU', color='g')
+    ax[0].plot(x3, y3, label='3 GPU', color='r')
+    ax[0].plot(x4, y4, label='4 GPU', color='c')
+    ax[0].plot(x5, y5, label='5 GPU', color='m')
+    ax[0].plot(x6, y6, label='6 GPU', color='y')
+    ax[0].plot(x7, y7, label='7 GPU', color='k')
+    ax[0].plot(x8, y8, label='8 GPU', color='k')
     # fitted lined
-    m_1, b_1 = np.polyfit(np.log(x1[fit_lb:]), np.log(y1[fit_lb:]), 1)
-    m_2, b_2 = np.polyfit(np.log(x2[fit_lb:]), np.log(y2[fit_lb:]), 1)
-    ax[0].plot(x1, np.exp(m_1*np.log(x1) + b_1), color='b', linestyle='dotted')
-    ax[0].plot(x2, np.exp(m_2*np.log(x2) + b_2), color='r', linestyle='dotted')
+    # m_1, b_1 = np.polyfit(np.log(x1[fit_lb:]), np.log(y1[fit_lb:]), 1)
+    # m_2, b_2 = np.polyfit(np.log(x2[fit_lb:]), np.log(y2[fit_lb:]), 1)
+    # ax[0].plot(x1, np.exp(m_1*np.log(x1) + b_1), color='b', linestyle='dotted')
+    # ax[0].plot(x2, np.exp(m_2*np.log(x2) + b_2), color='r', linestyle='dotted')
 
-    ax[1].plot(x1, y1/y2, label='ratio 1GPU/2GPU')
-    ax[1].plot(x1, y2/y1, label='ratio 1GPU/2GPU')
-    # ax[1].plot(x1, y3/y2, label='ratio numba/2GPU')
+    ax[1].plot(x1, y1/y2, label='ratio 1GPU/2GPU', color='g')
+    ax[1].plot(x1, y1/y3, label='ratio 1GPU/3GPU', color='r')
+    ax[1].plot(x1, y1/y4, label='ratio 1GPU/4GPU', color='c')
+    ax[1].plot(x1, y1/y5, label='ratio 1GPU/5GPU', color='m')
+    ax[1].plot(x1, y1/y6, label='ratio 1GPU/6GPU', color='y')
+    ax[1].plot(x1, y1/y7, label='ratio 1GPU/7GPU', color='k')
+    ax[1].plot(x1, y1/y8, label='ratio 1GPU/8GPU', color='k')
+
+    print((y1/y2)[-1])
+    print((y1/y3)[-1])
+    print((y1/y4)[-1])
+    print((y1/y5)[-1])
+    print((y1/y6)[-1])
+    print((y1/y7)[-1])
+    print((y1/y8)[-1])
 
     ax[0].grid(True)
     ax[0].set_xscale('log')

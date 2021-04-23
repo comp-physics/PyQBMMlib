@@ -17,7 +17,9 @@ Later, the GPU code are implemented in python with the package `pyCuda`
 .. toctree::
    :maxdepth: 2
 
+   gpu-io.rst
    gpu-mem.rst
    gpu-spec.rst
    multi-gpu.rst
+   results.rst
 

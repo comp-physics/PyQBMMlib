@@ -20,7 +20,6 @@ sys.path.insert(0, os.path.abspath("../qbmmlib/src/"))
 sys.path.insert(0, os.path.abspath("../qbmmlib/utils/"))
 sys.path.insert(0, os.path.abspath("../qbmmlib/test/"))
 
-
 # -- Project information -----------------------------------------------------
 
 project = u"PyQBMMlib"
@@ -84,7 +83,7 @@ pygments_style = None
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "classic"
+html_theme = 'sphinx_rtd_theme'
 # html_theme = 'alabaster'
 
 # Theme options are theme-specific and customize the look and feel of a theme
@@ -194,3 +193,4 @@ intersphinx_mapping = {"https://docs.python.org/": None}
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
+
