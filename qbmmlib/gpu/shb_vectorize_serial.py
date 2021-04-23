@@ -3,7 +3,6 @@ import sys
 import time
 import psutil
 import qbmmlib.utils.stats_util as stats
-from numba import njit
 from inversion_vectorized import hyqmom2, hyqmom3, chyqmom4, chyqmom9
 
 # from numba import config, threading_layer, prange, objmode
@@ -31,7 +30,7 @@ if __name__ == "__main__":
     oned = False
     twod = True
 
-    Npt = 3
+    Npt = 2
 
     if oned:
         print('Algorithm: HyQMOM%i ' % (Npt))
