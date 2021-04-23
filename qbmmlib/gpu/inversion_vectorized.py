@@ -1,7 +1,7 @@
 from numba import config, njit, threading_layer, prange, objmode
 import numpy as np
 
-@njit
+@njit(parallel=True)
 def hyqmom2(moments, N, w, x):
     bx = np.zeros(N)
     d2 = np.zeros(N)
@@ -17,7 +17,7 @@ def hyqmom2(moments, N, w, x):
     x[:,0] = bx[:] - c[:]
     x[:,1] = bx[:] + c[:]
 
-@njit
+@njit(parallel=True)
 def hyqmom3(moments, N, w, x):
     w = np.zeros((N,3))
     x = np.zeros((N,3))
@@ -74,7 +74,7 @@ def hyqmom3(moments, N, w, x):
         w[:,i] = moments[:,0] * rho[:,i]
         x[:,i] = xp[:,i] + bx[:]
 
-@njit
+@njit(parallel=True)
 def chyqmom4(moments, N):
     x = np.zeros((N,4))
     y = np.zeros((N,4))
@@ -159,7 +159,7 @@ def chyqmom4(moments, N):
     w[:,3] = mom00[:] * rho[:,1] * rho22[:]
 
 
-@njit
+@njit(parallel=True)
 def chyqmom9(moments, N):
     x = np.zeros((N,9))
     y = np.zeros((N,9))

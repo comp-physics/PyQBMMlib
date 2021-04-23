@@ -74,6 +74,7 @@ HYQMOM = SourceModule('''
             }
             x[idx] = (moments_local[1]/moments_local[0]) - sqrt(C2);
             x[size + idx] = (moments_local[1]/moments_local[0]) + sqrt(C2);
+            printf("[hyqmom2] x[%d] = %f, x[%d] = %f \\n", idx, x[idx], size+idx, x[size+idx]);
             idx+= blockDim.x*gridDim.x;
         }
     }

@@ -405,7 +405,6 @@ def init_moment_10(size: int):
     
     return moments
 
-
 if __name__ == '__main__':
     num_moments = 10000000
     batch_size = 4
