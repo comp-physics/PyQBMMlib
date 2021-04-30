@@ -48,7 +48,10 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.inheritance_diagram",
     "sphinx.ext.napoleon",
+    "nbsphinx"
 ]
+
+autodoc_mock_imports = ["qbmmlib.gpu.chyqmom_kernel"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]

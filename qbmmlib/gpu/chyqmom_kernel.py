@@ -1,10 +1,10 @@
 ## GPU kernel source code
-
 import numpy as np
 
 # size of 32bit float in bytes 
 SIZEOF_FLOAT = np.int32(np.dtype(np.float32).itemsize)
 
+# number of helper functions used by GPU kernels
 HELPER = '''
     // set a segment of memory to a specific value
     __global__ void float_value_set(float *addr, float value, int size, int offset) {
@@ -26,6 +26,7 @@ HELPER = '''
     }
 '''
 
+# Hyqmom kernels
 HYQMOM = '''
     __global__ void hyqmom3(float moments[], float x[], float w[], const int size){
         const int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -102,6 +103,7 @@ HYQMOM = '''
     }
 '''
 
+# Chyqmom4 specific kernels
 CHYQMOM4 = '''
     // a helper function for calculating nth moment 
     __device__ float sum_pow(float rho[], float yf[], float n, const int len) {
@@ -238,6 +240,7 @@ CHYQMOM4 = '''
     }
 '''
 
+# Chyqmom9 specific kernels
 CHYQMOM9 = '''
     // a helper function for calculating nth moment 
     __device__ float sum_pow(float rho[], float yf[], float n, const int len) {

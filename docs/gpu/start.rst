@@ -13,7 +13,6 @@ with their C counterparts. These experiments are contained in
 
 Later, the GPU code are implemented in python with the package `pyCuda`
 
-
 .. toctree::
    :maxdepth: 2
 
@@ -22,4 +21,3 @@ Later, the GPU code are implemented in python with the package `pyCuda`
    gpu-spec.rst
    multi-gpu.rst
    results.rst
-

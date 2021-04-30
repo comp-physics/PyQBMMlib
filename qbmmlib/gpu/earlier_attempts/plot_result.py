@@ -88,8 +88,7 @@ def plot_compared_result(data1, data2):
 
     plt.show()
 
-
-if __name__ == "__main__":
+def plot_multi_bridges():
 
     data1 = np.genfromtxt('bridges_1gpu.csv', delimiter=',')
     data2 = np.genfromtxt('bridges_2gpu.csv', delimiter=',')
@@ -164,3 +163,87 @@ if __name__ == "__main__":
     ax[1].set_xlabel('Input size')
 
     plt.savefig('chyqmom4_multi.png', dpi=600)
+
+if __name__ == "__main__":
+
+    data1 = np.genfromtxt('chyqmom9_result_1gpu.csv', delimiter=',')
+    data2 = np.genfromtxt('chyqmom9_result_2gpu.csv', delimiter=',')
+    data3 = np.genfromtxt('chyqmom9_result_3gpu.csv', delimiter=',')
+    data_numba = np.genfromtxt('result_numba.csv', delimiter=',')
+    # start plotting
+    # Top: time result. 
+    # Bot: omp_time / cuda_time
+    fig, ax = plt.subplots(2, 1, gridspec_kw={'height_ratios': [3, 1]})
+    N = len(data1[1:, 2])
+    fit_lb = int(np.ceil(5*N/7))
+
+    x1 =  data1[:, 0]
+    y1 = np.minimum(data1[:, 1], data1[:, 2], data1[:, 3])
+    x2 = data2[:, 0]
+    y2 = np.minimum(data2[:, 1], data2[:, 2], np.minimum(data2[:, 3], data2[:, 4], data2[:, 5]))
+    x3 = data3[:, 0]
+    y3 = np.minimum(data3[:, 1], data3[:, 2], np.minimum(data3[:, 3], data3[:, 4], data3[:, 5]))
+    # time data
+    ax[0].plot(x1, y1, label='1 GPU', color='b')
+    ax[0].plot(x2, y2, label='2 GPU', color='g')
+    ax[0].plot(x3, y3, label='3 GPU', color='c')
+    # fitted lined
+    # m_1, b_1 = np.polyfit(np.log(x1[fit_lb:]), np.log(y1[fit_lb:]), 1)
+    # m_2, b_2 = np.polyfit(np.log(x2[fit_lb:]), np.log(y2[fit_lb:]), 1)
+    # ax[0].plot(x1, np.exp(m_1*np.log(x1) + b_1), color='b', linestyle='dotted')
+    # ax[0].plot(x2, np.exp(m_2*np.log(x2) + b_2), color='r', linestyle='dotted')
+
+    ax[1].plot(x1, y1/y2, label='ratio 1GPU/2GPU', color='g')
+    ax[1].plot(x1, y1/y3, label='ratio 1GPU/3GPU', color='c')
+
+    # print((y1/y2)[-1])
+    # print((y1/y3)[-1])
+    # print((y1/y4)[-1])
+    # print((y1/y5)[-1])
+    # print((y1/y6)[-1])
+    # print((y1/y7)[-1])
+    # print((y1/y8)[-1])
+
+    ax[0].grid(True)
+    ax[0].set_xscale('log')
+    ax[0].set_yscale('log')
+    ax[0].legend()
+    
+    ax[0].set_ylabel('Compute time (ms)')
+    ax[1].grid(True)
+    ax[1].set_xscale('log')
+    ax[1].set_ylim((0, 3))
+    ax[1].set_ylabel('ratio')
+    ax[1].set_xlabel('Input size')
+    plt.show()
+    # plt.savefig('chyqmom9_multi.png', dpi=600)
+
+    fig, ax = plt.subplots(2, 1, gridspec_kw={'height_ratios': [3, 1]})
+    N = len(data1[1:, 2])
+    fit_lb = int(np.ceil(5*N/7))
+
+    x_numba = data_numba[:, 0]
+    y_numba = np.minimum(data_numba[:, 1], data_numba[:, 2], np.minimum(data_numba[:, 3], data_numba[:, 4], data_numba[:, 5]))
+    # time data
+    ax[0].plot(x1, y1, label='1 GPU', color='b')
+    ax[0].plot(x_numba, y_numba, label='Numba 24 cores', color='g')
+    # fitted lined
+    # m_1, b_1 = np.polyfit(np.log(x1[fit_lb:]), np.log(y1[fit_lb:]), 1)
+    # m_2, b_2 = np.polyfit(np.log(x2[fit_lb:]), np.log(y2[fit_lb:]), 1)
+    # ax[0].plot(x1, np.exp(m_1*np.log(x1) + b_1), color='b', linestyle='dotted')
+    # ax[0].plot(x2, np.exp(m_2*np.log(x2) + b_2), color='r', linestyle='dotted')
+
+    ax[1].plot(x1, y1/y2, label='ratio 1GPU/numba', color='g')
+    ax[0].grid(True)
+    ax[0].set_xscale('log')
+    ax[0].set_yscale('log')
+    ax[0].legend()
+    
+    ax[0].set_ylabel('Compute time (ms)')
+    ax[1].grid(True)
+    ax[1].set_xscale('log')
+    ax[1].set_ylim((0, 3))
+    ax[1].set_ylabel('ratio')
+    ax[1].set_xlabel('Input size')
+    plt.savefig('chyqmom9_cpu.png', dpi=600)
+

@@ -16,6 +16,7 @@ env
 
 # build results 
 build
+*.egg
 *.egg-info
 *.egg
 dist

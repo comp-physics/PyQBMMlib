@@ -1,7 +1,7 @@
-CHYQMOM4 
-========
+CHYQMOM
+=======
 
-.. automodule:: chyqmom4
+.. automodule:: chyqmom
    :members:
    :undoc-members:
    :special-members: __init__
