@@ -22,6 +22,7 @@ from pretty_print_util import *
 import cProfile
 from mc import mc
 import matplotlib.pyplot as plt
+import numpy as np
 
 import warnings
 warnings.filterwarnings('error')
@@ -39,36 +40,66 @@ def monte_carlo():
     # config["advancer"]["method"] = "Euler"
     config["advancer"]["method"] = "RK3"
     config["advancer"]["time_step"] = 1.0e-6
-    config["advancer"]["final_time"] = 60.0
+    config["advancer"]["final_time"] = 200.0
     config["advancer"]["error_tol"] = 1.0e-7
     config["advancer"]["num_steps"] = 200000
     config["advancer"]["num_steps_print"] = 100
     config["advancer"]["num_steps_write"] = 100
     #config["advancer"]["output_dir"] = "../data/Constant_Forcing/"
-    config["advancer"]["output_dir"] = "../data/Sinusoidal_Forcing/"
+    #config["advancer"]["output_dir"] = "../data/Sinusoidal_Forcing/"
     #config["advancer"]["output_id"] = "example_2D"
     config["advancer"]["write_to"] = "txt"
 
     # Acoustic
     # config["wave"]["amplitude"] = 3
-    #config["wave"]["amplitude"] = 1/0.95
-    config["wave"]["amplitude"] = 0.85
-    #config["advancer"]["output_id"] = "Constant_Pressure"+str(int(100.0/config["wave"]["amplitude"]))
-    config["wave"]["form"] = "sine"
+    
     #config["wave"]["form"] = "constant"
-    config["wave"]["period"] = 3.0
+    #config["wave"]["amplitude"] = 1/0.20
+    #config["advancer"]["output_dir"] = "../data/Constant_Forcing/"
+    #config["advancer"]["output_id"] = "Constant_Pressure"+str(int(100.0/config["wave"]["amplitude"]))
+    
+    #config["wave"]["form"] = "sine"
+    #config["wave"]["amplitude"] = 0.85
+    #config["wave"]["period"] = 3.0
+    #config["advancer"]["output_dir"] = "../data/Sinusoidal_Forcing/"
+    #config["advancer"]["output_id"] = "Sinusoidal_Pressure"+str(int(100.0*config["wave"]["amplitude"]))+"_Period"+str(int(config["wave"]["period"]))
+    
+    config["wave"]["form"] = "random"
+    config["wave"]["cycles"] = 100.0
+    config["wave"]["period"] = [5,7,9]
+    config["wave"]["amplitude"] = np.random.uniform(0.15,0.20,np.size(config["wave"]["period"]))
+    #config["wave"]["amplitude"] = [0.1723, 0.1768, 0.1973]
+    config["wave"]["phase"]  = np.random.uniform(0.0,2.0*np.pi,np.size(config["wave"]["period"]))
+    #config["wave"]["phase"]  = [1.3987, 1.3668, 3.5368]
+    config["advancer"]["output_dir"] = "../data/Random_Forcing/"
+    config["advancer"]["output_id"] = "Random_Pressure_Realization"+str(int(1))
+    
+    
+    #config["wave"]["amplitude"] = 0.85
+    #config["advancer"]["output_id"] = "Constant_Pressure"+str(int(100.0/config["wave"]["amplitude"]))
+    #config["wave"]["form"] = "sine"
+    #config["wave"]["form"] = "constant"
+    #config["wave"]["period"] = 4.0
     # config["wave"]["cycles"] = 2.0
-    config["advancer"]["output_id"] = "Sinusoidal_Pressure"+str(int(100.0*config["wave"]["amplitude"]))+"_Period"+str(int(config["wave"]["period"]))
+    #config["advancer"]["output_id"] = "Sinusoidal_Pressure"+str(int(100.0*config["wave"]["amplitude"]))+"_Period"+str(int(config["wave"]["period"]))
 
     config["mc"]["Nsamples"] = 1000
-    config["mc"]["Ntimes"] = 1801
+    config["mc"]["Ntimes"] = 2001
 
     # in R and Rdot directions
     config["pop"]["shape"] = ["normal", "normal"]
     config["pop"]["mu"] = [1.0+1.E-12,0.0+1.E-12]
     config["pop"]["sig"] = [0.05,0.05]
     # config["pop"]["moments"] = [[1, 0], [0, 1], [1, 1]]
-    config["pop"]["moments"] = [ [3, 2], [2, 1], [3, 0], [ 3*(1-1.4), 0 ] ]
+    #config["pop"]["moments"] = [ [1,0], [0,1], [2,0], [1,1], [0,2], [3, 2], [2, 1], [3, 0], [ 3*(1-1.4), 0 ] ]
+    config["pop"]["moments"] = [ [0,0], 
+                                 [1,0], [0,1], 
+                                 [2,0], [1,1], [0,2], 
+                                 [3,0], [2,1], [1,2], [0,3], 
+                                 [4,0], [3,1], [2,2], [1,3], [0,4], 
+                                 [5,0], [4,1], [3,2], [2,3], [1,4], [0,5], 
+                                 [3*(1-1.4), 0], 
+                                 [-1,2], [-2,1], [-4,0], [-1,0], [-1,1], [-3,0], [-1,3], [-2,2], [-4,1] ]
 
     # Bubble properties
     config["model"]["model"] = "RPE"

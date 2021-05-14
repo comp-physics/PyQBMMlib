@@ -12,6 +12,8 @@ class waveforms:
             self.p = self.p_sine
         elif self.form == "square":
             self.p = self.p_square
+        elif self.form == "random":
+            self.p = self.p_random
         else:
             NotImplementedError
 
@@ -43,6 +45,12 @@ class waveforms:
             self.ambient = self.config["ambient"]
         else:
             self.ambient = 1.0
+            
+            
+        if "phase" in self.config:
+            self.phase = self.config["phase"]
+        else:
+            self.phase = 0.0
 
     def p_constant(self, t):
         return [self.amplitude, 0.0]
@@ -53,6 +61,19 @@ class waveforms:
             return [self.ambient + self.amplitude * np.sin(f * t), self.amplitude * np.cos(f * t) * f]
         else:
             return [self.ambient, 0.0]
+        
+    def p_random(self, t):
+        if t <= self.period[0] * self.cycles:
+            val  = self.ambient
+            dval = 0.0
+            for ii in range(0,np.size(self.period)):
+                f = 2.0 * np.pi / self.period[ii]
+                val  = val  +self.amplitude[ii] * np.sin(f * t +self.phase[ii])
+                dval = dval +self.amplitude[ii] * np.cos(f * t +self.phase[ii]) * f
+            return [val, dval]
+        else:
+            return [self.ambient, 0.0]
+        
 
     def p_square(self, t):
         if t <= self.period:

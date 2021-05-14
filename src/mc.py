@@ -81,7 +81,17 @@ class mc:
 
         Nmom = len(self.state.moments)
         moments = self.moment(sols)
-        sio.savemat(self.adv_config["output_dir"]+"MC_HM_"+self.adv_config["output_id"]+".mat" ,{"moments":moments,"T":sols[1].t})
+        pressure = np.zeros(self.Nt,dtype=float)
+        if (self.wave_config["form"] == "constant"):
+            for tt in range(0,self.Nt):
+                pressure[tt] = self.wave_config["amplitude"]
+        else:
+            for tt in range(0,self.Nt):
+                pressure[tt] = self.wave.ambient
+                for ii in range(0,np.size(self.wave_config["amplitude"])):
+                    pressure[tt] = pressure[tt] +self.wave_config["amplitude"][ii]*np.sin(2.0*np.pi*sols[1].t[tt]/self.wave_config["period"][ii] +self.wave_config["phase"][ii] )
+        sio.savemat(self.adv_config["output_dir"]+"MC_HM_"+self.adv_config["output_id"]+".mat" ,{"moments":moments,"T":sols[1].t,
+                    "p_amp":self.wave_config["amplitude"],"p_phase":self.wave_config["phase"],"p_period":self.wave_config["period"],"pressure":pressure})
         fig, ax = plt.subplots(1, Nmom)
         # fig, ax = plt.subplots(1, self.state.Nmom)
         # for i in range(self.state.Nmom):
