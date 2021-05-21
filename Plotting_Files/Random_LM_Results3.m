@@ -3,9 +3,9 @@ close all;
 clc;
 
 
-load(['../ML_Code/ML_Predictions/LM_Random_MLQBMM_Approach2_Weights4_Pressure','.mat']);
+load(['../ML_Code/ML_Predictions/LM_Random_MLQBMM_Approach2_Weights1_Pressure','.mat']);
 total_cases = 30;
-total_times = 20001;
+total_times = 2001;
 
 T = linspace(0,200,total_times);
 
@@ -96,10 +96,10 @@ for ii=1:4
 
     
     
-tstart =  total_times-1000;
+tstart =  total_times-100;
 tend   = total_times;
-% tstart =  total_times-19000;
-% tend   = total_times-17000;
+% tstart =  51;
+% tend   = 151;
     
 iflag = ii;
 axes(p(iflag))
@@ -129,7 +129,7 @@ end
 iflag = 4+ii;
 axes(p(iflag))
 p(iflag).Position = [0.05+0.24*(ii-1),0.64,0.20,0.12/1.075]; % [left bottom width height]
-plot(T(tstart:1:tend),R10_MC(plot_cases(ii),tstart:1:tend),'Color',[0.2,0.2,0.2],'linewidth',1.0,'linestyle','-') 
+plot(T(tstart:4:tend),R10_MC(plot_cases(ii),tstart:4:tend),'Color',[0.2,0.2,0.2],'linewidth',1.0,'linestyle','-','Marker','o','Markersize',3) 
 hold on
 plot(T,R10_QBMM(plot_cases(ii),:),'Color',[0.8,0,0],'linewidth',1.0,'linestyle','--') 
 hold on
@@ -161,7 +161,7 @@ end
 iflag = 8+ii;
 axes(p(iflag))
 p(iflag).Position = [0.05+0.24*(ii-1),0.51,0.20,0.12/1.075]; % [left bottom width height]
-plot(T(tstart:tend),R01_MC(plot_cases(ii),tstart:tend),'Color',[0.2,0.2,0.2],'linewidth',1.0,'linestyle','-') 
+plot(T(tstart:4:tend),R01_MC(plot_cases(ii),tstart:4:tend),'Color',[0.2,0.2,0.2],'linewidth',1.0,'linestyle','-','Marker','o','Markersize',3) 
 hold on
 plot(T,R01_QBMM(plot_cases(ii),:),'Color',[0.8,0,0],'linewidth',1.0,'linestyle','--') 
 hold on
@@ -191,7 +191,7 @@ end
 iflag = 12+ii;
 axes(p(iflag))
 p(iflag).Position = [0.05+0.24*(ii-1),0.38,0.20,0.12/1.075]; % [left bottom width height]
-plot(T(tstart:tend),R20_MC(plot_cases(ii),tstart:tend),'Color',[0.2,0.2,0.2],'linewidth',1.0,'linestyle','-') 
+plot(T(tstart:4:tend),R20_MC(plot_cases(ii),tstart:4:tend),'Color',[0.2,0.2,0.2],'linewidth',1.0,'linestyle','-','Marker','o','Markersize',3) 
 hold on
 plot(T,R20_QBMM(plot_cases(ii),:),'Color',[0.8,0,0],'linewidth',1.0,'linestyle','--') 
 hold on
@@ -221,7 +221,7 @@ end
 iflag = 16+ii;
 axes(p(iflag))
 p(iflag).Position = [0.05+0.24*(ii-1),0.250,0.20,0.12/1.075]; % [left bottom width height]
-plot(T(tstart:tend),R11_MC(plot_cases(ii),tstart:tend),'Color',[0.2,0.2,0.2],'linewidth',1.0,'linestyle','-') 
+plot(T(tstart:4:tend),R11_MC(plot_cases(ii),tstart:4:tend),'Color',[0.2,0.2,0.2],'linewidth',1.0,'linestyle','-','Marker','o','Markersize',3) 
 hold on
 plot(T,R11_QBMM(plot_cases(ii),:),'Color',[0.8,0,0],'linewidth',1.0,'linestyle','--') 
 hold on
@@ -250,7 +250,7 @@ end
 iflag = 20+ii;
 axes(p(iflag))
 p(iflag).Position = [0.05+0.24*(ii-1),0.120,0.20,0.12/1.075]; % [left bottom width height]
-plot(T(tstart:tend),R02_MC(plot_cases(ii),tstart:tend),'Color',[0.2,0.2,0.2],'linewidth',1.0,'linestyle','-') 
+plot(T(tstart:4:tend),R02_MC(plot_cases(ii),tstart:4:tend),'Color',[0.2,0.2,0.2],'linewidth',1.0,'linestyle','-','Marker','o','Markersize',3) 
 hold on
 plot(T,R02_QBMM(plot_cases(ii),:),'Color',[0.8,0,0],'linewidth',1.0,'linestyle','--') 
 hold on
@@ -312,5 +312,5 @@ end
     
 end
 
-print(figeta,'-dpdf','Figures/LM_Random_Forcing_Results_Approach2_Weights4_Pressure.pdf');
-savefig(figeta,'Figures/LM_Random_Forcing_Results_Approach2_Weights4_Pressure.fig');
+print(figeta,'-dpdf','Figures/LM_Random_Forcing_Results_Approach2_Weights1_Pressure.pdf');
+savefig(figeta,'Figures/LM_Random_Forcing_Results_Approach2_Weights1_Pressure.fig');

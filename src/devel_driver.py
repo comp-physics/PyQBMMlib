@@ -72,7 +72,7 @@ def monte_carlo():
     config["wave"]["phase"]  = np.random.uniform(0.0,2.0*np.pi,np.size(config["wave"]["period"]))
     #config["wave"]["phase"]  = [1.3987, 1.3668, 3.5368]
     config["advancer"]["output_dir"] = "../data/Random_Forcing/"
-    config["advancer"]["output_id"] = "Random_Pressure_Realization"+str(int(1))
+    config["advancer"]["output_id"] = "Random_Pressure_Realization"+str(int(10))
     
     
     #config["wave"]["amplitude"] = 0.85
@@ -84,7 +84,7 @@ def monte_carlo():
     #config["advancer"]["output_id"] = "Sinusoidal_Pressure"+str(int(100.0*config["wave"]["amplitude"]))+"_Period"+str(int(config["wave"]["period"]))
 
     config["mc"]["Nsamples"] = 1000
-    config["mc"]["Ntimes"] = 2001
+    config["mc"]["Ntimes"] = 4001
 
     # in R and Rdot directions
     config["pop"]["shape"] = ["normal", "normal"]

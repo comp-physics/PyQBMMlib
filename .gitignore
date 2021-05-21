@@ -4,7 +4,7 @@ tags
 *.ipynb_checkpoints
 *.pdf
 *.mat
-
+*.fig
 data
 D
 _build
