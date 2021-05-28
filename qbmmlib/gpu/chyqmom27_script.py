@@ -1,10 +1,10 @@
-## GPU kernel source code
 import numpy as np
+from numpy.core.shape_base import block
+import pycuda.driver as cuda
+import pycuda.autoinit
+from pycuda.compiler import SourceModule
 
-# size of 32bit float in bytes 
-SIZEOF_FLOAT = np.int32(np.dtype(np.float32).itemsize)
 
-# number of helper functions used by GPU kernels
 HELPER = '''
     // set a segment of memory to a specific value
     __global__ void float_value_set(float *addr, float value, int size, int offset) {
@@ -729,3 +729,231 @@ CHYQMOM27 = '''
         }
     }
 '''
+
+this_context = pycuda.autoinit.context
+
+
+def init_moment_27(size: int):
+    one_moment = np.asarray([1,    1,      1,      1, 
+                             1.01, 1,      1,      1.01, 
+                             1,    1.01,   1.03,   1.03,
+                             1.03, 1.0603, 1.0603, 1.0603], 
+                             dtype=np.float32)
+    moments = cuda.aligned_zeros((16, size), dtype=np.float32)
+    for i in range(size):
+        moments[:, i] = one_moment
+    
+    return moments
+
+def chyqmom9(
+    moments: cuda.DeviceAllocation, 
+    size: int, 
+    w: cuda.DeviceAllocation,
+    x: cuda.DeviceAllocation, 
+    y: cuda.DeviceAllocation):
+
+    mem_d_size_in_byte = np.ones(size).astype(np.float32).nbytes
+    sizeof_float = np.int32(np.dtype(np.float32).itemsize)
+    size = np.int32(size)
+
+    BlockSize = (256, 1, 1)
+    GridSize = (size +BlockSize[0] - 1) /BlockSize[0];
+    GridSize = (int(GridSize), 1, 1)
+
+    # compile kernel 
+    CHYQMOM9_KERNEL = SourceModule(CHYQMOM9)
+    HYQ = SourceModule(HYQMOM)
+    HELP = SourceModule(HELPER)
+    c_kernel = CHYQMOM9_KERNEL.get_function('chyqmom9_cmoments')
+    float_value_set = HELP.get_function('float_value_set')
+    float_array_set = HELP.get_function('float_array_set')
+    chyqmom9_mu_yf = CHYQMOM9_KERNEL.get_function('chyqmom9_mu_yf')
+    chyqmom9_wout = CHYQMOM9_KERNEL.get_function('chyqmom9_wout')
+    chyqmom9_xout = CHYQMOM9_KERNEL.get_function('chyqmom9_xout')
+    chyqmom9_yout = CHYQMOM9_KERNEL.get_function('chyqmom9_yout')
+
+    hyqmom3 = HYQ.get_function('hyqmom3')
+
+
+    c_moments = cuda.mem_alloc(int(sizeof_float * size * 7))
+    mu = cuda.mem_alloc(int(sizeof_float * size * 3))
+    yf = cuda.mem_alloc(int(sizeof_float * size * 3))
+
+    m1 = cuda.mem_alloc(int(sizeof_float * size * 5))
+    float_value_set(m1, np.float32(1), size, np.int32(0),
+        block=BlockSize, grid=GridSize)
+    float_value_set(m1, np.float32(0), size, size,
+            block=BlockSize, grid=GridSize)
+
+    x1 = cuda.mem_alloc(int(sizeof_float * size * 3))
+    w1 = cuda.mem_alloc(int(sizeof_float * size * 3))
+    x2 = cuda.mem_alloc(int(sizeof_float * size * 3))
+    w2 = cuda.mem_alloc(int(sizeof_float * size * 3))
+
+
+    c_kernel(moments, c_moments, size,
+                block=BlockSize, grid=GridSize)
+            
+    float_array_set(m1, c_moments, 
+            np.int32(size), np.int32(size * 2), np.int32(0),
+            block=BlockSize, grid=GridSize)
+
+    float_array_set(m1, c_moments, 
+            np.int32(size * 2), np.int32(size * 3), np.int32(size * 4),
+            block=BlockSize, grid=GridSize)
+    this_context.synchronize()
+
+    hyqmom3(m1, x1, w1, size,
+            block=BlockSize, grid=GridSize)
+    chyqmom9_mu_yf(c_moments, 
+            x1, w1, 
+            yf, mu, size,
+            block=BlockSize, grid=GridSize)
+    this_context.synchronize()
+    
+    float_array_set(m1, mu, 
+            np.int32(size * 3), np.int32(size * 2), np.int32(0),
+            block=BlockSize, grid=GridSize)
+    hyqmom3(m1, x2, w2, size, size,
+            block=BlockSize, grid=GridSize)
+    
+    chyqmom9_wout(moments, w1, 
+                w2, w, size,
+                block=BlockSize, grid=GridSize)
+    
+    chyqmom9_xout(moments, x1, 
+                x, size,
+                block=BlockSize, grid=GridSize)
+
+    chyqmom9_yout(moments, x2, 
+                yf, y, size,
+                block=BlockSize, grid=GridSize)
+
+def chyqmom27(
+    moments: np.ndarray, 
+    size: int, 
+    w: np.ndarray,
+    x: np.ndarray, 
+    y: np.ndarray,
+    z: np.ndarray):
+
+    mem_d_size_in_byte = np.ones(size).astype(np.float32).nbytes
+    sizeof_float = np.int32(np.dtype(np.float32).itemsize)
+    size = np.int32(size)
+
+    BlockSize = (256, 1, 1)
+    GridSize = (size +BlockSize[0] - 1) /BlockSize[0];
+    GridSize = (int(GridSize), 1, 1)
+
+    # compile kernel
+    HYQ = SourceModule(HYQMOM)
+    CHY27 = SourceModule(CHYQMOM27)
+    hyqmom3 = HYQ.get_function('hyqmom3')
+
+    c_kernel = CHY27.get_function('chyqmom27_cmoments')
+    chyqmom27_rho_yf = CHY27.get_function('chyqmom27_rho_yf')
+    chyqmom27_zf = CHY27.get_function('chyqmom27_zf')
+    chyqmom27_mu = CHY27.get_function('chyqmom27_mu')
+    float_value_set = CHY27.get_function('float_value_set')
+    float_array_set = CHY27.get_function('float_array_set')
+    chyqmom27_set_m = CHY27.get_function('chyqmom27_set_m')
+    print_device = CHY27.get_function('print_device')
+    chyqmom27_wout = CHY27.get_function('chyqmom27_wout')
+    chyqmom27_xout = CHY27.get_function('chyqmom27_xout')
+    chyqmom27_yout = CHY27.get_function('chyqmom27_yout')
+    chyqmom27_zout = CHY27.get_function('chyqmom27_zout')
+
+
+    # Allocate memory 
+    moments_device = cuda.mem_alloc(int(sizeof_float * size * 16))
+    c_moments = cuda.mem_alloc(int(sizeof_float * size * 12))
+
+    m = cuda.mem_alloc(int(sizeof_float * size * 10))
+    float_value_set(m, np.float32(1), size, np.int32(0), block=BlockSize, grid=GridSize)
+    float_value_set(m, np.float32(0), size, size, block=BlockSize, grid=GridSize)
+
+    w1 = cuda.mem_alloc(int(sizeof_float * size * 3))
+    x1 = cuda.mem_alloc(int(sizeof_float * size * 3))
+
+    w2 = cuda.mem_alloc(int(sizeof_float * size * 9))
+    x2 = cuda.mem_alloc(int(sizeof_float * size * 9))
+    y2 = cuda.mem_alloc(int(sizeof_float * size * 9))
+
+    rho = cuda.mem_alloc(int(sizeof_float * size * 9))
+    yf = cuda.mem_alloc(int(sizeof_float * size * 3))
+    yp = cuda.mem_alloc(int(sizeof_float * size * 9))
+    zf = cuda.mem_alloc(int(sizeof_float * size * 3))
+
+    w3 = cuda.mem_alloc(int(sizeof_float * size * 3))
+    x3 = cuda.mem_alloc(int(sizeof_float * size * 3))
+
+    mu = cuda.mem_alloc(int(sizeof_float * size * 3))
+
+    w_dev = cuda.mem_alloc(int(sizeof_float * size * 27))
+    x_dev = cuda.mem_alloc(int(sizeof_float * size * 27))
+    y_dev = cuda.mem_alloc(int(sizeof_float * size * 27))
+    z_dev = cuda.mem_alloc(int(sizeof_float * size * 27))
+
+    cuda.memcpy_htod(moments_device, moments)
+    # Is this faster? 
+    c_kernel(moments_device, c_moments, size, block=BlockSize, grid=GridSize)
+    float_array_set(m, c_moments, size, np.int32(2) * size, np.int32(0), block=BlockSize, grid=GridSize)
+    float_array_set(m, c_moments, size, np.int32(3) * size, np.int32(6) * size, block=BlockSize, grid=GridSize)
+    float_array_set(m, c_moments, size, np.int32(4) * size, np.int32(9) * size, block=BlockSize, grid=GridSize)
+
+    hyqmom3(m, x1, w1, size, block=BlockSize, grid=GridSize)
+
+    # Is this faster? 
+    chyqmom27_set_m(m, c_moments, size, block=BlockSize, grid=GridSize)
+
+    this_context.synchronize()
+    # print_device(m, np.int32(10), block=BlockSize, grid=GridSize)
+    this_context.synchronize()
+    # print("Entering CHYQMOM9")
+    chyqmom9(m, size, w2, x2, y2)
+
+    chyqmom27_rho_yf(c_moments, y2, w2, rho, yf, yp, size, block=BlockSize, grid=GridSize)
+    chyqmom27_zf(c_moments, x1, zf, size, block=BlockSize, grid=GridSize) 
+    chyqmom27_mu(c_moments, rho, zf, mu, size, block=BlockSize, grid=GridSize)
+
+    float_array_set(m, mu, size, np.int32(2) * size, np.int32(0), block=BlockSize, grid=GridSize)
+    float_array_set(m, mu, size, np.int32(3) * size, np.int32(1) * size, block=BlockSize, grid=GridSize)
+    float_array_set(m, mu, size, np.int32(4) * size, np.int32(2) * size, block=BlockSize, grid=GridSize)
+    hyqmom3(m, x3, w3, size, block=BlockSize, grid=GridSize)
+
+    chyqmom27_wout(moments_device, w1, rho, w3, w_dev, size, block=BlockSize, grid=GridSize)
+    chyqmom27_xout(moments_device, x1, x_dev, size, block=BlockSize, grid=GridSize)
+    chyqmom27_yout(moments_device, yf, yp, y_dev, size, block=BlockSize, grid=GridSize)
+    chyqmom27_zout(moments_device, zf, x3, z_dev, block=BlockSize, grid=GridSize)
+
+    # this_context.synchronize()
+    # print("Entering rho")
+    # print_device(rho, np.int32(9*2), block=BlockSize, grid=GridSize)
+    # this_context.synchronize()
+    # print("Entering mu")
+    # print_device(mu, np.int32(3*2), block=BlockSize, grid=GridSize)
+    # this_context.synchronize()
+    # print("Entering w1")
+    # print_device(w1, np.int32(3*2), block=BlockSize, grid=GridSize)
+    # this_context.synchronize()
+    # print("Entering rho")
+    # print_device(rho, np.int32(9*2), block=BlockSize, grid=GridSize)
+    # this_context.synchronize()
+    # print("Entering w3")
+    # print_device(w3, np.int32(3*2), block=BlockSize, grid=GridSize)
+    # this_context.synchronize()
+    # print("Final w_dev")
+    # print_device(w_dev, np.int32(27*2), block=BlockSize, grid=GridSize)
+
+
+if __name__ == "__main__":
+    num_moments = int(1e6)
+    moment = init_moment_27(num_moments)
+    print(moment)
+
+    w = cuda.aligned_zeros((9, num_moments), dtype=np.float32)
+    x = cuda.aligned_zeros((9, num_moments), dtype=np.float32)
+    y = cuda.aligned_zeros((9, num_moments), dtype=np.float32)
+    z = cuda.aligned_zeros((9, num_moments), dtype=np.float32)
+
+    chyqmom27(moment, num_moments, w, x, y, z)

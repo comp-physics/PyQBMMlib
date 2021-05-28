@@ -43,29 +43,28 @@ def flow_example():
     indices = qbmm_mgr.indices
 
     # Initial condition
-    # mu1    = 1.0
-    # mu2    = 1.0
-    # mu3    = 1.0
-    # sigma1 = 0.1
-    # sigma2 = 0.1
-    # sigma3 = 0.1
-    # moments = raw_gaussian_moments_trivar( indices, mu1, mu2, mu3,
-    #                                        sigma1, sigma2, sigma3 )
+    mu1    = 1.0
+    mu2    = 1.0
+    mu3    = 1.0
+    sigma1 = 0.1
+    sigma2 = 0.1
+    sigma3 = 0.1
+    moments = raw_gaussian_moments_trivar( indices, mu1, mu2, mu3,
+                                           sigma1, sigma2, sigma3 )
+    moments_left = moments
+    moments_right = moments
 
-    moments_left, moments_right = jet_initialize_moments(qbmm_mgr)
+    # moments_left, moments_right = jet_initialize_moments(qbmm_mgr)
 
     xi_left, wts_left = qbmm_mgr.moment_invert(moments_left, indices)
     xi_right, wts_right = qbmm_mgr.moment_invert(moments_right, indices)
 
+    print("DONE INVERSION ============================")
     print(wts_left)
-    print(wts_right)
-
     print(xi_left)
-    print(xi_right)
 
     flux = moment_fluxes(indices, wts_left, wts_right, xi_left, xi_right)
 
-    print(flux)
 
     return
 
@@ -149,21 +148,23 @@ def advance_example2dp1():
 
 if __name__ == "__main__":
 
-    np.set_printoptions(formatter={"float": "{: 0.4E}".format})
+    # np.set_printoptions(formatter={"float": "{: 0.4E}".format})
 
-    nargs = len(sys.argv)
-    if nargs == 2:
-        config_file = sys.argv[1]
-        config_mgr = config_manager(config_file)
-        config = config_mgr.get_config()
-        advance_example(config)
-        ### Complete workflow for devel driver:
-        ### 1. Check whether input file exists
-        ### 2. If yes, run advance_example, then stop
-        ### 3. If no, compare argv[1] to case name
-        ### 4. If argv matches case, run, then stop
-        ### 5. If argv does not match case, then exit
-    else:
-        print("devel_driver: no config file supplied")
+    # nargs = len(sys.argv)
+    # if nargs == 2:
+    #     config_file = sys.argv[1]
+    #     config_mgr = config_manager(config_file)
+    #     config = config_mgr.get_config()
+    #     advance_example(config)
+    #     ### Complete workflow for devel driver:
+    #     ### 1. Check whether input file exists
+    #     ### 2. If yes, run advance_example, then stop
+    #     ### 3. If no, compare argv[1] to case name
+    #     ### 4. If argv matches case, run, then stop
+    #     ### 5. If argv does not match case, then exit
+    # else:
+    #     print("devel_driver: no config file supplied")
 
-    exit()
+    # exit()
+
+    flow_example()

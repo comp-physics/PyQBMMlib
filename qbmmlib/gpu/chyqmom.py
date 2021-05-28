@@ -90,15 +90,16 @@ class Chyqmom:
 
         '''
         # Initialize lists of kernels. 
-        self.float_value_set = [None for i in range(self.num_device)]
-        self.float_array_set = [None for i in range(self.num_device)]
+        self.float_array_set = [None] * self.num_device
+        self.float_value_set = [None] * self.num_device
+        self.float_array_set = [None] * self.num_device
 
-        self.c_kernel = [None for i in range(self.num_device)]
-        self.mu_yf = [None for i in range(self.num_device)]
-        self.wout_kernel = [None for i in range(self.num_device)]
-        self.xout_kernel = [None for i in range(self.num_device)]
-        self.yout_kernel = [None for i in range(self.num_device)]
-        self.hyq = [None for i in range(self.num_device)]
+        self.c_kernel = [None] * self.num_device
+        self.mu_yf = [None] * self.num_device
+        self.wout_kernel = [None] * self.num_device
+        self.xout_kernel = [None] * self.num_device
+        self.yout_kernel = [None] * self.num_device
+        self.hyq = [None] * self.num_device
 
         # Launch kernel threads to init kernels for each GPU
         kernel_threads = []
@@ -118,31 +119,32 @@ class Chyqmom:
         memory allocation
         '''
         # initialize memory lists
-        self.moments_device = [[] for i in range(self.num_device)]
-        self.moment_chunk_host = [[] for i in range(self.num_device)]
-        self.x_chunk_host = [[] for i in range(self.num_device)]
-        self.y_chunk_host = [[] for i in range(self.num_device)]
-        self.w_chunk_host = [[] for i in range(self.num_device)]
-        self.x_device = [[] for i in range(self.num_device)]
-        self.y_device = [[] for i in range(self.num_device)]
-        self.w_device = [[] for i in range(self.num_device)]
+        
+        self.moments_device = [[]] * self.num_device
+        self.moment_chunk_host = [[]] * self.num_device
+        self.x_chunk_host = [[]] * self.num_device
+        self.y_chunk_host = [[]] * self.num_device
+        self.w_chunk_host = [[]] * self.num_device
+        self.x_device = [[]] * self.num_device
+        self.y_device = [[]] * self.num_device
+        self.w_device = [[]] * self.num_device
 
-        self.c_moments = [[] for i in range(self.num_device)]
-        self.mu = [[] for i in range(self.num_device)]
-        self.yf = [[] for i in range(self.num_device)]
+        self.c_moments = [[]] * self.num_device
+        self.mu = [[]] * self.num_device
+        self.yf = [[]] * self.num_device
 
-        self.m1 = [[] for i in range(self.num_device)]
-        self.x1 = [[] for i in range(self.num_device)]
-        self.w1 = [[] for i in range(self.num_device)]
-        self.x2 = [[] for i in range(self.num_device)]
-        self.w2 = [[] for i in range(self.num_device)]
+        self.m1 = [[]] * self.num_device
+        self.x1 = [[]] * self.num_device
+        self.w1 = [[]] * self.num_device
+        self.x2 = [[]] * self.num_device
+        self.w2 = [[]] * self.num_device
 
         # Host memory that stores the output
         self.w_out = cuda.aligned_zeros((4, self.in_size), dtype=np.float32)
         self.x_out = cuda.aligned_zeros((4, self.in_size), dtype=np.float32)
         self.y_out = cuda.aligned_zeros((4, self.in_size), dtype=np.float32)
 
-        self.streams = [[] for i in range(self.num_device)]
+        self.streams = [[]] * self.num_device
         # number of input allocated to each thread
         size_per_thread = np.ceil(self.in_size / self.num_device)
 
@@ -191,10 +193,10 @@ class Chyqmom:
         start_loc = 0
 
         # host memory, divided into chunks for each GPU streams
-        self.moment_chunk_host = [[] for i in range(self.num_device)]
-        self.x_chunk_host = [[] for i in range(self.num_device)]
-        self.y_chunk_host = [[] for i in range(self.num_device)]
-        self.w_chunk_host = [[] for i in range(self.num_device)]
+        self.moment_chunk_host = [[]] * self.num_device
+        self.x_chunk_host = [[]] * self.num_device
+        self.y_chunk_host = [[]] * self.num_device
+        self.w_chunk_host = [[]] * self.num_device
 
         # Allocate workload to different GPU 
         thread_list = []

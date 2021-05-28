@@ -11,10 +11,10 @@ import numpy as np
 import threading
 import time
 
-from qbmmlib.gpu.chyqmom_kernel import HELPER, CHYQMOM9, HYQMOM, SIZEOF_FLOAT
+from qbmmlib.gpu.chyqmom_kernel import HELPER, CHYQMOM27, CHYQMOM9, HYQMOM, SIZEOF_FLOAT
 from qbmmlib.gpu.chyqmom import Chyqmom
 
-class Chyqmom9(Chyqmom): 
+class Chyqmom27(Chyqmom): 
     """
     The Chyqmom9 method.
     """

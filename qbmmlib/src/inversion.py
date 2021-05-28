@@ -327,6 +327,7 @@ def conditional_hyperbolic(moments, indices, max_skewness=30, checks=True):
     elif num_dim == 10:
         return chyqmom9(moments, indices, max_skewness, checks)
     elif num_dim == 16:
+        print("using chyqmom27")
         return chyqmom27(moments, indices, max_skewness, checks)
 
 
@@ -458,8 +459,10 @@ def chyqmom9(moments, indices, max_skewness=30, checks=True):
     print(c03)
     print(c40)
     print(c04)
+    print("M1")
 
     M1 = np.array([1, 0, c20, c30, c40])
+    print(M1)
     xp, rho = hyqmom3(M1, max_skewness, checks)
 
     if checks and c20 < csmall:
@@ -483,15 +486,12 @@ def chyqmom9(moments, indices, max_skewness=30, checks=True):
         mu3 = 0 * mu2
         mu4 = mu2 ** 2.0
         if mu2 > csmall:
-            print("hello1")
             q = (c03 - np.sum(rho * (yf ** 3.0))) / mu2 ** (3.0 / 2.0)
             eta = (
                 c04 - np.sum(rho * (yf ** 4.0)) - 6 * np.sum(rho * (yf ** 2.0)) * mu2
             ) / mu2 ** 2.0
             if eta < (q ** 2 + 1):
-                print("hello2")
                 if abs(q) > verysmall:
-                    print("hello3")
                     slope = (eta - 3.0) / q
                     det = 8.0 + slope ** 2.0
                     qp = 0.5 * (slope + math.sqrt(det))
@@ -671,6 +671,21 @@ def chyqmom27(moments, indices, max_skewness=30, checks=True):
         c400 = d400 - 4 * bx * d300 + 6 * bx ** 2 * d200 - 3 * bx ** 4
         c040 = d040 - 4 * by * d030 + 6 * by ** 2 * d020 - 3 * by ** 4
         c004 = d004 - 4 * bz * d003 + 6 * bz ** 2 * d002 - 3 * bz ** 4
+    print("Momenys")
+    print(moments)
+    print("Cmoments")
+    print(c200)
+    print(c110)
+    print(c101)
+    print(c020)
+    print(c011)
+    print(c002)
+    print(c300)
+    print(c030)
+    print(c003)
+    print(c400)
+    print(c040)
+    print(c004)
 
     if c200 <= 0 and checks:
         c200 = 0
@@ -768,6 +783,10 @@ def chyqmom27(moments, indices, max_skewness=30, checks=True):
     M1 = np.array([1, 0, c200, c300, c400])
     xp, rho = hyqmom3(M1, max_skewness, checks)
 
+    print("First hyqmom res")
+    print(xp)
+    print(rho)
+    print("+++++++++++++++++++")
     rho11 = 0
     rho12 = 1
     rho13 = 0
@@ -961,9 +980,13 @@ def chyqmom27(moments, indices, max_skewness=30, checks=True):
         yp33 = Y3[8]
     else:
         M4 = np.array([1, 0, 0, c200, c110, c020, c300, c030, c400, c040])
+        print("M4 =================")
+        print(M4)
         Q4, W4 = chyqmom9(M4, RF_idx, max_skewness, checks)
         X4 = Q4[0]
         Y4 = Q4[1]
+        print("W4 =================")
+        print(W4)
 
         rho11 = W4[0] / (W4[0] + W4[1] + W4[2])
         rho12 = W4[1] / (W4[0] + W4[1] + W4[2])
@@ -988,6 +1011,7 @@ def chyqmom27(moments, indices, max_skewness=30, checks=True):
         yp31 = Y4[6] - Yf[2]
         yp32 = Y4[7] - Yf[2]
         yp33 = Y4[8] - Yf[2]
+
         scale1 = math.sqrt(c200)
         scale2 = math.sqrt(c020)
         Rho1 = np.diag(rho)
@@ -1026,7 +1050,17 @@ def chyqmom27(moments, indices, max_skewness=30, checks=True):
             b2 = (c011s - A1 * b1) / A2
 
         Zf = b0 * Yc0 + b1 * Yc1 + b2 * Yc2
+
+        print("What is RAB? ")
+        print(RAB)
+        print("What is b1?")
+        print(b1)
+        print("What is Yc1?")
+        print(Yc1)
+
         SUM002 = np.sum(np.multiply(RAB, Zf ** 2))
+        print("What is SUM002?")
+        print(SUM002)
         mu2 = c002 - SUM002
         mu2 = max(0, mu2)
         q = 0
@@ -1039,6 +1073,7 @@ def chyqmom27(moments, indices, max_skewness=30, checks=True):
             SUM4 = np.sum(np.multiply(RAB, Zf ** 4)) + 6 * SUM002 * mu2
             eta = (c004 - SUM4) / SUM2
             if eta < (q ** 2 + 1):
+                print("OH NO WHAT DID I MISS")
                 if abs(q) > verysmall:
                     slope = (eta - 3) / q
                     det = 8 + slope ** 2
@@ -1053,7 +1088,9 @@ def chyqmom27(moments, indices, max_skewness=30, checks=True):
                 eta = q ** 2 + 1
         mu3 = q * mu2 ** (3 / 2)
         mu4 = eta * mu2 ** 2
+        print("M5 ++++")
         M5 = np.array([1, 0, mu2, mu3, mu4])
+        print(M5)
         xp11, rh11 = hyqmom3(M5, max_skewness, checks)
 
         rho111 = rh11[0]
@@ -1144,6 +1181,10 @@ def chyqmom27(moments, indices, max_skewness=30, checks=True):
         zp332 = xp33[1]
         zp333 = xp33[2]
 
+    print('what is rho ========')
+    print(rho)
+    print(Rho2)
+    print(rh11)
     W[0] = rho[0] * rho11 * rho111
     W[1] = rho[0] * rho11 * rho112
     W[2] = rho[0] * rho11 * rho113
