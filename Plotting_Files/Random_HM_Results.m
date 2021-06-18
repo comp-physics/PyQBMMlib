@@ -2,12 +2,12 @@ clear;
 close all;
 clc;
 
+load(['../ML_Code/ML_Predictions/LM_Random_MLQBMM_Approach4_Weights6','.mat']);
+total_cases = 4;
+total_times = 30001;
 
-load(['../ML_Code/HM_Random_MLQBMM','.mat']);
-total_cases = 25;
-total_times = 2001;
+T = linspace(0,300,total_times);
 
-T = linspace(0,200,total_times);
 
 
 R32_ML = zeros(total_cases,total_times);
@@ -29,22 +29,22 @@ Pressure = zeros(total_cases,total_times);
 
 for kk=1:total_cases
    for tt=1:total_times
-        R30_MC(kk,tt) = output_data(kk,1,tt)+input_data(kk,6,tt);
-        R21_MC(kk,tt) = output_data(kk,2,tt)+input_data(kk,7,tt);
-        R32_MC(kk,tt) = output_data(kk,3,tt)+input_data(kk,8,tt);
-        R3g_MC(kk,tt) = output_data(kk,4,tt)+input_data(kk,9,tt);
+        R30_MC(kk,tt) = LM_MC(kk,6,tt);
+        R21_MC(kk,tt) = LM_MC(kk,7,tt);
+        R32_MC(kk,tt) = LM_MC(kk,17,tt);
+        R3g_MC(kk,tt) = LM_MC(kk,21,tt);
         
-        R30_ML(kk,tt) = predictions(kk,1,tt);
-        R21_ML(kk,tt) = predictions(kk,2,tt);
-        R32_ML(kk,tt) = predictions(kk,3,tt);
-        R3g_ML(kk,tt) = predictions(kk,4,tt);
+        R30_ML(kk,tt) = predictions(kk,6,tt);
+        R21_ML(kk,tt) = predictions(kk,7,tt);
+        R32_ML(kk,tt) = predictions(kk,17,tt);
+        R3g_ML(kk,tt) = predictions(kk,21,tt);
         
-        R30_QBMM(kk,tt) = input_data(kk,6,tt);
-        R21_QBMM(kk,tt) = input_data(kk,7,tt);
-        R32_QBMM(kk,tt) = input_data(kk,8,tt);
-        R3g_QBMM(kk,tt) = input_data(kk,9,tt);
+        R30_QBMM(kk,tt) = LM_QBMM(kk,6,tt);
+        R21_QBMM(kk,tt) = LM_QBMM(kk,7,tt);
+        R32_QBMM(kk,tt) = LM_QBMM(kk,17,tt);
+        R3g_QBMM(kk,tt) = LM_QBMM(kk,21,tt);
         
-        Pressure(kk,tt) = input_data(kk,10,tt);
+        Pressure(kk,tt) = LM_pressure(kk,tt);
         
    end
 end
@@ -55,12 +55,14 @@ l2_error_ml = zeros(4,total_cases);
 l2_error_qbmm = zeros(4,total_cases);
 l2_measure  = zeros(4,total_cases);
 
+mom_vals = [6,7,17,21];
+
 for ii=1:total_cases
     for jj=1:4
-        for tt=1:total_times-1
-            l2_measure(jj,ii) = l2_measure(jj,ii) +(output_data(ii,jj,tt)+input_data(ii,jj+5,tt))^2;
-            l2_error_ml(jj,ii) = l2_error_ml(jj,ii) +(output_data(ii,jj,tt)+input_data(ii,jj+5,tt)-predictions(ii,jj,tt))^2;
-            l2_error_qbmm(jj,ii) = l2_error_qbmm(jj,ii) +(output_data(ii,jj,tt))^2;
+        for tt=29000:total_times-1
+            l2_measure(jj,ii) = l2_measure(jj,ii) +(LM_MC(ii,mom_vals(jj),tt))^2;
+            l2_error_ml(jj,ii) = l2_error_ml(jj,ii) +(LM_MC(ii,mom_vals(jj),tt)-predictions(ii,mom_vals(jj),tt))^2;
+            l2_error_qbmm(jj,ii) = l2_error_qbmm(jj,ii) +(LM_MC(ii,mom_vals(jj),tt) -LM_QBMM(ii,mom_vals(jj),tt))^2;
         end
         l2_measure(jj,ii) = sqrt(l2_measure(jj,ii));
         l2_error_ml(jj,ii) = sqrt(l2_error_ml(jj,ii))/l2_measure(jj,ii);
@@ -84,14 +86,14 @@ for ii=1:24
 end
 
 plot_cases = [14,23,24,25];
-%plot_cases = [1,2,3,4];
+plot_cases = [1,2,3,4];
 
 for ii=1:4
 
     
     
-tstart =  total_times-100;
-tend   = total_times;
+tstart = total_times-1000;
+tend   = total_times-0000;
 
     
 iflag = ii;
@@ -102,9 +104,11 @@ hold on
 semilogy([1,2,3,4],l2_error_ml(:,plot_cases(ii)),'Color',[0,0.5,1],'linewidth',1.5,'Marker','o','linestyle','none','MarkerFaceColor',[0,0.5,1],'Markersize',5)
 
 xlim([0.5,4.5])
-ylim([0.001,1])
+ylim([1.0*10^(-3),1.0])
+%ylim([1.0*10^(-4),1.0])
 %set(gca, 'XDir','reverse')
-set(gca,'YTick',[10^(-3),10^(-2),10^(-1),10^0,10^1])
+set(gca,'YTick',[10^(-3),10^(-2),10^(-1),10^0])
+%set(gca,'YTick',[10^(-4),10^(-3),10^(-2),10^(-1),10^0])
 a = get(gca,'YTickLabel');  
 set(gca,'YTickLabel',a,'fontsize',7)
 
@@ -114,7 +118,7 @@ set(p(iflag),'GridAlpha',0.2);
 set(p(iflag),'XTick',[1,2,3,4])
 set(p(iflag),'XTickLabel',[{'\mu_{3,0}','\mu_{2,1}','\mu_{3,2}','\mu_{3(1-\gamma),0}'}],'fontsize',7)
 if (ii == 1)
-legend({'QBMM','QBMM-ML'},'interpreter','latex','fontsize',8,'orientation','horizontal','Position',[0.016,0.48,1.,1.],'box','off')
+legend({'CHyQMOM','ML-CHyQMOM'},'interpreter','latex','fontsize',8,'orientation','horizontal','Position',[0.016,0.48,1.,1.],'box','off')
 end
 
 
@@ -145,7 +149,7 @@ yname1 = ylabel("$\mu_{3,0}$",'interpreter','latex','fontsize',10);
 set(p(iflag),'YLabel',yname1);
 ylabh = get(gca,'ylabel');
 set(ylabh,'position',get(ylabh,'position') - [-0.8 0 0]);
-legend({'MC','QBMM','QBMM-ML'},'interpreter','latex','fontsize',8,'orientation','horizontal','Position',[0.016,0.27,1.,1.],'box','off')
+legend({'MC','CHyQMOM','ML-CHyQMOM'},'interpreter','latex','fontsize',8,'orientation','horizontal','Position',[0.016,0.27,1.,1.],'box','off')
 end
 
 
@@ -167,9 +171,9 @@ ylim([ ymin, ymax   ])
 
 set(p(iflag),'GridAlpha',0.2);
 set(p(iflag),'linewidth',1.0);
-set(p(iflag),'XTick',[30,45,60])
+set(p(iflag),'XTick',[30,35,40])
 set(p(iflag),'YTick',[ymin,  ymax])
-set(p(iflag),'XTickLabel',[30,45,60],'fontsize',7)
+set(p(iflag),'XTickLabel',[30,35,40],'fontsize',7)
 set(p(iflag),'YTickLabel',[ymin,  ymax],'fontsize',7)
 
 if (ii == 1)
@@ -252,11 +256,10 @@ ylim([0.8*(min(min(Pressure(:,tstart:tend)))),1.1*(max(max(Pressure(:,tstart:ten
 set(p(iflag),'GridAlpha',0.2);
 set(p(iflag),'linewidth',1.0);
 
-set(p(iflag),'XTick',[190,195,200])
+set(p(iflag),'XTick',[290,295,300])
 set(p(iflag),'YTick',[0.60,1.0,1.40])
-set(p(iflag),'XTickLabel',[190,195,200],'fontsize',7)
+set(p(iflag),'XTickLabel',[290,295,300],'fontsize',7)
 set(p(iflag),'YTickLabel',[0.60,1.0,1.40],'fontsize',7)
-
 
 xname1 = xlabel("time",'interpreter','latex','fontsize',8);
 set(p(iflag),'XLabel',xname1);
@@ -273,5 +276,5 @@ end
     
 end
 
-print(figeta,'-dpdf','HM_Random_Forcing_Results.pdf');
-savefig(figeta,'HM_Random_Forcing_Results.fig');
+print(figeta,'-dpdf','Figures/HM_Random_Forcing_Results_Approach4_Weights6.pdf');
+savefig(figeta,'Figures/HM_Random_Forcing_Results_Approach4_Weights6.fig');

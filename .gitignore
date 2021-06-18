@@ -5,6 +5,7 @@ tags
 *.pdf
 *.mat
 *.fig
+*.h5
 data
 D
 _build

@@ -74,11 +74,19 @@ class mc:
         # print(self.sample)
         # raise NotImplementedError
         sols = []
+        counter = int(0)
         for s in self.sample:
             bubble = bm.bubble_model(config=self.model_config, R0=R0)
             sol = bubble.solve(T=T, p=p, Ro=s[0], Vo=s[1], ts=ts)
             sols.append(sol)
-
+            counter = counter+1
+            print(counter)
+        
+        R_samples = np.zeros((len(self.sample),self.Nt),dtype=float)
+        Rd_samples = np.zeros((len(self.sample),self.Nt),dtype=float)
+        for ii in range(0,len(self.sample)):
+            R_samples[ii,:]  = sols[ii].y[0,:]
+            Rd_samples[ii,:] = sols[ii].y[1,:]
         Nmom = len(self.state.moments)
         moments = self.moment(sols)
         pressure = np.zeros(self.Nt,dtype=float)
@@ -91,7 +99,7 @@ class mc:
                 for ii in range(0,np.size(self.wave_config["amplitude"])):
                     pressure[tt] = pressure[tt] +self.wave_config["amplitude"][ii]*np.sin(2.0*np.pi*sols[1].t[tt]/self.wave_config["period"][ii] +self.wave_config["phase"][ii] )
         sio.savemat(self.adv_config["output_dir"]+"MC_HM_"+self.adv_config["output_id"]+".mat" ,{"moments":moments,"T":sols[1].t,
-                    "p_amp":self.wave_config["amplitude"],"p_phase":self.wave_config["phase"],"p_period":self.wave_config["period"],"pressure":pressure})
+                    "p_amp":self.wave_config["amplitude"],"p_phase":self.wave_config["phase"],"p_period":self.wave_config["period"],"pressure":pressure,'R_samples':R_samples,'Rd_samples':Rd_samples})
         fig, ax = plt.subplots(1, Nmom)
         # fig, ax = plt.subplots(1, self.state.Nmom)
         # for i in range(self.state.Nmom):

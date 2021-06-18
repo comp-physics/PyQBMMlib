@@ -3,11 +3,11 @@ close all;
 clc;
 
 
-load(['../ML_Code/ML_Predictions/LM_Random_MLQBMM_Approach4_Weights4','.mat']);
-total_cases = 10;
-total_times = 4001;
+load(['../ML_Code/ML_Predictions/LM_Random_MLQBMM_Approach4_Weights6','.mat']);
+total_cases = 4;
+total_times = 30001;
 
-T = linspace(0,200,total_times);
+T = linspace(0,300,total_times);
 
 
 R10_ML = zeros(total_cases,total_times);
@@ -63,7 +63,7 @@ l2_measure  = zeros(5,total_cases);
 
 for ii=1:total_cases
     for jj=1:5
-        for tt=1:total_times-1
+        for tt=29500:total_times-1
             l2_measure(jj,ii) = l2_measure(jj,ii) +(LM_MC(ii,jj,tt))^2;
             l2_error_ml(jj,ii) = l2_error_ml(jj,ii) +(LM_MC(ii,jj,tt)-predictions(ii,jj,tt))^2;
             l2_error_qbmm(jj,ii) = l2_error_qbmm(jj,ii) +(LM_MC(ii,jj,tt)-LM_QBMM(ii,jj,tt))^2;
@@ -96,8 +96,8 @@ for ii=1:4
 
     
     
-tstart =  total_times-200;
-tend   = total_times;
+tstart = total_times-1000;
+tend   = total_times-0000;
 % tstart =  total_times-19000;
 % tend   = total_times-17000;
     
@@ -109,9 +109,11 @@ hold on
 semilogy([1,2,3,4,5],l2_error_ml(:,plot_cases(ii)),'Color',[0,0.5,1],'linewidth',1.5,'Marker','o','linestyle','none','MarkerFaceColor',[0,0.5,1],'Markersize',5)
 
 xlim([0.5,5.5])
-ylim([0.001,1])
+ylim([1.0*10^(-3),1.0])
+%ylim([1.0*10^(-4),1.0])
 %set(gca, 'XDir','reverse')
-set(gca,'YTick',[10^(-3),10^(-2),10^(-1),10^0,10^1])
+set(gca,'YTick',[10^(-3),10^(-2),10^(-1),10^0])
+%set(gca,'YTick',[10^(-4),10^(-3),10^(-2),10^(-1),10^0])
 a = get(gca,'YTickLabel');  
 set(gca,'YTickLabel',a,'fontsize',7)
 
@@ -121,7 +123,7 @@ set(p(iflag),'GridAlpha',0.2);
 set(p(iflag),'XTick',[1,2,3,4,5])
 set(p(iflag),'XTickLabel',[{'\mu_{1,0}','\mu_{0,1}','\mu_{2,0}','\mu_{1,1}','\mu_{0,2}'}],'fontsize',7)
 if (ii == 1)
-legend({'QBMM','QBMM-ML'},'interpreter','latex','fontsize',8,'orientation','horizontal','Position',[0.016,0.48,1.,1.],'box','off')
+legend({'CHyQMOM','CHyQMOM-ML'},'interpreter','latex','fontsize',8,'orientation','horizontal','Position',[0.016,0.48,1.,1.],'box','off')
 end
 
 
@@ -152,7 +154,7 @@ yname1 = ylabel("$\mu_{1,0}$",'interpreter','latex','fontsize',10);
 set(p(iflag),'YLabel',yname1);
 ylabh = get(gca,'ylabel');
 set(ylabh,'position',get(ylabh,'position') - [-0.8 0 0]);
-legend({'MC','QBMM','QBMM-ML'},'interpreter','latex','fontsize',8,'orientation','horizontal','Position',[0.016,0.27,1.,1.],'box','off')
+legend({'MC','CHyQMOM','ML-CHyQMOM'},'interpreter','latex','fontsize',8,'orientation','horizontal','Position',[0.016,0.27,1.,1.],'box','off')
 end
 
 
@@ -196,6 +198,8 @@ hold on
 plot(T,R20_QBMM(plot_cases(ii),:),'Color',[0.8,0,0],'linewidth',1.0,'linestyle','--') 
 hold on
 plot(T,R20_ML(plot_cases(ii),:),'Color',[0,0.5,1],'linewidth',1.0) 
+%hold on
+%plot(T,R10_QBMM(plot_cases(ii),:).^2,'Color',[0.0,0.8,0],'linewidth',1.0,'linestyle','--') 
 xlim([T(tstart),T(tend)])
 
 ymin = min([floor(100*min(min(0.9*R20_MC(plot_cases(ii),tstart:tend))))/100,floor(100*min(min(0.9*R20_ML(plot_cases(ii),tstart:tend))))/100,floor(100*min(min(0.9*R20_QBMM(plot_cases(ii),tstart:tend))))/100]);
@@ -255,6 +259,9 @@ hold on
 plot(T,R02_QBMM(plot_cases(ii),:),'Color',[0.8,0,0],'linewidth',1.0,'linestyle','--') 
 hold on
 plot(T,R02_ML(plot_cases(ii),:),'Color',[0,0.5,1],'linewidth',1.0) 
+%hold on
+%plot(T,R01_QBMM(plot_cases(ii),:).^2,'Color',[0,0.8,0],'linewidth',1.0,'linestyle','--') 
+
 xlim([T(tstart),T(tend)])
 ymin = min([floor(20*min(min(0.9*R02_MC(plot_cases(ii),tstart:tend))))/20,floor(20*min(min(0.9*R02_ML(plot_cases(ii),tstart:tend))))/20,floor(20*min(min(0.9*R02_QBMM(plot_cases(ii),tstart:tend))))/20]);
 ymax = max([ceil(20*max(max(1.1*R02_MC(plot_cases(ii),tstart:tend))))/20,ceil(20*max(max(1.1*R02_ML(plot_cases(ii),tstart:tend))))/20,ceil(20*max(max(1.1*R02_QBMM(plot_cases(ii),tstart:tend))))/20]);
@@ -291,9 +298,9 @@ ylim([0.8*(min(min(Pressure(:,tstart:tend)))),1.1*(max(max(Pressure(:,tstart:ten
 set(p(iflag),'GridAlpha',0.2);
 set(p(iflag),'linewidth',1.0);
 
-set(p(iflag),'XTick',[190,195,200])
+set(p(iflag),'XTick',[290,295,300])
 set(p(iflag),'YTick',[0.60,1.0,1.40])
-set(p(iflag),'XTickLabel',[190,195,200],'fontsize',7)
+set(p(iflag),'XTickLabel',[290,295,300],'fontsize',7)
 set(p(iflag),'YTickLabel',[0.60,1.0,1.40],'fontsize',7)
 
 
@@ -312,5 +319,5 @@ end
     
 end
 
-print(figeta,'-dpdf','Figures/LM_Random_Forcing_Results_Approach4_Weights4.pdf');
-savefig(figeta,'Figures/LM_Random_Forcing_Results_Approach4_Weights4.fig');
+print(figeta,'-dpdf','Figures/LM_Random_Forcing_Results_Approach4_Weights6.pdf');
+savefig(figeta,'Figures/LM_Random_Forcing_Results_Approach4_Weights6.fig');
