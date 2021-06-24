@@ -1,5 +1,6 @@
 import numpy as np
 from numpy.core.shape_base import block
+from pycuda.characterize import sizeof
 import pycuda.driver as cuda
 import pycuda.autoinit
 from pycuda.compiler import SourceModule
@@ -34,10 +35,10 @@ HYQMOM = '''
             // copy moments to local registers
             float mom[5];
             mom[0] = moments[idx];
-            // printf("[tIdx %d] hyqmom3 mom[0] = %f\\n", idx, mom[0]);
+            // printf("[tIdx %d] hyqmom3 mom[0] = %.9f\\n", idx, mom[0]);
             for (int n = 1; n < 5; n++) {
                 mom[n] = moments[n * size + idx] / mom[0];
-                //printf("[tIdx %d] hyqmom3 mom[%d] = %f\\n", idx, n, mom[n]);
+                // printf("[tIdx %d] hyqmom3 mom[%d] = %.9f\\n", idx, n, mom[n]);
             }
             // central moments
             float c_moments[3];
@@ -49,6 +50,10 @@ HYQMOM = '''
             float scale = sqrt(c_moments[0]);
             float q = c_moments[1]/scale/c_moments[0];
             float eta = c_moments[2]/c_moments[0]/c_moments[0];
+            float eta_test = c_moments[2]/c_moments[0];
+
+            // printf("[hyqmom2] c_moments[0] = %.9f, c_moments[1] = %.9f, c_moments[2] = %.9f \\n", c_moments[0], c_moments[1], c_moments[2]);
+            // printf("[hyqmom2] scale = %.9f, q = %.9f, eta = %.9f eta_test = %.9f\\n",scale, q, eta, eta_test);
             
             // xps
             float xps[3]; 
@@ -463,7 +468,7 @@ CHYQMOM27 = '''
     __global__ void print_device(float* addr, int size) {
         const int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
         for (int idx = tIdx; idx < size; idx+=blockDim.x*gridDim.x) {
-            printf("[%d], %f \\n", idx, addr[idx]);
+            printf("[%d], %.9f \\n", idx, addr[idx]);
         }
     }
 
@@ -501,7 +506,7 @@ CHYQMOM27 = '''
             // mom[i] = mom[i]/mom[0] for i !=0
             for (int n=1; n<16; n++) {
                 mom[n] = moments[n * size + idx] / mom[0];
-                //printf("[tIdx %d] mom[%d] = %f\\n", idx, n, mom[n]);
+                // printf("[tIdx %d] mom[%d] = %.9f\\n", idx, n, mom[n]);
             }
             
             //compute central moments
@@ -529,18 +534,18 @@ CHYQMOM27 = '''
             c_moments[11*size + idx] = mom[15] - 4*mom[3]*mom[12] + 6*mom[3]*mom[3]*mom[9] -
             3*mom[3]*mom[3]*mom[3]*mom[3];
 
-            // printf("[%d] c_moment[%d] = %f \\n", idx, idx, c_moments[idx]);
-            // printf("[%d] c_moment[%d] = %f \\n", idx, 1*size + idx, c_moments[1*size + idx]);
-            // printf("[%d] c_moment[%d] = %f \\n", idx, 2*size + idx, c_moments[2*size + idx]);
-            // printf("[%d] c_moment[%d] = %f \\n", idx, 3*size + idx, c_moments[3*size + idx]);
-            // printf("[%d] c_moment[%d] = %f \\n", idx, 4*size + idx, c_moments[4*size + idx]);
-            // printf("[%d] c_moment[%d] = %f \\n", idx, 5*size + idx, c_moments[5*size + idx]);
-            // printf("[%d] c_moment[%d] = %f \\n", idx, 6*size + idx, c_moments[6*size + idx]);
-            // printf("[%d] c_moment[%d] = %f \\n", idx, 7*size + idx, c_moments[7*size + idx]);
-            // printf("[%d] c_moment[%d] = %f \\n", idx, 8*size + idx, c_moments[8*size + idx]);
-            // printf("[%d] c_moment[%d] = %f \\n", idx, 9*size + idx, c_moments[9*size + idx]);
-            // printf("[%d] c_moment[%d] = %f \\n", idx, 10*size + idx, c_moments[10*size + idx]);
-            // printf("[%d] c_moment[%d] = %f \\n", idx, 11*size + idx, c_moments[11*size + idx]);
+            // printf("[%d] c_moment[%d] = %.9f \\n", idx, idx, c_moments[idx]);
+            // printf("[%d] c_moment[%d] = %.9f \\n", idx, 1*size + idx, c_moments[1*size + idx]);
+            // printf("[%d] c_moment[%d] = %.9f \\n", idx, 2*size + idx, c_moments[2*size + idx]);
+            // printf("[%d] c_moment[%d] = %.9f \\n", idx, 3*size + idx, c_moments[3*size + idx]);
+            // printf("[%d] c_moment[%d] = %.9f \\n", idx, 4*size + idx, c_moments[4*size + idx]);
+            // printf("[%d] c_moment[%d] = %.9f \\n", idx, 5*size + idx, c_moments[5*size + idx]);
+            // printf("[%d] c_moment[%d] = %.9f \\n", idx, 6*size + idx, c_moments[6*size + idx]);
+            // printf("[%d] c_moment[%d] = %.9f \\n", idx, 7*size + idx, c_moments[7*size + idx]);
+            // printf("[%d] c_moment[%d] = %.9f \\n", idx, 8*size + idx, c_moments[8*size + idx]);
+            // printf("[%d] c_moment[%d] = %.18f \\n", idx, 9*size + idx, c_moments[9*size + idx]);
+            // printf("[%d] c_moment[%d] = %.18f \\n", idx, 10*size + idx, c_moments[10*size + idx]);
+            // printf("[%d] c_moment[%d] = %.18f \\n", idx, 11*size + idx, c_moments[11*size + idx]);
         }
     }
 
@@ -762,8 +767,10 @@ def chyqmom9(
 
     # compile kernel 
     CHYQMOM9_KERNEL = SourceModule(CHYQMOM9)
+    CHY27 = SourceModule(CHYQMOM27)
     HYQ = SourceModule(HYQMOM)
     HELP = SourceModule(HELPER)
+    print_device = CHY27.get_function('print_device')
     c_kernel = CHYQMOM9_KERNEL.get_function('chyqmom9_cmoments')
     float_value_set = HELP.get_function('float_value_set')
     float_array_set = HELP.get_function('float_array_set')
@@ -801,7 +808,6 @@ def chyqmom9(
     float_array_set(m1, c_moments, 
             np.int32(size * 2), np.int32(size * 3), np.int32(size * 4),
             block=BlockSize, grid=GridSize)
-    this_context.synchronize()
 
     hyqmom3(m1, x1, w1, size,
             block=BlockSize, grid=GridSize)
@@ -809,7 +815,13 @@ def chyqmom9(
             x1, w1, 
             yf, mu, size,
             block=BlockSize, grid=GridSize)
-    this_context.synchronize()
+            
+    # this_context.synchronize()
+    # print("CHYQMOM9- What is xq?")
+    # print_device(x1, np.int32(3), block=BlockSize, grid=GridSize)
+    # this_context.synchronize()
+    # print("CHYQMOM9- What is rho?")
+    # print_device(w1, np.int32(3), block=BlockSize, grid=GridSize)
     
     float_array_set(m1, mu, 
             np.int32(size * 3), np.int32(size * 2), np.int32(0),
@@ -864,6 +876,8 @@ def chyqmom27(
     chyqmom27_zout = CHY27.get_function('chyqmom27_zout')
 
 
+
+
     # Allocate memory 
     moments_device = cuda.mem_alloc(int(sizeof_float * size * 16))
     c_moments = cuda.mem_alloc(int(sizeof_float * size * 12))
@@ -901,16 +915,24 @@ def chyqmom27(
     float_array_set(m, c_moments, size, np.int32(3) * size, np.int32(6) * size, block=BlockSize, grid=GridSize)
     float_array_set(m, c_moments, size, np.int32(4) * size, np.int32(9) * size, block=BlockSize, grid=GridSize)
 
+    # print("What is m1?")
+    # print_device(m, np.int32(5), block=BlockSize, grid=GridSize)
+
     hyqmom3(m, x1, w1, size, block=BlockSize, grid=GridSize)
 
     # Is this faster? 
     chyqmom27_set_m(m, c_moments, size, block=BlockSize, grid=GridSize)
 
-    this_context.synchronize()
+    # this_context.synchronize()
     # print_device(m, np.int32(10), block=BlockSize, grid=GridSize)
-    this_context.synchronize()
+    # this_context.synchronize()
     # print("Entering CHYQMOM9")
     chyqmom9(m, size, w2, x2, y2)
+
+    # this_context.synchronize()
+    # print("What is w2?")
+    # print_device(w2, np.int32(10), block=BlockSize, grid=GridSize)
+
 
     chyqmom27_rho_yf(c_moments, y2, w2, rho, yf, yp, size, block=BlockSize, grid=GridSize)
     chyqmom27_zf(c_moments, x1, zf, size, block=BlockSize, grid=GridSize) 
@@ -925,6 +947,11 @@ def chyqmom27(
     chyqmom27_xout(moments_device, x1, x_dev, size, block=BlockSize, grid=GridSize)
     chyqmom27_yout(moments_device, yf, yp, y_dev, size, block=BlockSize, grid=GridSize)
     chyqmom27_zout(moments_device, zf, x3, z_dev, block=BlockSize, grid=GridSize)
+
+    cuda.memcpy_dtoh(w, w_dev)
+    cuda.memcpy_dtoh(x, x_dev)
+    cuda.memcpy_dtoh(y, y_dev)
+    cuda.memcpy_dtoh(z, z_dev)
 
     # this_context.synchronize()
     # print("Entering rho")
@@ -943,17 +970,31 @@ def chyqmom27(
     # print_device(w3, np.int32(3*2), block=BlockSize, grid=GridSize)
     # this_context.synchronize()
     # print("Final w_dev")
-    # print_device(w_dev, np.int32(27*2), block=BlockSize, grid=GridSize)
+    # print_device(w_dev, np.int32(27*1), block=BlockSize, grid=GridSize)
 
 
 if __name__ == "__main__":
     num_moments = int(1e6)
     moment = init_moment_27(num_moments)
-    print(moment)
+    # print(moment)
 
-    w = cuda.aligned_zeros((9, num_moments), dtype=np.float32)
-    x = cuda.aligned_zeros((9, num_moments), dtype=np.float32)
-    y = cuda.aligned_zeros((9, num_moments), dtype=np.float32)
-    z = cuda.aligned_zeros((9, num_moments), dtype=np.float32)
+    w_truth = [0.00462963, 0.01851852, 0.00462963, 0.01851852, 0.07407407, 0.01851852,
+               0.00462963, 0.01851852, 0.00462963, 0.01851852, 0.07407407, 0.01851852,
+               0.07407407, 0.2962963,  0.07407407, 0.01851852, 0.07407407, 0.01851852,
+               0.00462963, 0.01851852, 0.00462963, 0.01851852, 0.07407407, 0.01851852,
+               0.00462963, 0.01851852, 0.00462963]
+
+    w_compare = np.asarray([w_truth, ] * num_moments, dtype=np.float32).transpose()
+
+    w = cuda.aligned_zeros((27, num_moments), dtype=np.float32)
+    x = cuda.aligned_zeros((27, num_moments), dtype=np.float32)
+    y = cuda.aligned_zeros((27, num_moments), dtype=np.float32)
+    z = cuda.aligned_zeros((27, num_moments), dtype=np.float32)
 
     chyqmom27(moment, num_moments, w, x, y, z)
+    # print([w_compare, w])
+
+    # for i in range(27):
+    #     if (w_compare[i] != w[i]):
+    #         print("mismatch at {}: {}, {} ".format(i, w_compare[i], w[i]))
+    # assert(np.all(w_compare == w))

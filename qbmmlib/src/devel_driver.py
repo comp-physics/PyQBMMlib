@@ -53,6 +53,7 @@ def flow_example():
                                            sigma1, sigma2, sigma3 )
     moments_left = moments
     moments_right = moments
+    print(moments)
 
     # moments_left, moments_right = jet_initialize_moments(qbmm_mgr)
 

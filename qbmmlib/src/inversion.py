@@ -206,6 +206,7 @@ def hyqmom3(moments, max_skewness=30, checks=True):
     :rtype: array like
     """
 
+    print("ENTERING HYQMOMO3 ==============")
     n = 3
     etasmall = 10 ** (-10)
     verysmall = 10 ** (-14)
@@ -270,6 +271,7 @@ def hyqmom3(moments, max_skewness=30, checks=True):
         q = c3 / math.sqrt(c2) / c2
         eta = c4 / c2 / c2
 
+    eta_test = c4/c2
     if q ** 2 > max_skewness ** 2:
         slope = (eta - 3) / q
         if q > 0:
@@ -281,7 +283,8 @@ def hyqmom3(moments, max_skewness=30, checks=True):
             realizable = eta - 1 - q ** 2
             if realizable < 0:
                 eta = 1 + q ** 2
-
+    print(c2, c3, c4)
+    print(scale, q, eta, eta_test)
     xps[0] = (q - math.sqrt(4 * eta - 3 * q ** 2)) / 2.0
     xps[1] = 0.0
     xps[2] = (q + math.sqrt(4 * eta - 3 * q ** 2)) / 2.0
@@ -323,8 +326,10 @@ def conditional_hyperbolic(moments, indices, max_skewness=30, checks=True):
     num_dim = len(indices)
 
     if num_dim == 6:
+        print("using chyqmom6")
         return chyqmom4(moments, indices)
     elif num_dim == 10:
+        print("using chyqmom10")
         return chyqmom9(moments, indices, max_skewness, checks)
     elif num_dim == 16:
         print("using chyqmom27")
@@ -464,6 +469,10 @@ def chyqmom9(moments, indices, max_skewness=30, checks=True):
     M1 = np.array([1, 0, c20, c30, c40])
     print(M1)
     xp, rho = hyqmom3(M1, max_skewness, checks)
+    print("xp")
+    print(xp)
+    print("rho")
+    print(rho)
 
     if checks and c20 < csmall:
         rho[0] = 0.0
@@ -781,6 +790,8 @@ def chyqmom27(moments, indices, max_skewness=30, checks=True):
         c004 = eta * c002 ** 2
 
     M1 = np.array([1, 0, c200, c300, c400])
+    print('M1--------------------------')
+    print(M1)
     xp, rho = hyqmom3(M1, max_skewness, checks)
 
     print("First hyqmom res")
@@ -982,6 +993,7 @@ def chyqmom27(moments, indices, max_skewness=30, checks=True):
         M4 = np.array([1, 0, 0, c200, c110, c020, c300, c030, c400, c040])
         print("M4 =================")
         print(M4)
+        print("Entering CHYQMOM9=================")
         Q4, W4 = chyqmom9(M4, RF_idx, max_skewness, checks)
         X4 = Q4[0]
         Y4 = Q4[1]
