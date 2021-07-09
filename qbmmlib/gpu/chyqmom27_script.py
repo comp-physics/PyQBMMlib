@@ -974,7 +974,7 @@ def chyqmom27(
 
 
 if __name__ == "__main__":
-    num_moments = int(1e6)
+    num_moments = int(1e5)
     moment = init_moment_27(num_moments)
     # print(moment)
 
@@ -992,7 +992,7 @@ if __name__ == "__main__":
     z = cuda.aligned_zeros((27, num_moments), dtype=np.float32)
 
     chyqmom27(moment, num_moments, w, x, y, z)
-    # print([w_compare, w])
+    print([w_compare, w])
 
     # for i in range(27):
     #     if (w_compare[i] != w[i]):
