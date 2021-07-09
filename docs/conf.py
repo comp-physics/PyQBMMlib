@@ -15,6 +15,10 @@
 import os
 import sys
 
+sys.path.insert(0, os.path.abspath("../src/"))
+sys.path.insert(0, os.path.abspath("../utils/"))
+sys.path.insert(0, os.path.abspath("../test/"))
+
 sys.path.insert(0, os.path.abspath("../qbmmlib/gpu/"))
 sys.path.insert(0, os.path.abspath("../qbmmlib/src/"))
 sys.path.insert(0, os.path.abspath("../qbmmlib/utils/"))
@@ -87,6 +91,7 @@ pygments_style = None
 # a list of builtin themes.
 #
 html_theme = 'sphinx_rtd_theme'
+html_theme = "classic"
 # html_theme = 'alabaster'
 
 # Theme options are theme-specific and customize the look and feel of a theme
