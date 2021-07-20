@@ -441,15 +441,19 @@ def chyqmom27(moments, N):
     RAB[:, 1, 1] *= rho0[:, 1]
     RAB[:, 2, 2] *= rho0[:, 2]
 
-    SUM002 = np.sum(np.multiply(RAB, zf**2), axis=(1, 2))
+    # SUM002 = np.sum(np.multiply(RAB, zf**2), axis=(1, 2))
+    SUM002 = np.sum(np.multiply(RAB, zf**2), axis=2)
+    SUM002 = np.sum(SUM002, axis=1)
     mu2 = c002 - SUM002
 
-    SUM3 = np.sum(np.multiply(RAB, zf**3), axis=(1, 2))
+    SUM3 = np.sum(np.multiply(RAB, zf**3), axis=2)
+    SUM3 = np.sum(SUM3, axis=1)
     SUM1 = mu2 ** (3 / 2)
     q = (c003 - SUM3) / SUM1
 
     SUM2 = mu2 ** 2
-    SUM4 = np.sum(np.multiply(RAB, zf**4), axis=(1, 2)) + 6 * SUM002 * mu2
+    SUM4 = np.sum(np.multiply(RAB, zf**4), axis=1)
+    SUM4 = np.sum(SUM4, axis=1) + 6 * SUM002 * mu2
     eta = (c004 - SUM4) / SUM2
     
     mu3 = q * SUM1
