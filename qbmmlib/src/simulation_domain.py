@@ -1,3 +1,4 @@
+from os import stat
 import sys
 sys.path.append('../utils/')
 
@@ -5,6 +6,8 @@ from qbmm_manager import *
 from stats_util import *
 from jets_util import *
 from itertools import product
+
+from config_manager import config_manager
 
 import numba
 from nquad import *
@@ -49,6 +52,7 @@ class simulation_domain():
         print("\t extents      = [%.4E, %.4E]" % (self.extents[0], self.extents[1]))
         print("\t grid spacing = %.4E" % self.grid_spacing)
         
+        
         # Initialize grid state & rhs
         self.state = np.zeros([self.num_points, self.qbmm_mgr.num_moments])
         self.rhs = np.zeros([self.num_points, self.qbmm_mgr.num_moments])
@@ -56,7 +60,8 @@ class simulation_domain():
         # Initialize weights and abscissas
         self.weights = np.zeros([self.num_points, self.qbmm_mgr.num_nodes])
         self.abscissas = np.zeros([self.num_points, self.qbmm_mgr.num_coords, self.qbmm_mgr.num_nodes])
-        
+        print("\t weight = %.4E" % len(self.weights))
+        print("\t abscissas = %.4E" % len(self.abscissas))
         return
 
     
@@ -105,6 +110,11 @@ class simulation_domain():
         moments_right = projection(wts_right, xi_right, self.qbmm_mgr.indices,
                 self.qbmm_mgr.num_coords, self.qbmm_mgr.num_nodes)
 
+        print("SIZE OF ARRAYS")
+        print("moments_left", moments_left.shape)
+        print("state:", state.shape)
+        print("weights", self.weights.shape)
+        print("abscissas:", self.abscissas.shape)
         state[:disc_idx] = moments_left
         state[-disc_idx:] = moments_right
         state[0] = moments_right
@@ -131,8 +141,12 @@ class simulation_domain():
         :param state: domain moments
         :type state: array like
         """
+        print("Entering compute_rhs -------------------------")
+
         if self.flow:
             self.grid_inversion(state)
+            print("State - ")
+            print(state.shape)
             domain_get_fluxes(self.weights, self.abscissas, self.qbmm_mgr.indices,
                            self.num_points, self.qbmm_mgr.num_moments,
                            self.qbmm_mgr.num_nodes, self.flux)
@@ -175,7 +189,18 @@ class simulation_domain():
             raise NotImplementedError
 
     def project(self, state):
+        print("entering project---")
         domain_project(state, self.qbmm_mgr.indices, 
                     self.weights, self.abscissas,
                     self.num_points, self.qbmm_mgr.num_coords,
                     self.qbmm_mgr.num_nodes)        
+
+if __name__ == "__main__":
+    config_file = '../../inputs/example_2d.yaml'
+
+    config_mgr = config_manager(config_file)
+    config = config_mgr.get_config()
+
+    Domain = simulation_domain(config)
+    
+

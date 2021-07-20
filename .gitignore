@@ -20,7 +20,7 @@ build
 *.egg
 *.egg-info
 *.egg
-dist
+dist/
 
 # data 
 *.csv

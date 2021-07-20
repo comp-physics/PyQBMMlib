@@ -42,7 +42,7 @@ def quadrature_limited(weights, abscissas, moment_index, num_coords, num_nodes):
     flux_min = np.zeros(num_nodes)
     flux_max = np.zeros(num_nodes)
     for n in range(num_nodes):
-        q = weights[n] * np.prod(abscissas[:,n]**moment_index[:])
+        q = weights[n] * np.prod(moment_index[:,n]**moment_index[:])
         flux_min[n] = q * min(abscissas[0, n], 0.)
         flux_max[n] = q * max(abscissas[0, n], 0.)
     return np.sum(flux_min), np.sum(flux_max)
@@ -61,6 +61,7 @@ def flux_quadrature(weights, abscissas, indices, num_moments, num_nodes, num_poi
 @njit
 def domain_get_fluxes(weights, abscissas, indices, num_points, num_moments, num_nodes, flux):
 
+    print("entering domain_get_flux")
     f_min, f_max = flux_quadrature(
                     weights, abscissas, 
                     indices, num_moments, 
@@ -75,6 +76,7 @@ def domain_get_fluxes(weights, abscissas, indices, num_points, num_moments, num_
 def domain_project(state, indices, weights, abscissas, num_points, num_coords, num_nodes):
     # Input: Weights, abscissas, indices, num_points, num_coords, num_nodes
     # Output: State
+
 
     for i_point in range(1, num_points-1):
         state[i_point] = projection(

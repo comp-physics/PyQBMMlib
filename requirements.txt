@@ -3,7 +3,7 @@ sympy==1.7.1
 scipy==1.5.4
 numba==0.52.0
 pytest==6.2.0
-PyYAML==5.3.1
+h5py
 
 # dependency of pycuda
 six
