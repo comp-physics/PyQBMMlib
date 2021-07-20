@@ -846,6 +846,16 @@ def chyqmom9(
                 yf, y, size,
                 block=BlockSize, grid=GridSize)
 
+    c_moments.free()
+    mu.free()
+    yf.free()
+    m1.free()
+    w1.free()
+    x1.free()
+    w2.free()
+    x2.free()
+
+
 def chyqmom27(
     moments: np.ndarray, 
     size: int, 
@@ -882,9 +892,6 @@ def chyqmom27(
     chyqmom27_xout = CHY27.get_function('chyqmom27_xout')
     chyqmom27_yout = CHY27.get_function('chyqmom27_yout')
     chyqmom27_zout = CHY27.get_function('chyqmom27_zout')
-
-
-
 
     # Allocate memory 
     moments_device = cuda.mem_alloc(int(sizeof_float * size * 16))
@@ -988,6 +995,32 @@ def chyqmom27(
     # print("Final w_dev")
     # print_device(w_dev, np.int32(27*1), block=BlockSize, grid=GridSize)
 
+    moments_device.free()
+    c_moments.free()
+
+    m.free()
+    w1.free()
+    x1.free()
+
+    w2.free()
+    x2.free()
+    y2.free()
+
+    rho.free()
+    yf.free()
+    yp.free()
+    zf.free()
+
+    w3.free()
+    x3.free()
+
+    mu.free()
+
+    w_dev.free()
+    x_dev.free()
+    y_dev.free()
+    z_dev.free()
+
     return elapsed_time
 
 def time_script():
@@ -1023,7 +1056,7 @@ def time_script():
         for i in range(0, trial, 1):
             # GPU time
 
-            # this_result_gpu[i] = chyqmom27(this_moment, int(in_size), w, x, y, z)
+            this_result_gpu[i] = chyqmom27(this_moment, int(in_size), w, x, y, z)
 
             # numba time: 
             start_time = time.perf_counter()
