@@ -1,7 +1,7 @@
 import sys
 
 sys.path.append("../src/")
-from qbmm_manager import *
+# from qbmmlib.src.qbmm_manager import *
 import numpy as np
 
 

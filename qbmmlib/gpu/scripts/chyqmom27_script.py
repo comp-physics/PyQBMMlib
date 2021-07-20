@@ -1013,12 +1013,7 @@ def chyqmom27(
 
     mu.free()
 
-    w_dev.free()
-    x_dev.free()
-    y_dev.free()
-    z_dev.free()
-
-    return elapsed_time
+    return elapsed_time, w_dev, x_dev, y_dev, z_dev
 
 def time_script():
     res_file_name = 'chyqmom4_res_2.csv' # output data file name
@@ -1050,7 +1045,7 @@ def time_script():
         for i in range(0, trial, 1):
             # GPU time
             try: 
-                this_result_gpu[i] = chyqmom27(this_moment, int(in_size))
+                this_result_gpu[i], w, x,y,z = chyqmom27(this_moment, int(in_size))
             except: 
                 pass
             # chyqmom27(this_moment, int(in_size))
@@ -1060,6 +1055,10 @@ def time_script():
             stop_time = time.perf_counter()
             this_result_cpu[i] = (stop_time - start_time) * 1e3 #ms
 
+            w.free()
+            x.free()
+            y.free()
+            z.free()
         result[idx, 1] = np.min(this_result_cpu)
         result[idx, 2] = np.min(this_result_gpu)
         print("[{}/{}] running on {} inputs, CPU: {:4f}, GPU: {:4f}".format(

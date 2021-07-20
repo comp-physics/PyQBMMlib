@@ -1,5 +1,5 @@
 import numpy as np
-from inversion import hyqmom3, chyqmom9, chyqmom27
+from qbmmlib.src.inversion import hyqmom3, chyqmom9, chyqmom27
 from numba import njit, prange
 
 @njit
@@ -101,11 +101,6 @@ def domain_get_fluxes(weights, abscissas, indices, num_points, num_moments, num_
                     weights, abscissas, 
                     indices, num_moments, 
                     num_nodes, num_points)
-        
-    print("domain_get_flux ==============")
-    print("fmin.shape", f_max[0,:].shape)
-
-
     f_sum = np.zeros_like(flux)
     f_sum[1:-1,:] = np.sum(f_max[0:-2,:] + f_min[1:-1,:],axis=2)
     flux[1:-2] = f_sum[1:-2] - f_sum[2:-1]
@@ -146,6 +141,28 @@ def domain_invert_3d(state, indices, weights, abscissas, num_points, num_coords,
     weights[0] = wts
 
     xi, wts = chyqmom27(state[-1], indices)
+    abscissas[-1] = xi.T
+    weights[-1] = wts
+
+    return weights, abscissas
+
+@njit(parallel=True)
+def domain_invert_3d_rowmajor(state, indices, weights, abscissas, num_points, num_coords, num_nodes):
+    # Input: State, indices, num_points, num_coords, num_nodes
+    # Output: Weights, abscissas
+
+    for i_point in prange(1, num_points-1):
+        # Invert
+        xi, wts = chyqmom27(state[:, i_point], indices)
+        abscissas[i_point] = xi.T
+        weights[i_point] = wts
+
+    # Boundary conditions
+    xi, wts = chyqmom27(state[:, 0], indices)
+    abscissas[0] = xi.T
+    weights[0] = wts
+
+    xi, wts = chyqmom27(state[:, -1], indices)
     abscissas[-1] = xi.T
     weights[-1] = wts
 

@@ -192,11 +192,13 @@ class Chyqmom9(Chyqmom):
             self.xout_kernel[dev_id](self.moments_device[dev_id][i], self.x1[dev_id][i], 
                         self.x_device[dev_id][i], size_per_batch,
                         block=self.block_size, grid=self.grid_size, stream=self.streams[dev_id][i])
+
             cuda.memcpy_dtoh_async(self.x_chunk_host[dev_id][i], self.x_device[dev_id][i], stream=self.streams[dev_id][i])
             
             self.yout_kernel[dev_id](self.moments_device[dev_id][i], self.x2[dev_id][i], 
                         self.yf[dev_id][i], self.y_device[dev_id][i], size_per_batch,
                         block=self.block_size, grid=self.grid_size, stream=self.streams[dev_id][i])
+                        
             cuda.memcpy_dtoh_async(self.y_chunk_host[dev_id][i], self.y_device[dev_id][i], stream=self.streams[dev_id][i])
         
         ctx.synchronize()
