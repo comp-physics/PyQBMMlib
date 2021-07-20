@@ -9,9 +9,6 @@ from inversion_vectorized import chyqmom27 as chyqmom27_cpu
 import time
 from numba import njit, config, set_num_threads, threading_layer
 
-import time
-
-
 HELPER = '''
     // set a segment of memory to a specific value
     __global__ void float_value_set(float *addr, float value, int size, int offset) {
@@ -329,7 +326,7 @@ CHYQMOM9 = '''
         const int tIdx = blockIdx.x * blockDim.x + threadIdx.x;
         for (int idx = tIdx; idx < size; idx+=blockDim.x*gridDim.x) {
             float c_local[5] = {
-                c_moments[idx],             // c02
+                c_moments[idx],           // c02
                 c_moments[1*size + idx],  // c11
                 c_moments[2*size + idx],  // c20
                 c_moments[4*size + idx],  // c03
@@ -637,12 +634,12 @@ CHYQMOM27 = '''
             float mu_local[3];
 
             rho_local[0] = rho[idx];
-            rho_local[1] = rho[4*size + idx];
-            rho_local[2] = rho[8*size + idx];
+            rho_local[1] = rho[1*size + idx];
+            rho_local[2] = rho[2*size + idx];
 
             Zf_local[0] = zf[idx];
-            Zf_local[1] = zf[4*size + idx];
-            Zf_local[2] = zf[8*size + idx];
+            Zf_local[1] = zf[1*size + idx];
+            Zf_local[2] = zf[2*size + idx];
 
             // mu2 = c002 - sum(RAB * ZF ^ 2)
             float SUM002 = sum_pow(rho_local, Zf_local, 2, 3);
@@ -858,11 +855,7 @@ def chyqmom9(
 
 def chyqmom27(
     moments: np.ndarray, 
-    size: int, 
-    w: np.ndarray,
-    x: np.ndarray, 
-    y: np.ndarray,
-    z: np.ndarray):
+    size: int):
 
     mem_d_size_in_byte = np.ones(size).astype(np.float32).nbytes
     sizeof_float = np.int32(np.dtype(np.float32).itemsize)
@@ -871,9 +864,6 @@ def chyqmom27(
     BlockSize = (256, 1, 1)
     GridSize = (size +BlockSize[0] - 1) /BlockSize[0];
     GridSize = (int(GridSize), 1, 1)
-
-    time_before = cuda.Event()
-    time_after = cuda.Event()
 
     # compile kernel
     HYQ = SourceModule(HYQMOM)
@@ -892,6 +882,11 @@ def chyqmom27(
     chyqmom27_xout = CHY27.get_function('chyqmom27_xout')
     chyqmom27_yout = CHY27.get_function('chyqmom27_yout')
     chyqmom27_zout = CHY27.get_function('chyqmom27_zout')
+
+    w = cuda.aligned_zeros((27, int(size)), dtype=np.float32)
+    x = cuda.aligned_zeros((27, int(size)), dtype=np.float32)
+    y = cuda.aligned_zeros((27, int(size)), dtype=np.float32)
+    z = cuda.aligned_zeros((27, int(size)), dtype=np.float32)
 
     # Allocate memory 
     moments_device = cuda.mem_alloc(int(sizeof_float * size * 16))
@@ -925,6 +920,9 @@ def chyqmom27(
 
     cuda.memcpy_htod(moments_device, moments)
     # Is this faster? 
+
+    time_before = cuda.Event()
+    time_after = cuda.Event()
 
     time_before.record()
 
@@ -968,8 +966,7 @@ def chyqmom27(
 
     time_after.record()
     time_after.synchronize()
-
-    elapsed_time = time_after.time_since(time_before)
+    elapsed_time =  time_after.time_since(time_before)
     
     cuda.memcpy_dtoh(w, w_dev)
     cuda.memcpy_dtoh(x, x_dev)
@@ -1025,7 +1022,7 @@ def chyqmom27(
 
 def time_script():
     res_file_name = 'chyqmom4_res_2.csv' # output data file name
-    max_input_size_mag = 7             # max number of input point (power of 10)
+    max_input_size_mag = 6             # max number of input point (power of 10)
     num_points = 200                   # number of runs collected 
     trial = 5                          # For each run, the number of trials run. 
     num_device = 1                     # number of GPUs used
@@ -1043,27 +1040,26 @@ def time_script():
 
     # generate a set of input data size, linear in log space between 1 and maximum 
     for idx, in_size in enumerate(np.logspace(1, max_input_size_mag, num=num_points)):
+    # for idx, in_size in enumerate(np.linspace(1e5, 1e6, num_points)):
         result[idx, 0] = idx
         result[idx, 1] = int(in_size)
 
         this_moment = init_moment_27(int(in_size))
-        # output from GPU 
-        w = cuda.aligned_zeros((27, int(in_size)), dtype=np.float32)
-        x = cuda.aligned_zeros((27, int(in_size)), dtype=np.float32)
-        y = cuda.aligned_zeros((27, int(in_size)), dtype=np.float32)
-        z = cuda.aligned_zeros((27, int(in_size)), dtype=np.float32)
+        # output from GPU
 
         for i in range(0, trial, 1):
             # GPU time
-
-            this_result_gpu[i] = chyqmom27(this_moment, int(in_size), w, x, y, z)
-
+            try: 
+                this_result_gpu[i] = chyqmom27(this_moment, int(in_size))
+            except: 
+                pass
+            # chyqmom27(this_moment, int(in_size))
             # numba time: 
             start_time = time.perf_counter()
             chyqmom27_cpu(this_moment.transpose(), int(in_size))
             stop_time = time.perf_counter()
             this_result_cpu[i] = (stop_time - start_time) * 1e3 #ms
-        
+
         result[idx, 1] = np.min(this_result_cpu)
         result[idx, 2] = np.min(this_result_gpu)
         print("[{}/{}] running on {} inputs, CPU: {:4f}, GPU: {:4f}".format(
@@ -1074,8 +1070,16 @@ def time_script():
 if __name__ == "__main__":
     time_script()
    
-    # in_size = 500
+    # in_size = 5e5
 
-    # this_moment = init_moment_27(int(in_size))
+    # for i in range(200):
+    #     this_moment = init_moment_27(int(in_size))
+    #     t1 = chyqmom27(this_moment, int(in_size))
+    #     t2 = chyqmom27(this_moment, int(in_size))
+    #     t3 = chyqmom27(this_moment, int(in_size))
+    #     t4 = chyqmom27(this_moment, int(in_size))
+    #     t5 = chyqmom27(this_moment, int(in_size))
+    #     print(i, t1, t2, t3, t4, t5)
+
     # w, x, y, z = chyqmom27_cpu(this_moment.transpose(), int(in_size))
     # print(w)

@@ -13,10 +13,11 @@ import time
 
 from qbmmlib.gpu.chyqmom_kernel import HELPER, CHYQMOM27, CHYQMOM9, HYQMOM, SIZEOF_FLOAT
 from qbmmlib.gpu.chyqmom import Chyqmom
+from qbmmlib.gpu.chyqmom9 import Chyqmom9
 
 class Chyqmom27(Chyqmom): 
     """
-    The Chyqmom9 method.
+    The Chyqmom27 method.
     """
     def __init__(self, 
         num_gpu: int, 
@@ -43,6 +44,7 @@ class Chyqmom27(Chyqmom):
 
         '''
         super().__init__(num_gpu, in_size, stream=stream, block=block)
+        self.chyqmom9 = Chyqmom9(num_gpu, in_size, stream=stream, block=block)
 
     def _init_thread_memory(self, dev_id:int, ctx:cuda.Context, alloc_size: int) -> None:
         '''
