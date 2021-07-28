@@ -23,7 +23,7 @@ When compared to QBMMlib, PyQBMMlib offers significantly decreased time to solut
 ## Authors: 
 
 * [Spencer H. Bryngelson](https://bryngelson-research.com) (Caltech) 
-    * spencer@caltech.edu
+    * shb@gatech.edu
 * Esteban Cisneros (Illinois)
     * csnrsgr2@illinois.edu
 
