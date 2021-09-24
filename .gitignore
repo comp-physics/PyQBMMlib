@@ -4,5 +4,25 @@ tags
 *.ipynb_checkpoints
 
 D
+src/output
 _build
 __pycache__
+
+.vscode
+.metadata
+RemoteSystemsTempFiles
+
+# virtual environment
+env
+
+# build results 
+build
+*.egg
+*.egg-info
+*.egg
+dist/
+
+# data 
+*.csv
+*.png
+profile*
