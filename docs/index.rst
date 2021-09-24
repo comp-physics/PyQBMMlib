@@ -6,12 +6,17 @@
 Welcome to PyQBMMlib's documentation!
 =====================================
 
-TOC Tree
+
+GPU Section
 =========================
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 1
+
+   gpu/start.rst
+   reference/gpu/start.rst
+   examples/Chyqmom4_example
+   TODO.rst
 
 Drivers
 =========================

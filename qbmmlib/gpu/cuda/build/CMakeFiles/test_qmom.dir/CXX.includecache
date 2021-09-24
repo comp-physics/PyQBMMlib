@@ -1,0 +1,34 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/spencer/research/solvers/PyQBMMlib_GPU_qifan/qbmmlib/gpu/cuda/main.cpp
+cassert
+-
+main.hpp
+/Users/spencer/research/solvers/PyQBMMlib_GPU_qifan/qbmmlib/gpu/cuda/main.hpp
+
+/Users/spencer/research/solvers/PyQBMMlib_GPU_qifan/qbmmlib/gpu/cuda/main.hpp
+cstdio
+-
+cstring
+-
+cstdlib
+-
+chrono
+-
+
+/Users/spencer/research/solvers/PyQBMMlib_GPU_qifan/qbmmlib/gpu/cuda/qmom_openmp.cpp
+cmath
+-
+omp.h
+-
+stdbool.h
+-
+main.hpp
+/Users/spencer/research/solvers/PyQBMMlib_GPU_qifan/qbmmlib/gpu/cuda/main.hpp
+

@@ -1,6 +1,11 @@
-pytest==6.2.5
+numpy==1.19.4
 sympy==1.7.1
 scipy==1.5.4
-PyYAML==5.4.1
-numba==0.54.0
-numpy==1.19.2
+numba==0.52.0
+pytest==6.2.0
+h5py
+
+# dependency of pycuda
+six
+pycuda
+PyYAML==5.4

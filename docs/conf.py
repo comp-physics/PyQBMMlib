@@ -19,6 +19,10 @@ sys.path.insert(0, os.path.abspath("../src/"))
 sys.path.insert(0, os.path.abspath("../utils/"))
 sys.path.insert(0, os.path.abspath("../test/"))
 
+sys.path.insert(0, os.path.abspath("../qbmmlib/gpu/"))
+sys.path.insert(0, os.path.abspath("../qbmmlib/src/"))
+sys.path.insert(0, os.path.abspath("../qbmmlib/utils/"))
+sys.path.insert(0, os.path.abspath("../qbmmlib/test/"))
 
 # -- Project information -----------------------------------------------------
 
@@ -48,7 +52,10 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.inheritance_diagram",
     "sphinx.ext.napoleon",
+    "nbsphinx"
 ]
+
+autodoc_mock_imports = ["qbmmlib.gpu.chyqmom_kernel"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -83,6 +90,7 @@ pygments_style = None
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
+html_theme = 'sphinx_rtd_theme'
 html_theme = "classic"
 # html_theme = 'alabaster'
 
@@ -193,3 +201,4 @@ intersphinx_mapping = {"https://docs.python.org/": None}
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
+
