@@ -1,12 +1,11 @@
 # PyQBMMlib
 
-![CI](https://github.com/sbryngelson/PyQBMMlib/workflows/CI/badge.svg)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+![CI](https://github.com/comp-physics/PyQBMMlib/workflows/CI/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/pyqbmmlib/badge/?version=latest)](https://pyqbmmlib.readthedocs.io/en/latest/?badge=latest)
 [![DOI](https://zenodo.org/badge/doi/10.1016/j.softx.2020.100615.svg)](http://dx.doi.org/10.1016/j.softx.2020.100615)
 
 
-PyQBMMlib is a Python fork of [QBMMlib](https://github.com/sbryngelson/QBMMlib), which was developed by Dr. Spencer Bryngelson, Prof. Rodney Fox, and Prof. Tim Colonius. 
+PyQBMMlib is a Python fork of [QBMMlib](https://github.com/comp-physics/QBMMlib), which was developed by Prof. Spencer Bryngelson, Prof. Rodney Fox, and Prof. Tim Colonius. 
 It can be cited as
 ```
 @article{bryngelson_2020,
@@ -22,7 +21,7 @@ When compared to QBMMlib, PyQBMMlib offers significantly decreased time to solut
 
 ## Authors: 
 
-* [Spencer H. Bryngelson](https://bryngelson-research.com) (Caltech) 
+* [Spencer H. Bryngelson](https://comp-physics.group) (Georgia Tech) 
     * shb@gatech.edu
 * Esteban Cisneros (Illinois)
     * csnrsgr2@illinois.edu
@@ -56,3 +55,7 @@ A partial list is included here.
 
 Great thanks is owed to Professor Alberto Passalacqua (Iowa State University) for his part in developing these algorithms and teaching me the same.
 We acknowledge funding from the U.S. Office of Naval Research under grant numbers N0014-17-1-2676 and N0014-18-1-2625 (SHB) and the U.S. Department of Energy, National Nuclear Security Administration, under Award Number DE-NA0002374 (ECG).
+
+## License
+
+PyQBMMlib is under the MIT license.
