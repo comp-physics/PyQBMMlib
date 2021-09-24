@@ -1,6 +1,6 @@
 numpy==1.19.4
-sympy==1.7.1
 scipy==1.5.4
-numba==0.52.0
-pytest==6.2.0
-PyYAML==5.4
+sympy==1.7.1
+numba==0.54.0
+pytest==6.2.5
+PyYAML==5.4.1
