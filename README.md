@@ -19,6 +19,8 @@ It can be cited as
 ```
 When compared to QBMMlib, PyQBMMlib offers significantly decreased time to solution (when using Numba).
 
+PyQBMMlib is used to train new QBMMs based on neural networks in [this paper](https://arxiv.org/abs/2110.01374).
+
 ## Authors: 
 
 * [Spencer H. Bryngelson](https://comp-physics.group) (Georgia Tech) 
