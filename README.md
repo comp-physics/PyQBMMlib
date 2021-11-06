@@ -24,9 +24,7 @@ PyQBMMlib is used to train new QBMMs based on neural networks in [this paper](ht
 ## Authors: 
 
 * [Spencer H. Bryngelson](https://comp-physics.group) (Georgia Tech) 
-    * shb@gatech.edu
-* Esteban Cisneros (Illinois)
-    * csnrsgr2@illinois.edu
+* Esteban Cisneros (Princeton)
 
 ## Required Python modules
 
@@ -34,7 +32,7 @@ PyQBMMlib is used to train new QBMMs based on neural networks in [this paper](ht
 - Numpy
 - Scipy
 - Sympy
-- Optional: Numba (significant speed increase via JIT compiling)
+- Optional: Numba (significant speedup via JIT compiling)
 
 ## Current capabilities 
 
