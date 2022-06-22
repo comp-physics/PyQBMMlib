@@ -3,4 +3,4 @@ sympy==1.7.1
 scipy==1.5.4
 PyYAML==5.4.1
 numba==0.54.0
-numpy==1.19.2
+numpy==1.22.0
