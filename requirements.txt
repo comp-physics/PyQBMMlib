@@ -1,4 +1,4 @@
-pytest==6.2.5
+pytest==9.0.3
 sympy==1.7.1
 scipy==1.5.4
 PyYAML==5.4.1
